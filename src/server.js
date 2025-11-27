@@ -1,22 +1,36 @@
+const dotenv = require("dotenv");
+dotenv.config();
+
+// require("./dbconfigration");
+require("./config/prisma");
 const express = require("express");
-const bodyParser = require("body-parser");
-
-// Routes
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const homeRoutes = require("./routes/homeRoutes");
-
 const app = express();
+const cors = require("cors");
+// const serverless = require('serverless-http');
 
-// Middlewares
-app.use(bodyParser.json());
+const corsOptions = {
+  origin: "*", // Allowed origins
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "*", // Allow all headers
+  credentials: true,
+  optionsSuccessStatus: 200, // for legacy browsers
+};
+app.use(cors(corsOptions));
 
-// API Routes
-app.use("/api", authRoutes);
-app.use("/api", userRoutes);
-app.use("/api", homeRoutes);
+app.use(express.json({ limit: "2000mb" }));
+app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
 
-// Start server
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
+
+app.use("/api", require("./routes/userRoutes"));
+
+
+app.get("/", (req, res) => {
+  res.json({
+    msg: "Hello World",
+    status: 200,
+  });
 });
+
+const server = app.listen(PORT, () => console.log("Server is running at port : " + PORT));
+server.timeout = 360000;
