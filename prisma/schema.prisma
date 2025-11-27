@@ -1,0 +1,172 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  users      User[]
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  role_id       Int
+  email         String    @unique
+  full_name     String
+  password      String
+  profile_image String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+  role          Role      @relation(fields: [role_id], references: [id])
+  blacklistedTokens BlacklistedToken[]
+
+}
+
+model University {
+  id            Int                @id @default(autoincrement())
+  slug          String             @unique
+  name          String
+  icon          String?
+  cover_image   String?
+  position      Int?               @default(0)
+  created_at    DateTime           @default(now())
+  updated_at    DateTime           @updatedAt
+  deleted_at    DateTime?
+  details       UniversityDetail[]
+  courseDetails CourseDetails[]
+  blogs         Blog[]
+}
+
+model UniversityDetail {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  cover_image   String?
+  description   String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
+  deleted_at    DateTime?
+
+  // Proper foreign key relation
+  university University @relation(fields: [university_id], references: [id])
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  short_title String?
+  icon        String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+  courses     Course[]
+}
+
+model Course {
+  id          Int       @id @default(autoincrement())
+  category_id Int
+  slug        String    @unique
+  name        String
+  icon        String?
+  image       String?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  category     Category            @relation(fields: [category_id], references: [id])
+  descriptions CourseDescription[]
+  details      CourseDetails[]
+}
+
+model CourseDescription {
+  id          Int       @id @default(autoincrement())
+  course_id   Int
+  title       String
+  description String?
+  file        String?
+  position    Int       @default(0)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  deleted_at  DateTime?
+
+  course Course @relation(fields: [course_id], references: [id])
+}
+
+model CourseDetails {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  course_id     Int
+  cover_image   String?
+  description   String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  university University @relation(fields: [university_id], references: [id])
+  course     Course     @relation(fields: [course_id], references: [id])
+}
+
+model BlogTag {
+  id         Int       @id @default(autoincrement())
+  name       String
+  icon       String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+  tags       Tags[]
+}
+
+model Blog {
+  id            Int       @id @default(autoincrement())
+  university_id Int? // nullable FK
+  title         String
+  slug          String    @unique
+  image         String?
+  description   String?
+  author        String?
+  is_featured   Boolean   @default(false)
+  is_pinned     Boolean   @default(false)
+  is_trending   Boolean   @default(false)
+  views         Int       @default(0)
+  likes         Int       @default(0)
+  dislikes      Int       @default(0)
+  comments      Int       @default(0)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  // Relations (nullable foreign keys)
+  university University? @relation(fields: [university_id], references: [id])
+  tags       Tags[]
+}
+
+model Tags {
+  id         Int       @id @default(autoincrement())
+  blog_id    Int
+  tag_id     Int
+
+  created_at DateTime  @default(now())
+  deleted_at DateTime? @db.Timestamp(6)
+
+  // Relations
+  blog       Blog    @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  blogTag    BlogTag @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+  @@map("tags")
+}
+
+model BlacklistedToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  user_id    Int?
+  created_at DateTime @default(now())
+
+  user       User?    @relation(fields: [user_id], references: [id])
+}
