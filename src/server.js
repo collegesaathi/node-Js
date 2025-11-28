@@ -23,6 +23,8 @@ app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
 const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
 
 app.use("/api", require("./routes/userRoutes"));
+app.use("/api", require("./routes/homeRoutes"));
+
 
 
 app.get("/", (req, res) => {
