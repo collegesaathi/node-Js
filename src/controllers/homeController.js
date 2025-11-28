@@ -35,7 +35,7 @@ exports.home = catchAsync(async (req, res) => {
       take: 15
     });
 
-    return successResponse(res, "Home successfully", 201, {
+    return successResponse(res, "Home Page data fetched successfully", 201, {
       categories,
       universities,
       blogs

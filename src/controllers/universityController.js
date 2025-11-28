@@ -50,7 +50,7 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
 
     const totalPages = Math.ceil(totalUniversities / limit);
 
-    return successResponse(res, "Universities fetched successfully", 200, {
+    return successResponse(res, "Universities fetched successfully", 201, {
       categories,
       universities,
       pagination: {
