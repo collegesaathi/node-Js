@@ -1,36 +1,51 @@
+const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
+const catchAsync = require("../utils/catchAsync");
 const prisma = require("../config/prisma");
 
-module.exports = {
-  home: async (req, res) => {
-    try {
-      const categories = await prisma.category.findMany({
-        orderBy: { id: "asc" },
-        include: {  
-          courses: {
-            orderBy: { created_at: "asc" }
-          } 
+exports.home = catchAsync(async (req, res) => {
+  try {
+
+    // ✅ CATEGORY WITH COURSES
+    const categories = await prisma.category.findMany({
+      orderBy: { id: "asc" },
+      include: {
+        courses: {
+          orderBy: { created_at: "asc" },
         }
-      });
+      }
+    });
 
-      const universities = await prisma.$queryRaw`
-        SELECT * FROM "University"
-        WHERE "deleted_at" IS NULL
-        ORDER BY CASE WHEN "position" IS NULL THEN 1 ELSE 0 END,
-                 "position" ASC,
-                 "created_at" DESC
-      `;
+    // ✅ UNIVERSITY LIST
+    const universities = await prisma.university.findMany({
+      where: {
+        deleted_at: null
+      },
+      orderBy: [
+        { position: "asc" },     
+        { created_at: "desc" }
+      ]
+    });
 
-      const blogs = await prisma.$queryRaw`
-        SELECT * FROM "Blog"
-        WHERE "deleted_at" IS NULL
-        ORDER BY "created_at" DESC
-        LIMIT 15;
-      `;
+    const blogs = await prisma.blog.findMany({
+      where: {
+        deleted_at: null
+      },
+      orderBy: {
+        created_at: "desc"
+      },
+      take: 15
+    });
 
-      res.json({ categories, universities, blogs });
+    return successResponse(res, "Home successfully", 201, {
+      categories,
+      universities,
+      blogs
+    });
 
-    } catch (err) {
-      res.status(500).json({ error: "Something went wrong" });
-    }
+
+  } catch (err) {
+    console.log("ERROR:", err)
+    return errorResponse(err, "Something went wrong", 400);
   }
-};
+});
+
