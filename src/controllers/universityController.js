@@ -2,7 +2,7 @@
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
-
+const Logger = require("../utils/Logger");
 
   exports.allUniversities = catchAsync(async (req, res) => {
     // Pagination
@@ -63,43 +63,96 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
     });
 
   });
-// Admin University 
-exports.adminUniversity = catchAsync(async (req, res) => {
-  const BASE_URL = process.env.BASE_URL;
 
-  // --- Fetch Approvals ---
-  let approvals = await prisma.approvals.findMany({
-    where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+  // Admin University Listing
+  exports.adminUniversitylisting = catchAsync(async (req, res) => {
+    const BASE_URL = process.env.BASE_URL;
+
+    let universities = await prisma.university.findMany({
+      where: { deleted_at: null },
+      orderBy: [
+        { position: "asc" },
+        { created_at: "desc" }
+      ]
+    });
+
+    universities = universities.map(item => ({
+      ...item,
+      icon: item.icon ? `${BASE_URL}/universities/icon/${item.icon}` : null,
+      cover_image: item.cover_image ? `${BASE_URL}/universities/main/${item.cover_image}` : null
+    }));
+
+    return successResponse(res, "Admin all universities data fetched successfully", 200, {
+      universities
+    });
   });
 
-  if (!approvals) {
-    return errorResponse(res, "Failed to fetch approvals", 500);
-  }
 
-  // Convert image paths to full URLs
-  approvals = approvals.map(item => ({
-    ...item,
-    image: item.image ? `${BASE_URL}/approval_images/${item.image}` : null
-  }));
+  // Admin University 
+  exports.adminUniversity = catchAsync(async (req, res) => {
+    const BASE_URL = process.env.BASE_URL;
 
-  // --- Fetch Placements ---
-  let placements = await prisma.placements.findMany({
-    where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+    // --- Fetch Approvals ---
+    let approvals = await prisma.approvals.findMany({
+      where: { deleted_at: null },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!approvals) {
+      return errorResponse(res, "Failed to fetch approvals", 500);
+    }
+
+    // Convert image paths to full URLs
+    approvals = approvals.map(item => ({
+      ...item,
+      image: item.image ? `${BASE_URL}/approval_images/${item.image}` : null
+    }));
+
+    // --- Fetch Placements ---
+    let placements = await prisma.placements.findMany({
+      where: { deleted_at: null },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!placements) {
+      return errorResponse(res, "Failed to fetch placements", 500);
+    }
+
+    placements = placements.map(item => ({
+      ...item,
+      image: item.image ? `${BASE_URL}/placement_partners/${item.image}` : null
+    }));
+
+    return successResponse(res, "Admin university data fetched successfully", 200, {
+      approvals,
+      placements,
+    });
   });
 
-  if (!placements) {
-    return errorResponse(res, "Failed to fetch placements", 500);
-  }
+ 
+  exports.addUniversity = async (req, res) => {
+    try {
+      // Log the received raw data
+      Logger.info(`Received University Add Payload: ${(req.body)}`);
 
-  placements = placements.map(item => ({
-    ...item,
-    image: item.image ? `${BASE_URL}/placement_partners/${item.image}` : null
-  }));
+      // If you also get files (multer), log them too:
+      if (req.files) {
+        Logger.info(`Received Files: ${(req.files)}`);
+      }
 
-  return successResponse(res, "Admin university data fetched successfully", 200, {
-    approvals,
-    placements,
-  });
-});
+      // Send back a test response
+      return res.status(200).json({
+        status: true,
+        message: "University data received successfully!",
+        receivedData: req.body,
+      });
+
+    } catch (error) {
+      Logger.error(`Error in addUniversity: ${error.message}`);
+
+      return res.status(500).json({
+        status: false,
+        message: "Internal Server Error",
+      });
+    }
+  };

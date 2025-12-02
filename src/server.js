@@ -26,6 +26,10 @@ app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
 // -----------------------------------------------------
 app.use("/approval_images", express.static(path.join(__dirname, "../public/approval_images")));
 app.use("/placement_partners", express.static(path.join(__dirname, "../public/placement_partners")));
+
+app.use("/universities/icon", express.static(path.join(__dirname, "../public/universities/icon")));
+app.use("/universities/main", express.static(path.join(__dirname, "../public/universities/main")));
+
 // -----------------------------------------------------
 
 
