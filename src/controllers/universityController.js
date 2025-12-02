@@ -65,19 +65,26 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
   });
 // Admin University 
 exports.adminUniversity = catchAsync(async (req, res) => {
+  const BASE_URL = process.env.BASE_URL;
+
   // --- Fetch Approvals ---
-  const approvals = await prisma.approvals.findMany({
+  let approvals = await prisma.approvals.findMany({
     where: { deleted_at: null },
     orderBy: { created_at: "desc" },
   });
 
-  // If query fails or returns null (rare but check included)
   if (!approvals) {
     return errorResponse(res, "Failed to fetch approvals", 500);
   }
 
+  // Convert image paths to full URLs
+  approvals = approvals.map(item => ({
+    ...item,
+    image: item.image ? `${BASE_URL}/approval_images/${item.image}` : null
+  }));
+
   // --- Fetch Placements ---
-  const placements = await prisma.placements.findMany({
+  let placements = await prisma.placements.findMany({
     where: { deleted_at: null },
     orderBy: { created_at: "desc" },
   });
@@ -85,6 +92,11 @@ exports.adminUniversity = catchAsync(async (req, res) => {
   if (!placements) {
     return errorResponse(res, "Failed to fetch placements", 500);
   }
+
+  placements = placements.map(item => ({
+    ...item,
+    image: item.image ? `${BASE_URL}/placement_partners/${item.image}` : null
+  }));
 
   return successResponse(res, "Admin university data fetched successfully", 200, {
     approvals,

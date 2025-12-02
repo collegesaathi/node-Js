@@ -6,6 +6,7 @@ require("./config/prisma");
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const path = require("path");
 // const serverless = require('serverless-http');
 
 const corsOptions = {
@@ -19,6 +20,14 @@ app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "2000mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
+
+// -----------------------------------------------------
+// ✅ STATIC IMAGE FOLDERS (VERY IMPORTANT)
+// -----------------------------------------------------
+app.use("/approval_images", express.static(path.join(__dirname, "../public/approval_images")));
+app.use("/placement_images", express.static(path.join(__dirname, "../public/placement_images")));
+// -----------------------------------------------------
+
 
 const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
 
