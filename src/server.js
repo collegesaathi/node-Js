@@ -25,7 +25,7 @@ app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
 // ✅ STATIC IMAGE FOLDERS (VERY IMPORTANT)
 // -----------------------------------------------------
 app.use("/approval_images", express.static(path.join(__dirname, "../public/approval_images")));
-app.use("/placement_images", express.static(path.join(__dirname, "../public/placement_images")));
+app.use("/placement_partners", express.static(path.join(__dirname, "../public/placement_partners")));
 // -----------------------------------------------------
 
 
