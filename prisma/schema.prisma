@@ -38,13 +38,29 @@ model University {
   icon          String?
   cover_image   String?
   position      Int?               @default(0)
+  description   Json?              // array of descriptions
   created_at    DateTime           @default(now())
   updated_at    DateTime           @updatedAt
   deleted_at    DateTime?
-  details       UniversityDetail[]
-  courseDetails CourseDetails[]
-  blogs         Blog[]
-  campus         Campus[]
+
+  details           UniversityDetail[]
+  courseDetails     CourseDetails[]
+  blogs             Blog[]
+  campus            Campus[]
+  about             UniversityAbout[]
+  approvals         UniversityApprovals[]
+  rankings          UniversityRankings[]
+  advantages        UniversityAdvantages[]
+  facts             UniversityFacts[]
+  certificates      UniversityCertificates[]
+  examPatterns      UniversityExamPatterns[]
+  financialAid      UniversityFinancialAid[]
+  partners          UniversityPartners[]
+  services          UniversityServices[]
+  admissionProcess  UniversityAdmissionProcess[]
+  faq               UniversityFaq[]
+  universityCampuses UniversityCampus[]
+
 }
 
 model UniversityDetail {
@@ -60,6 +76,140 @@ model UniversityDetail {
   university University @relation(fields: [university_id], references: [id])
 }
 
+// University About Table 
+model UniversityAbout {
+  id            Int        @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Approvals 
+model UniversityApprovals {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  approval_ids  Json?     // array of approval IDs
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Rankings 
+model UniversityRankings {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Advantages
+model UniversityAdvantages {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  advantages    Json?     // array of {title, description}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Facts 
+model UniversityFacts {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  facts         Json?     // array of {title, description}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Certificates 
+model UniversityCertificates {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  image         String?
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Exam Patterns 
+model UniversityExamPatterns {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  facts         Json?     // array of {title, description, image, percentage}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Financial Aid
+model UniversityFinancialAid {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  aid           Json?     // array of {title, total_fees, loan_amount, tenure, interest, monthly_emi}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+
+// University Campus
+model UniversityCampus {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  image         String?
+
+  university University @relation(fields: [university_id], references: [id])
+}
+// University Partners
+model UniversityPartners {
+  id                    Int        @id @default(autoincrement())
+  university_id         Int
+  placement_partner_id  Int
+  title                 String
+  description           String?
+
+  university University @relation(fields: [university_id], references: [id])
+  placement  Placements @relation(fields: [placement_partner_id], references: [id])
+}
+// University Services
+model UniversityServices {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  services      Json?     // array of {title, description, image, icon}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+// University Admission Process
+model UniversityAdmissionProcess {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  title         String
+  description   String?
+  process       Json?     // array {title, description}
+
+  university University @relation(fields: [university_id], references: [id])
+}
+// University FAQ
+model UniversityFaq {
+  id            Int       @id @default(autoincrement())
+  university_id Int
+  question      String
+  answer        String?
+
+  university University @relation(fields: [university_id], references: [id])
+}
 model Category {
   id          Int       @id @default(autoincrement())
   name        String
@@ -191,6 +341,9 @@ model Placements {
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
+
+  universityPartners UniversityPartners[]
+
 }
 
 // University Campus
