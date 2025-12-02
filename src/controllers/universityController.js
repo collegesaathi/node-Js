@@ -1,9 +1,10 @@
+
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 
 
-  exports.allUniversities= catchAsync(async (req, res) => {
+  exports.allUniversities = catchAsync(async (req, res) => {
     // Pagination
     const page = parseInt(req.query.page);
     const limit = 9;
@@ -62,4 +63,31 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
     });
 
   });
+// Admin University 
+exports.adminUniversity = catchAsync(async (req, res) => {
+  // --- Fetch Approvals ---
+  const approvals = await prisma.approvals.findMany({
+    where: { deleted_at: null },
+    orderBy: { created_at: "desc" },
+  });
 
+  // If query fails or returns null (rare but check included)
+  if (!approvals) {
+    return errorResponse(res, "Failed to fetch approvals", 500);
+  }
+
+  // --- Fetch Placements ---
+  const placements = await prisma.placements.findMany({
+    where: { deleted_at: null },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!placements) {
+    return errorResponse(res, "Failed to fetch placements", 500);
+  }
+
+  return successResponse(res, "Admin university data fetched successfully", 200, {
+    approvals,
+    placements,
+  });
+});

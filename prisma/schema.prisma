@@ -44,6 +44,7 @@ model University {
   details       UniversityDetail[]
   courseDetails CourseDetails[]
   blogs         Blog[]
+  campus         Campus[]
 }
 
 model UniversityDetail {
@@ -169,4 +170,38 @@ model BlacklistedToken {
   created_at DateTime @default(now())
 
   user       User?    @relation(fields: [user_id], references: [id])
+}
+
+
+// Approvals
+model Approvals {
+  id         Int       @id @default(autoincrement())
+  title      String
+  image      String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+// Placements
+model Placements {
+  id         Int       @id @default(autoincrement())
+  title      String
+  image      String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+}
+
+// University Campus
+model Campus {
+  id              Int       @id @default(autoincrement())
+  university_id   Int? // nullable FK
+  title           String
+  image           String?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  deleted_at      DateTime?
+
+  university University? @relation(fields: [university_id], references: [id])
 }
