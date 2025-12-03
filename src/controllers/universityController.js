@@ -82,7 +82,6 @@ exports.adminUniversitylisting = catchAsync(async (req, res) => {
   });
 });
 
-
 // Admin University 
 exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   const BASE_URL = process.env.BASE_URL;
