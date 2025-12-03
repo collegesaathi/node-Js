@@ -13,8 +13,7 @@ function deleteUploadedFiles(fileUrls = []) {
 
     fileUrls.forEach((fileUrl) => {
         try {
-            // Remove domain and query params (if any)
-            const relativePath = fileUrl.replace(/^https?:\/\/[^\/]+/, ""); // removes http://localhost:5000 part
+            const relativePath = fileUrl.replace(/^https?:\/\/[^\/]+/, ""); 
             const absolutePath = path.join(process.cwd(), "public", relativePath);
 
             if (fs.existsSync(absolutePath)) {
