@@ -6,13 +6,8 @@ const Logger = require("../utils/Logger");
 
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
-  const page = parseInt(req.query.page);
+  const page = parseInt(req.query.page) || 1;
   const limit = 9;
-
-  // If page is invalid (NaN, negative, or zero)
-  if (!page || page < 1) {
-    return validationErrorResponse(res, "Page number must be 1 or greater", 400);
-  }
 
   const skip = (page - 1) * limit;
 
