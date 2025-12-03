@@ -98,3 +98,56 @@
     }
   ]
 }
+2025-12-03 12:02:04 [INFO]: Received University Add Payload:
+2025-12-03 12:02:04 [INFO]: {
+  "slug": "sss",
+  "name": "sss",
+  "position": "22",
+  "about_title": "",
+  "about_desc": "<p><br></p>",
+  "advantages": "[object Object]",
+  "services": "[{\"title\":\"\",\"content\":\"\",\"image\":null,\"icon\":null}]",
+  "fees": "[{\"courseName\":\"\",\"totalFees\":\"\",\"loanAmount\":\"\",\"tenure\":\"\",\"interest\":\"\",\"emi\":\"\",\"description\":\"\"}]",
+  "faqs": "[{\"question\":\"\",\"answer\":\"\",\"position\":\"\"}]",
+  "patterns": "[{\"image\":\"\",\"patternName\":\"\",\"percentage\":\"\",\"description\":\"<p><br></p>\"}]",
+  "facts": "[{\"patternName\":\"\",\"description\":\"<p><br></p>\"}]",
+  "onlines": "[{\"title\":\"\",\"content\":\"\"}]",
+  "campusList": "[{\"name\":\"\",\"image\":\"\"}]",
+  "approvals": "[]",
+  "partners": "[]",
+  "patternname": "[\"\"]",
+  "patterndescription": "[\"<p><br></p>\"]",
+  "onlinedesc": "[\"\"]"
+}
+2025-12-03 12:02:04 [INFO]: Received Files:
+2025-12-03 12:02:04 [INFO]: {
+  "icon": [
+    {
+      "fieldname": "icon",
+      "originalname": "Budget (1).png",
+      "encoding": "7bit",
+      "mimetype": "image/png",
+      "destination": "C:\\node-Js\\public\\new\\uploads",
+      "filename": "1764743524200-Budget_(1).png",
+      "path": "C:\\node-Js\\public\\new\\uploads\\1764743524200-Budget_(1).png",
+      "size": 19075
+    }
+  ],
+  "cover_image": [
+    {
+      "fieldname": "cover_image",
+      "originalname": "Confusion (1).png",
+      "encoding": "7bit",
+      "mimetype": "image/png",
+      "destination": "C:\\node-Js\\public\\new\\uploads",
+      "filename": "1764743524210-Confusion_(1).png",
+      "path": "C:\\node-Js\\public\\new\\uploads\\1764743524210-Confusion_(1).png",
+      "size": 14602
+    }
+  ]
+}
+2025-12-03 12:03:30 [INFO]: This is some informational message
+2025-12-03 12:04:32 [INFO]: This is some informational message
+2025-12-03 12:04:34 [INFO]: This is some informational message
+2025-12-03 12:04:35 [INFO]: This is some informational message
+2025-12-03 12:04:39 [INFO]: This is some informational message
