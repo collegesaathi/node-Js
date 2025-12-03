@@ -19,3 +19,82 @@
 2025-12-02 17:38:16 [INFO]: This is some informational message
 2025-12-02 17:41:57 [INFO]: This is some informational message
 2025-12-02 17:42:44 [INFO]: This is some informational message
+2025-12-02 17:50:40 [INFO]: This is some informational message
+2025-12-02 17:52:07 [INFO]: This is some informational message
+2025-12-03 10:19:27 [INFO]: This is some informational message
+2025-12-03 10:46:55 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:48:16 [INFO]: This is some informational message
+2025-12-03 10:48:28 [INFO]: Received University Add Payload: [object Object]
+2025-12-03 10:50:00 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:50:07 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:50:40 [INFO]: This is some informational message
+2025-12-03 10:50:41 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:51:13 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:51:50 [INFO]: Received University Add Payload: undefined
+2025-12-03 10:52:01 [INFO]: This is some informational message
+2025-12-03 10:53:06 [INFO]: Received University Add Payload: undefined
+2025-12-03 11:06:36 [INFO]: Received University Add Payload: undefined
+2025-12-03 11:53:42 [INFO]: This is some informational message
+2025-12-03 11:55:49 [INFO]: This is some informational message
+2025-12-03 11:55:50 [INFO]: This is some informational message
+2025-12-03 11:56:04 [INFO]: This is some informational message
+2025-12-03 11:57:21 [INFO]: This is some informational message
+2025-12-03 11:57:22 [INFO]: This is some informational message
+2025-12-03 11:57:23 [INFO]: This is some informational message
+2025-12-03 11:57:25 [INFO]: This is some informational message
+2025-12-03 11:57:28 [INFO]: This is some informational message
+2025-12-03 11:57:29 [INFO]: This is some informational message
+2025-12-03 11:57:31 [INFO]: This is some informational message
+2025-12-03 11:57:31 [INFO]: This is some informational message
+2025-12-03 11:57:42 [INFO]: This is some informational message
+2025-12-03 11:58:37 [INFO]: This is some informational message
+2025-12-03 11:59:24 [INFO]: This is some informational message
+2025-12-03 11:59:31 [INFO]: This is some informational message
+2025-12-03 12:00:37 [INFO]: Received University Add Payload:
+2025-12-03 12:00:37 [INFO]: {
+  "slug": "sss",
+  "name": "sss",
+  "position": "22",
+  "about_title": "",
+  "about_desc": "<p><br></p>",
+  "advantages": "[{\"title\":\"\",\"description\":\"<p><br></p>\"}]",
+  "services": "[{\"title\":\"\",\"content\":\"\",\"image\":null,\"icon\":null}]",
+  "fees": "[{\"courseName\":\"\",\"totalFees\":\"\",\"loanAmount\":\"\",\"tenure\":\"\",\"interest\":\"\",\"emi\":\"\",\"description\":\"\"}]",
+  "faqs": "[{\"question\":\"\",\"answer\":\"\",\"position\":\"\"}]",
+  "patterns": "[{\"image\":\"\",\"patternName\":\"\",\"percentage\":\"\",\"description\":\"<p><br></p>\"}]",
+  "facts": "[{\"patternName\":\"\",\"description\":\"<p><br></p>\"}]",
+  "onlines": "[{\"title\":\"\",\"content\":\"\"}]",
+  "campusList": "[{\"name\":\"\",\"image\":\"\"}]",
+  "approvals": "[]",
+  "partners": "[]",
+  "patternname": "[\"\"]",
+  "patterndescription": "[\"<p><br></p>\"]",
+  "onlinedesc": "[\"\"]"
+}
+2025-12-03 12:00:37 [INFO]: Received Files:
+2025-12-03 12:00:37 [INFO]: {
+  "icon": [
+    {
+      "fieldname": "icon",
+      "originalname": "Budget (1).png",
+      "encoding": "7bit",
+      "mimetype": "image/png",
+      "destination": "C:\\node-Js\\public\\new\\uploads",
+      "filename": "1764743437109-Budget_(1).png",
+      "path": "C:\\node-Js\\public\\new\\uploads\\1764743437109-Budget_(1).png",
+      "size": 19075
+    }
+  ],
+  "cover_image": [
+    {
+      "fieldname": "cover_image",
+      "originalname": "Confusion (1).png",
+      "encoding": "7bit",
+      "mimetype": "image/png",
+      "destination": "C:\\node-Js\\public\\new\\uploads",
+      "filename": "1764743437110-Confusion_(1).png",
+      "path": "C:\\node-Js\\public\\new\\uploads\\1764743437110-Confusion_(1).png",
+      "size": 14602
+    }
+  ]
+}
