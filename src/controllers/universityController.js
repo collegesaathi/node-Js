@@ -4,6 +4,32 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 
+const parseJSON = (data) => {
+  try {
+    return JSON.parse(data);
+  } catch {
+    return data;
+  }
+};
+
+// inject uploaded file paths inside JSON fields
+const applyImagesToJSON = (jsonData, uploadedFiles, prefix) => {
+  const arr = parseJSON(jsonData);
+
+  if (!Array.isArray(arr)) return arr;
+
+  return arr.map((item, index) => {
+    for (let key in item) {
+      const field = `${prefix}[${index}][${key}]`;
+      if (uploadedFiles[field]) {
+        item[key] = uploadedFiles[field];  // replace with uploaded file path
+      }
+    }
+    return item;
+  });
+};
+
+
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
   const page = parseInt(req.query.page) || 1;
@@ -123,35 +149,53 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   });
 });
 
-
 exports.addUniversity = async (req, res) => {
   try {
-
-    Logger.info("Received University Add Payload:");
-    Logger.info(JSON.stringify(req.body, null, 2));
-
     console.log("req.body =>", req.body);
+    Logger.info(req.body)
 
-    if (req.files) {
-      Logger.info("Received Files:");
-      Logger.info(JSON.stringify(req.files, null, 2));
-      console.log("req.files =>", req.files);
-    }
+    let uploadedFiles = {};
+    req.files?.forEach((file) => {
+      uploadedFiles[file.fieldname] = file.path; // store as fieldname → path
+    });
+    Logger.info(uploadedFiles)
+
+    console.log("Uploaded Files =>", uploadedFiles);
+
+    // ---------- Replace images inside JSON sections ----------
+
+    const services = applyImagesToJSON(req.body.services, uploadedFiles, "services");
+    const advantages = applyImagesToJSON(req.body.advantages, uploadedFiles, "advantages");
+    const patterns = applyImagesToJSON(req.body.patterns, uploadedFiles, "patterns");
+    const campusList = applyImagesToJSON(req.body.campusList, uploadedFiles, "campusList");
+    const fees = applyImagesToJSON(req.body.fees, uploadedFiles, "fees");
+    const facts = applyImagesToJSON(req.body.facts, uploadedFiles, "facts");
+    const onlines = applyImagesToJSON(req.body.onlines, uploadedFiles, "onlines");
+
+    // Final JSON object
+    const finalData = {
+      ...req.body,
+      services,
+      advantages,
+      patterns,
+      campusList,
+      fees,
+      facts,
+      onlines,
+      icon: uploadedFiles["icon"] || null,
+      cover_image: uploadedFiles["cover_image"] || null
+    };
+
 
     return res.status(200).json({
       status: true,
-      message: "University data received successfully!",
-      receivedData: req.body,
+      message: "University Saved Successfully!",
+      data: finalData
     });
 
   } catch (error) {
-
-    Logger.error("Error in addUniversity:", error);
     console.error(error);
-
-    return res.status(500).json({
-      status: false,
-      message: "Internal Server Error",
-    });
+    return res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 };
+
