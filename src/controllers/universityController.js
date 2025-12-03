@@ -84,7 +84,7 @@ exports.adminUniversitylisting = catchAsync(async (req, res) => {
 
 
 // Admin University 
-exports.adminUniversity = catchAsync(async (req, res) => {
+exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   const BASE_URL = process.env.BASE_URL;
 
   // --- Fetch Approvals ---

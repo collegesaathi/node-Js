@@ -1,11 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { allUniversities, adminUniversity, adminUniversitylisting, addUniversity } = require("../controllers/universityController");
+const { allUniversities, adminapprovalsplacements, adminUniversitylisting, addUniversity } = require("../controllers/universityController");
 const upload = require("../utils/Uploader");
 
 router.get("/all/universities", allUniversities);
 
-router.get("/admin/universities", adminUniversity);
+router.get("/admin/approvalandpartners", adminapprovalsplacements);
 
 router.get("/admin/universities/listing", adminUniversitylisting);
 
