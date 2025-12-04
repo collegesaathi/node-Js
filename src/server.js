@@ -31,17 +31,7 @@ app.use("/universities/icon", express.static(path.join(__dirname, "../public/uni
 app.use("/universities/main", express.static(path.join(__dirname, "../public/universities/main")));
 
 // -----------------------------------------------------
-
-
-const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
-
-app.use("/api", require("./routes/authRoutes"));
-app.use("/api", require("./routes/homeRoutes"));
-app.use("/api", require("./routes/userRoutes"));
-app.use("/api", require("./routes/universityRoutes"));
-
-
-
+ 
 app.get("/", (req, res) => {
   res.json({
     msg: "Hello World",
