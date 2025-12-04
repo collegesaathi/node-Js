@@ -9,9 +9,7 @@ router.get("/admin/approvalandpartners", adminapprovalsplacements);
 
 router.get("/admin/universities/listing", adminUniversitylisting);
 
-router.post("/admin/universities/add", upload.fields([
-    { name: "icon", maxCount: 1 },
-    { name: "cover_image", maxCount: 1 }
-  ]), addUniversity);
+router.post("/admin/universities/add", upload.any(), addUniversity);
+
 
 module.exports = router;
