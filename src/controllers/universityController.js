@@ -159,11 +159,7 @@ exports.addUniversity = async (req, res) => {
       uploadedFiles[file.fieldname] = file.path; // store as fieldname → path
     });
     Logger.info(uploadedFiles)
-
     console.log("Uploaded Files =>", uploadedFiles);
-
-    // ---------- Replace images inside JSON sections ----------
-
     const services = applyImagesToJSON(req.body.services, uploadedFiles, "services");
     const advantages = applyImagesToJSON(req.body.advantages, uploadedFiles, "advantages");
     const patterns = applyImagesToJSON(req.body.patterns, uploadedFiles, "patterns");
