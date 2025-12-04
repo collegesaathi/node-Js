@@ -32,12 +32,18 @@ app.use("/universities/main", express.static(path.join(__dirname, "../public/uni
 
 // -----------------------------------------------------
  
+
+const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
+
+app.use("/api", require("./routes/authRoutes"));
+app.use("/api", require("./routes/homeRoutes"));
+app.use("/api", require("./routes/userRoutes"));
+app.use("/api", require("./routes/universityRoutes"));
 app.get("/", (req, res) => {
   res.json({
     msg: "Hello World",
     status: 200,
   });
 });
-
 const server = app.listen(PORT, () => console.log("Server is running at port : " + PORT));
 server.timeout = 360000;
