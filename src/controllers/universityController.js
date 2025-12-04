@@ -149,39 +149,172 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   });
 });
 
+// exports.addUniversity = async (req, res) => {
+//   try {
+//     console.log("req.body =>", req.body);
+//     Logger.info(req.body)
+//     let uploadedFiles = {};
+//     req.files?.forEach((file) => {
+//       uploadedFiles[file.fieldname] = file.path; // store as fieldname → path
+//     });
+//     Logger.info(uploadedFiles)
+//     console.log("Uploaded Files =>", uploadedFiles);
+//     const services = applyImagesToJSON(req.body.services, uploadedFiles, "services");
+//     const advantages = applyImagesToJSON(req.body.advantages, uploadedFiles, "advantages");
+//     const patterns = applyImagesToJSON(req.body.patterns, uploadedFiles, "patterns");
+//     const campusList = applyImagesToJSON(req.body.campusList, uploadedFiles, "campusList");
+//     const fees = applyImagesToJSON(req.body.fees, uploadedFiles, "fees");
+//     const facts = applyImagesToJSON(req.body.facts, uploadedFiles, "facts");
+//     const onlines = applyImagesToJSON(req.body.onlines, uploadedFiles, "onlines");
+//     // Final JSON object
+//     const finalData = {
+//       ...req.body,
+//       services,
+//       advantages,
+//       patterns,
+//       campusList,
+//       fees,
+//       facts,
+//       onlines,
+//       icon: uploadedFiles["icon"] || null,
+//       cover_image: uploadedFiles["cover_image"] || null
+//     };
+
+//     Logger.silly(finalData)
+
+//     return res.status(200).json({
+//       status: true,
+//       message: "University Saved Successfully!",
+//       data: finalData
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({ status: false, message: "Internal Server Error" });
+//   }
+// };
+
+
+
+// Helper: Parse JSON fields safely
+function parseArray(jsonString) {
+  try {
+    return JSON.parse(jsonString);
+  } catch (err) {
+    return [];
+  }
+}
+
+// Helper: Map files like name[0] → correct index array
+function mapUploadedArray(uploadedFiles, fieldPrefix) {
+  const arr = [];
+  Object.keys(uploadedFiles).forEach(key => {
+    if (key.startsWith(fieldPrefix + "[")) {
+      const index = Number(key.match(/\[(\d+)\]/)[1]);
+      arr[index] = uploadedFiles[key];
+    }
+  });
+  return arr;
+}
+
+// Helper: Attach images to items
+function attachImagesToItems(items, images, keyName) {
+  items.forEach((item, idx) => {
+    if (images[idx]) {
+      item[keyName] = images[idx];
+    }
+  });
+  return items;
+}
+
+
 exports.addUniversity = async (req, res) => {
   try {
-    console.log("req.body =>", req.body);
     Logger.info(req.body)
-
     let uploadedFiles = {};
+
     req.files?.forEach((file) => {
-      uploadedFiles[file.fieldname] = file.path; // store as fieldname → path
+      uploadedFiles[file.fieldname] = file.path;
     });
     Logger.info(uploadedFiles)
-    console.log("Uploaded Files =>", uploadedFiles);
-    const services = applyImagesToJSON(req.body.services, uploadedFiles, "services");
-    const advantages = applyImagesToJSON(req.body.advantages, uploadedFiles, "advantages");
-    const patterns = applyImagesToJSON(req.body.patterns, uploadedFiles, "patterns");
-    const campusList = applyImagesToJSON(req.body.campusList, uploadedFiles, "campusList");
-    const fees = applyImagesToJSON(req.body.fees, uploadedFiles, "fees");
-    const facts = applyImagesToJSON(req.body.facts, uploadedFiles, "facts");
-    const onlines = applyImagesToJSON(req.body.onlines, uploadedFiles, "onlines");
+    // Parse main arrays
+    let services = parseArray(req.body.services);
+    let patterns = parseArray(req.body.patterns);
+    let advantages = parseArray(req.body.advantages);
+    let campusList = parseArray(req.body.campusList);
+    let fees = parseArray(req.body.fees);
+    let facts = parseArray(req.body.facts);
+    let onlines = parseArray(req.body.onlines);
+    let faqs = parseArray(req.body.faqs);
+    // Extract image arrays
+    const patternsImages = mapUploadedArray(uploadedFiles, "patternsimages");
+    const servicesImages = mapUploadedArray(uploadedFiles, "servicesimages");
+    const servicesIcons = mapUploadedArray(uploadedFiles, "servicesicon");
+    const campusImages = mapUploadedArray(uploadedFiles, "campusimages");
+    const factsImages = mapUploadedArray(uploadedFiles, "factsimages");
 
-    // Final JSON object
+    // Attach images to correct array items
+    services = attachImagesToItems(services, servicesImages, "image");
+    services = attachImagesToItems(services, servicesIcons, "icon");
+    patterns = attachImagesToItems(patterns, patternsImages, "image");
+    campusList = attachImagesToItems(campusList, campusImages, "image");
+    facts = attachImagesToItems(facts, factsImages, "image");
     const finalData = {
-      ...req.body,
+      // ✅ BASIC INFO
+      slug: req.body.slug || "",
+      name: req.body.name || "",
+      position: req.body.position || "",
+
+      // ✅ ABOUT SECTION
+      about_title: req.body.about_title || "",
+      about_desc: req.body.about_desc || "",
+      descriptions: parseArray(req.body.descriptions),
+
+      // ✅ MEDIA
+      icon: uploadedFiles["icon"] || null,
+      cover_image: uploadedFiles["cover_image"] || null,
+
+      // ✅ MAIN ARRAYS (Parsed)
       services,
-      advantages,
       patterns,
+      advantages,
       campusList,
       fees,
       facts,
       onlines,
-      icon: uploadedFiles["icon"] || null,
-      cover_image: uploadedFiles["cover_image"] || null
+      faqs,
+
+      // ✅ EXTRA SECTIONS (If Required)
+      approvals: parseArray(req.body.approvals),
+      partners: parseArray(req.body.partners),
+      rankings_name: req.body.rankings_name || "",
+      rankings_description: req.body.rankings_description || "",
+
+      // ✅ FINANCIAL / CERTIFICATE
+      financialname: req.body.financialname || "",
+      financialdescription: req.body.financialdescription || "",
+      certificatename: req.body.certificatename || "",
+      certificatedescription: req.body.certificatedescription || "",
+
+      // ✅ ADVANTAGE TITLES
+      advantagesname: req.body.advantagesname || "",
+      advantagesdescription: req.body.advantagesdescription || "",
+
+      // ✅ FACTS TITLE
+      factsname: req.body.factsname || "",
+
+      // ✅ PARTNERS
+      partnersname: req.body.partnersname || "",
+      partnersdesc: req.body.partnersdesc || "",
+
+      // ✅ ONLINE HEADING
+      onlinetitle: req.body.onlinetitle || "",
+      onlinedesc: req.body.onlinedesc || "",
     };
 
+    console.log("campusList", campusList)
+
+    Logger.silly(finalData)
 
     return res.status(200).json({
       status: true,
@@ -190,7 +323,7 @@ exports.addUniversity = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    console.log(error);
     return res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 };
