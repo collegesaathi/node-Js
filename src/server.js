@@ -117,6 +117,37 @@ const prisma = new PrismaClient();
 //   }
 // });
 
+// app.get("/", async (req, res) => {
+//   try {
+//     const newDomain = process.env.BASE_URL || "https://yourdomain.com";
+//     const folder = "/uploads/universities/";
+
+//     const newURL = newDomain + folder;
+
+//     const query = `
+//       UPDATE "University"
+//       SET 
+//         cover_image = regexp_replace(cover_image, '^http[s]?://[^/]+/uploads/universities/', '${newURL}'),
+//         icon = regexp_replace(icon, '^http[s]?://[^/]+/uploads/universities/', '${newURL}')
+//       WHERE 
+//         (cover_image IS NOT NULL AND cover_image LIKE 'http%')
+//         OR
+//         (icon IS NOT NULL AND icon LIKE 'http%');
+//     `;
+
+//     await prisma.$queryRawUnsafe(query);
+
+//     return res.status(200).json({
+//       message: "Old domain replaced with NEW domain successfully!"
+//     });
+
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({ error: error.message });
+//   }
+// });
+
+
 
 // app.get("/", (req, res) => {
 //   res.json({
