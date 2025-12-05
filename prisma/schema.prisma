@@ -60,7 +60,6 @@ model University {
   admissionProcess  UniversityAdmissionProcess[]
   faq               UniversityFaq[]
   universityCampuses UniversityCampus[]
-
 }
 
 model UniversityDetail {
@@ -332,6 +331,7 @@ model Approvals {
   updated_at DateTime  @updatedAt
   deleted_at DateTime?
 }
+
 
 // Placements
 model Placements {

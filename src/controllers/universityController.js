@@ -115,7 +115,7 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // --- Fetch Approvals ---
   let approvals = await prisma.approvals.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+    orderBy: { created_at: "asc" },
   });
 
   if (!approvals) {
@@ -125,13 +125,15 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // Convert image paths to full URLs
   approvals = approvals.map(item => ({
     ...item,
-    image: item.image ? `${BASE_URL}/approval_images/${item.image}` : null
+    image: item.image && !item.image.startsWith("http")
+      ? `${BASE_URL}/approval_images/${item.image}`
+      : item.image
   }));
 
   // --- Fetch Placements ---
   let placements = await prisma.placements.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+    orderBy: { created_at: "asc" },
   });
 
   if (!placements) {
@@ -140,7 +142,9 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 
   placements = placements.map(item => ({
     ...item,
-    image: item.image ? `${BASE_URL}/placement_partners/${item.image}` : null
+    image: item.image && !item.image.startsWith("http")
+      ? `${BASE_URL}/placement_partners/${item.image}`
+      : item.image
   }));
 
   return successResponse(res, "Admin university data fetched successfully", 200, {

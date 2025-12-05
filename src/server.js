@@ -29,9 +29,15 @@ app.use("/placement_partners", express.static(path.join(__dirname, "../public/pl
 
 app.use("/universities/icon", express.static(path.join(__dirname, "../public/universities/icon")));
 app.use("/universities/main", express.static(path.join(__dirname, "../public/universities/main")));
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// या
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Alternative: सभी static files के लिए
+app.use(express.static('public'));
 
 // -----------------------------------------------------
- 
+
 
 const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
 
@@ -39,11 +45,87 @@ app.use("/api", require("./routes/authRoutes"));
 app.use("/api", require("./routes/homeRoutes"));
 app.use("/api", require("./routes/userRoutes"));
 app.use("/api", require("./routes/universityRoutes"));
-app.get("/", (req, res) => {
-  res.json({
-    msg: "Hello World",
-    status: 200,
-  });
-});
+app.use("/api", require("./routes/approvalRoute"));
+
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+// app.get('/', async (req, res) => {
+//   try {
+//     const maxResult = await prisma.$queryRaw`
+//       SELECT MAX(id) as max_id FROM "University"
+//     `;
+//     const maxId = maxResult[0]?.max_id || 0;
+
+//     await prisma.$queryRaw`
+//       SELECT setval('"University_id_seq"', ${maxId + 1}, false)
+//     `;
+
+//     console.log("University sequence updated to:", maxId + 1);
+
+//     const test = await prisma.university.create({
+//       data: {
+//         slug: "test-university-" + Date.now(),
+//         name: "Test University"
+//       }
+//     });
+
+//     res.json({
+//       success: true,
+//       expectedId: maxId + 1,
+//       actualId: test.id
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error });
+//   }
+// });
+
+
+
+
+// app.get('/', async (req, res) => {
+//   try {
+//     const baseURL = "http://localhost:5000/uploads/universities/";
+
+//     const query = `
+//       UPDATE "University"
+//       SET 
+//         cover_image = '${baseURL}' || cover_image,
+//         icon = '${baseURL}' || icon
+//       WHERE 
+//         (
+//           (cover_image IS NOT NULL AND cover_image NOT LIKE 'http%') OR
+//           (icon IS NOT NULL AND icon NOT LIKE 'http%')
+//         );
+//     `;
+
+//     await prisma.$queryRawUnsafe(query);
+
+//     return res.status(200).json({
+//       message: "University images updated successfully with full URLs"
+//     });
+
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({
+//       error: error.message,
+//       code: error.code,
+//       meta: error.meta
+//     });
+//   }
+// });
+
+
+// app.get("/", (req, res) => {
+//   res.json({
+//     msg: "Hello World",
+//     status: 200,
+//   });
+// });
+
+
+
 const server = app.listen(PORT, () => console.log("Server is running at port : " + PORT));
 server.timeout = 360000;
