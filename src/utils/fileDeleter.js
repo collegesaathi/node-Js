@@ -13,12 +13,14 @@ function deleteUploadedFiles(fileUrls = []) {
 
     fileUrls.forEach((fileUrl) => {
         try {
-            const relativePath = fileUrl.replace(/^https?:\/\/[^\/]+/, ""); 
-            const absolutePath = path.join(process.cwd(), "public", relativePath);
+            // Remove protocol + domain => keep only the path after host
+            const urlPath = new URL(fileUrl).pathname; // safer method
+
+            const absolutePath = path.join(process.cwd(), "public", urlPath);
 
             if (fs.existsSync(absolutePath)) {
                 fs.unlinkSync(absolutePath);
-                console.log(`✅ Deleted file: ${absolutePath}`);
+                console.log(`✅ Deleted: ${absolutePath}`);
             } else {
                 console.warn(`⚠️ File not found: ${absolutePath}`);
             }

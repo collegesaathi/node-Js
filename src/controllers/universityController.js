@@ -115,7 +115,7 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // --- Fetch Approvals ---
   let approvals = await prisma.approvals.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+    orderBy: { created_at: "asc" },
   });
 
   if (!approvals) {
@@ -125,13 +125,15 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // Convert image paths to full URLs
   approvals = approvals.map(item => ({
     ...item,
-    image: item.image ? `${BASE_URL}/approval_images/${item.image}` : null
+    image: item.image && !item.image.startsWith("http")
+      ? `${BASE_URL}/approval_images/${item.image}`
+      : item.image
   }));
 
   // --- Fetch Placements ---
   let placements = await prisma.placements.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "desc" },
+    orderBy: { created_at: "asc" },
   });
 
   if (!placements) {
@@ -140,7 +142,9 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 
   placements = placements.map(item => ({
     ...item,
-    image: item.image ? `${BASE_URL}/placement_partners/${item.image}` : null
+    image: item.image && !item.image.startsWith("http")
+      ? `${BASE_URL}/placement_partners/${item.image}`
+      : item.image
   }));
 
   return successResponse(res, "Admin university data fetched successfully", 200, {
@@ -328,3 +332,72 @@ exports.addUniversity = async (req, res) => {
   }
 };
 
+exports.allAdminUniversities = catchAsync(async (req, res) => {
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
+  const universities = await prisma.university.findMany({
+    skip,
+    take: limit,
+  });
+
+  if (!universities) {
+    return errorResponse(res, "Failed to fetch universities", 500);
+  }
+
+  // --- Count total ---
+  const totalUniversities = await prisma.university.count({});
+
+  const totalPages = Math.ceil(totalUniversities / limit);
+
+  return successResponse(res, "Universities fetched successfully", 201, {
+    universities,
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalUniversities,
+    }
+  });
+});
+
+
+exports.universitiesDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, "Univesirty ID is required", 400);
+    }
+    const existingApproval = await prisma.university.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+    if (!existingApproval) {
+      return errorResponse(res, "University not found", 404);
+    }
+    let updatedRecord;
+    if (existingApproval.deleted_at) {
+      updatedRecord = await prisma.university.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
+
+      return successResponse(res, "University restored successfully", 200, updatedRecord);
+    }
+
+    updatedRecord = await prisma.university.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
+
+    return successResponse(res, "University deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    console.log("Soft Delete Error:", error);
+    if (error.code === 'P2025') {
+      return errorResponse(res, "University not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+});
