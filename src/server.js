@@ -230,28 +230,28 @@ const prisma = new PrismaClient();
 //   });
 // });
 
-app.get('/', async (req, res) => {
-  try {
-    const baseURL = "http://localhost:5000/uploads/placements/";
+// app.get('/', async (req, res) => {
+//   try {
+//     const baseURL = "http://localhost:5000/uploads/placements/";
 
-    // Update Approvals image URLs
-    await prisma.$queryRawUnsafe(`
-      UPDATE "Placements"
-      SET image = '${baseURL}' || image
-      WHERE image IS NOT NULL AND image NOT LIKE 'http%';
-    `);
+//     // Update Approvals image URLs
+//     await prisma.$queryRawUnsafe(`
+//       UPDATE "Placements"
+//       SET image = '${baseURL}' || image
+//       WHERE image IS NOT NULL AND image NOT LIKE 'http%';
+//     `);
 
-    return res.status(200).json({
-      message: "placements image URLs updated successfully"
-    });
+//     return res.status(200).json({
+//       message: "placements image URLs updated successfully"
+//     });
 
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({
-      error: error.message
-    });
-  }
-});
+//   } catch (error) {
+//     console.error("Error:", error);
+//     res.status(500).json({
+//       error: error.message
+//     });
+//   }
+// });
 
 
 const server = app.listen(PORT, () => console.log("Server is running at port : " + PORT));

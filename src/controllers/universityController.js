@@ -332,3 +332,72 @@ exports.addUniversity = async (req, res) => {
   }
 };
 
+exports.allAdminUniversities = catchAsync(async (req, res) => {
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
+  const universities = await prisma.university.findMany({
+    skip,
+    take: limit,
+  });
+
+  if (!universities) {
+    return errorResponse(res, "Failed to fetch universities", 500);
+  }
+
+  // --- Count total ---
+  const totalUniversities = await prisma.university.count({});
+
+  const totalPages = Math.ceil(totalUniversities / limit);
+
+  return successResponse(res, "Universities fetched successfully", 201, {
+    universities,
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalUniversities,
+    }
+  });
+});
+
+
+exports.universitiesDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, "Univesirty ID is required", 400);
+    }
+    const existingApproval = await prisma.university.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+    if (!existingApproval) {
+      return errorResponse(res, "University not found", 404);
+    }
+    let updatedRecord;
+    if (existingApproval.deleted_at) {
+      updatedRecord = await prisma.university.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
+
+      return successResponse(res, "University restored successfully", 200, updatedRecord);
+    }
+
+    updatedRecord = await prisma.university.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
+
+    return successResponse(res, "University deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    console.log("Soft Delete Error:", error);
+    if (error.code === 'P2025') {
+      return errorResponse(res, "University not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+});

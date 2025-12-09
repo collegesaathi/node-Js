@@ -338,7 +338,7 @@ model Leads {
   university    University? @relation(fields: [university_id], references: [id])
 }
 
-model State {
+model state {
   id         Int       @id @default(autoincrement())
   state_name String
   slug       String?
@@ -347,10 +347,10 @@ model State {
   status     Int       @default(1)
   created_at DateTime? @default(now())
   updated_at DateTime  @updatedAt
-  cities     City[]
+  cities     cities[]
 }
 
-model City {
+model cities {
   id           Int      @id @default(autoincrement())
   city_name    String
   slug         String?
@@ -361,5 +361,5 @@ model City {
   status       Int      @default(1)
   created_at   DateTime @default(now())
   updated_at   DateTime @updatedAt
-  state        State    @relation(fields: [state_id], references: [id])
+  state        state    @relation(fields: [state_id], references: [id])
 }
