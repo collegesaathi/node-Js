@@ -8,6 +8,4 @@ router.get("/leads/get", LeadsGet);
 
 router.get("/leads/university", allLeadsUniversities);
 
-
-
 module.exports = router;
