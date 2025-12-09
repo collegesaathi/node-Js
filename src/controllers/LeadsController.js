@@ -58,7 +58,6 @@ exports.LeadsGet = catchAsync(async (req, res) => {
   }
 });
 
-
 exports.allLeadsUniversities = catchAsync(async (req, res) => {
   // Pagination
   const universities = await prisma.university.findMany({
