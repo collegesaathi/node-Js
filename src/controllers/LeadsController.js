@@ -57,3 +57,17 @@ exports.LeadsGet = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
+
+
+exports.allLeadsUniversities = catchAsync(async (req, res) => {
+  // Pagination
+  const universities = await prisma.university.findMany({
+  });
+
+  if (!universities) {
+    return errorResponse(res, "Failed to fetch universities", 500);
+  }
+  return successResponse(res, "Universities fetched successfully", 201, {
+    universities,
+  });
+});
