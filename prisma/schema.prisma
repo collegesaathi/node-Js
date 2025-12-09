@@ -45,7 +45,7 @@ model University {
   blogs              Blog[]
   campus             Campus[]
   courseDetails      CourseDetails[]
-  leads              Leads[]
+  leads              leads[]
   about              UniversityAbout[]
   admissionProcess   UniversityAdmissionProcess[]
   advantages         UniversityAdvantages[]
@@ -210,7 +210,7 @@ model Course {
   category     Category            @relation(fields: [category_id], references: [id])
   descriptions CourseDescription[]
   details      CourseDetails[]
-  leads        Leads[]
+  leads        leads[]
 }
 
 model CourseDescription {
@@ -321,7 +321,7 @@ model Campus {
   university    University? @relation(fields: [university_id], references: [id])
 }
 
-model Leads {
+model leads {
   id            Int         @id @default(autoincrement())
   university_id Int?
   name          String

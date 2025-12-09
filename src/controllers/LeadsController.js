@@ -25,7 +25,7 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
             data.course = { connect: { id: Number(course_id) } };
         }
 
-        const record = await prisma.Leads.create({ data });
+        const record = await prisma.leads.create({ data });
 
         return successResponse(res, "Leads added successfully", 201, record);
 
@@ -38,7 +38,7 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
 
 exports.LeadsGet = catchAsync(async (req, res) => {
   try {
-    let leads = await prisma.Leads.findMany({
+    let leads = await prisma.leads.findMany({
       orderBy: { created_at: "asc" },
       include: {
         university: {
