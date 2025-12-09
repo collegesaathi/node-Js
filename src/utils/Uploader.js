@@ -2,38 +2,32 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadPath = path.join(process.cwd(), "public/uploads");
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
+require("dotenv").config();
 
-// Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
-    cb(null, uniqueName);
-  },
-});
+const BASE_UPLOAD_PATH = process.env.UPLOAD_BASE_PATH || "public/uploads";
 
-// Filter
-const fileFilter = (req, file, cb) => {
-  if (!file || !file.originalname || file.originalname.trim() === "") {
-    return cb(null, false);
-  }
-  cb(null, true);
+const dynamicUpload = (folderName) => {
+  return multer({
+    storage: multer.diskStorage({
+      destination: (req, file, cb) => {
+        const finalFolder = path.join(process.cwd(), BASE_UPLOAD_PATH, folderName);
+
+        // Create folder if not exist
+        if (!fs.existsSync(finalFolder)) {
+          fs.mkdirSync(finalFolder, { recursive: true });
+        }
+
+        cb(null, finalFolder);
+      },
+      filename: (req, file, cb) => {
+        const uniqueName =
+          Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+        cb(null, uniqueName);
+      },
+    }),
+
+    limits: { fileSize: 10 * 1024 * 1024 },
+  });
 };
 
-// Upload
-const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 10,
-  },
-});
-
-module.exports = upload;
+module.exports = dynamicUpload;
