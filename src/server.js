@@ -8,7 +8,6 @@ const app = express();
 const cors = require("cors");
 const path = require("path");
 // const serverless = require('serverless-http');
-
 const corsOptions = {
   origin: "*", // Allowed origins
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -46,10 +45,47 @@ app.use("/api", require("./routes/homeRoutes"));
 app.use("/api", require("./routes/userRoutes"));
 app.use("/api", require("./routes/universityRoutes"));
 app.use("/api", require("./routes/approvalRoute"));
+app.use("/api", require("./routes/leadsRoute"));
+
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
+
+// app.get('/', async (req, res) => {
+//   try {
+//     // 1️⃣ Get MAX(id)
+//     const maxResult = await prisma.$queryRaw`
+//       SELECT MAX(id) AS max_id FROM "Approvals"
+//     `;
+//     const maxId = maxResult[0]?.max_id || 0;
+
+//     // 2️⃣ Reset sequence
+//     await prisma.$queryRaw`
+//       SELECT setval('"Approvals_id_seq"', ${maxId + 1}, false);
+//     `;
+
+//     console.log("Approvals sequence updated to:", maxId + 1);
+
+//     // 3️⃣ Create test record (use correct field: title)
+//     const test = await prisma.approvals.create({
+//       data: {
+//         title: "Test Approval " + Date.now(),
+//         image: null
+//       }
+//     });
+
+//     res.json({
+//       success: true,
+//       expectedNextId: maxId + 1,
+//       actualInsertedId: test.id
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error });
+//   }
+// });
 // app.get('/', async (req, res) => {
 //   try {
 //     const maxResult = await prisma.$queryRaw`
@@ -81,6 +117,44 @@ const prisma = new PrismaClient();
 //     res.status(500).json({ error });
 //   }
 // });
+
+
+// app.get('/', async (req, res) => {
+//   try {
+//     // 1️⃣ Get MAX(id)
+//     const maxResult = await prisma.$queryRaw`
+//       SELECT MAX(id) AS max_id FROM "Placements"
+//     `;
+//     const maxId = maxResult[0]?.max_id || 0;
+
+//     // 2️⃣ Reset sequence for Placements
+//     await prisma.$queryRaw`
+//       SELECT setval('"Placements_id_seq"', ${maxId + 1}, false);
+//     `;
+
+//     console.log("Placements sequence updated to:", maxId + 1);
+
+//     // 3️⃣ Insert test row
+//     const test = await prisma.placements.create({
+//       data: {
+//         title: "Test Placement " + Date.now(),
+//         image: null
+//       }
+//     });
+
+//     res.json({
+//       success: true,
+//       expectedNextId: maxId + 1,
+//       actualInsertedId: test.id
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error });
+//   }
+// });
+
+
 
 
 
@@ -156,6 +230,28 @@ const prisma = new PrismaClient();
 //   });
 // });
 
+app.get('/', async (req, res) => {
+  try {
+    const baseURL = "http://localhost:5000/uploads/placements/";
+
+    // Update Approvals image URLs
+    await prisma.$queryRawUnsafe(`
+      UPDATE "Placements"
+      SET image = '${baseURL}' || image
+      WHERE image IS NOT NULL AND image NOT LIKE 'http%';
+    `);
+
+    return res.status(200).json({
+      message: "placements image URLs updated successfully"
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({
+      error: error.message
+    });
+  }
+});
 
 
 const server = app.listen(PORT, () => console.log("Server is running at port : " + PORT));
