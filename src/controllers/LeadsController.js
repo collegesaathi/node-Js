@@ -5,7 +5,7 @@ const catchAsync = require("../utils/catchAsync");
 
 exports.LeadsAdd = catchAsync(async (req, res) => {
     try {
-        const { name, email, phone_number, course_id, state, city, content, university_id } = req.body;
+        const { name, email, phone_number, course_id, state, city, content, university_id ,page_name } = req.body;
 
         const data = {
             name,
