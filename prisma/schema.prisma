@@ -38,7 +38,7 @@ model University {
   icon               String?
   cover_image        String?
   position           Int?                         @default(0)
-  description        Json?
+  description        Array?
   created_at         DateTime                     @default(now())
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
@@ -129,7 +129,8 @@ model UniversityExamPatterns {
   university_id Int
   title         String
   description   String?
-  facts         Json?
+  bottompatterndesc   String?
+  patterns         Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
@@ -145,15 +146,14 @@ model UniversityFinancialAid {
 model UniversityCampus {
   id            Int        @id @default(autoincrement())
   university_id Int
-  title         String
-  image         String?
+  campus         Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
 model UniversityPartners {
   id                   Int        @id @default(autoincrement())
   university_id        Int
-  placement_partner_id Int
+  placement_partner_id Json?
   title                String
   description          String?
   placement            Placements @relation(fields: [placement_partner_id], references: [id])
@@ -181,8 +181,7 @@ model UniversityAdmissionProcess {
 model UniversityFaq {
   id            Int        @id @default(autoincrement())
   university_id Int
-  question      String
-  answer        String?
+  faqs          Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 

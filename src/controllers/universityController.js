@@ -4,31 +4,6 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 
-const parseJSON = (data) => {
-  try {
-    return JSON.parse(data);
-  } catch {
-    return data;
-  }
-};
-
-// inject uploaded file paths inside JSON fields
-const applyImagesToJSON = (jsonData, uploadedFiles, prefix) => {
-  const arr = parseJSON(jsonData);
-
-  if (!Array.isArray(arr)) return arr;
-
-  return arr.map((item, index) => {
-    for (let key in item) {
-      const field = `${prefix}[${index}][${key}]`;
-      if (uploadedFiles[field]) {
-        item[key] = uploadedFiles[field];  // replace with uploaded file path
-      }
-    }
-    return item;
-  });
-};
-
 
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
@@ -153,184 +128,7 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   });
 });
 
-// exports.addUniversity = async (req, res) => {
-//   try {
-//     console.log("req.body =>", req.body);
-//     Logger.info(req.body)
-//     let uploadedFiles = {};
-//     req.files?.forEach((file) => {
-//       uploadedFiles[file.fieldname] = file.path; // store as fieldname → path
-//     });
-//     Logger.info(uploadedFiles)
-//     console.log("Uploaded Files =>", uploadedFiles);
-//     const services = applyImagesToJSON(req.body.services, uploadedFiles, "services");
-//     const advantages = applyImagesToJSON(req.body.advantages, uploadedFiles, "advantages");
-//     const patterns = applyImagesToJSON(req.body.patterns, uploadedFiles, "patterns");
-//     const campusList = applyImagesToJSON(req.body.campusList, uploadedFiles, "campusList");
-//     const fees = applyImagesToJSON(req.body.fees, uploadedFiles, "fees");
-//     const facts = applyImagesToJSON(req.body.facts, uploadedFiles, "facts");
-//     const onlines = applyImagesToJSON(req.body.onlines, uploadedFiles, "onlines");
-//     // Final JSON object
-//     const finalData = {
-//       ...req.body,
-//       services,
-//       advantages,
-//       patterns,
-//       campusList,
-//       fees,
-//       facts,
-//       onlines,
-//       icon: uploadedFiles["icon"] || null,
-//       cover_image: uploadedFiles["cover_image"] || null
-//     };
 
-//     Logger.silly(finalData)
-
-//     return res.status(200).json({
-//       status: true,
-//       message: "University Saved Successfully!",
-//       data: finalData
-//     });
-
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ status: false, message: "Internal Server Error" });
-//   }
-// };
-
-
-
-// Helper: Parse JSON fields safely
-function parseArray(jsonString) {
-  try {
-    return JSON.parse(jsonString);
-  } catch (err) {
-    return [];
-  }
-}
-
-// Helper: Map files like name[0] → correct index array
-function mapUploadedArray(uploadedFiles, fieldPrefix) {
-  const arr = [];
-  Object.keys(uploadedFiles).forEach(key => {
-    if (key.startsWith(fieldPrefix + "[")) {
-      const index = Number(key.match(/\[(\d+)\]/)[1]);
-      arr[index] = uploadedFiles[key];
-    }
-  });
-  return arr;
-}
-
-// Helper: Attach images to items
-function attachImagesToItems(items, images, keyName) {
-  items.forEach((item, idx) => {
-    if (images[idx]) {
-      item[keyName] = images[idx];
-    }
-  });
-  return items;
-}
-
-
-exports.addUniversity = async (req, res) => {
-  try {
-    Logger.info(req.body)
-    let uploadedFiles = {};
-
-    req.files?.forEach((file) => {
-      uploadedFiles[file.fieldname] = file.path;
-    });
-    Logger.info(uploadedFiles)
-    // Parse main arrays
-    let services = parseArray(req.body.services);
-    let patterns = parseArray(req.body.patterns);
-    let advantages = parseArray(req.body.advantages);
-    let campusList = parseArray(req.body.campusList);
-    let fees = parseArray(req.body.fees);
-    let facts = parseArray(req.body.facts);
-    let onlines = parseArray(req.body.onlines);
-    let faqs = parseArray(req.body.faqs);
-    // Extract image arrays
-    const patternsImages = mapUploadedArray(uploadedFiles, "patternsimages");
-    const servicesImages = mapUploadedArray(uploadedFiles, "servicesimages");
-    const servicesIcons = mapUploadedArray(uploadedFiles, "servicesicon");
-    const campusImages = mapUploadedArray(uploadedFiles, "campusimages");
-    const factsImages = mapUploadedArray(uploadedFiles, "factsimages");
-
-    // Attach images to correct array items
-    services = attachImagesToItems(services, servicesImages, "image");
-    services = attachImagesToItems(services, servicesIcons, "icon");
-    patterns = attachImagesToItems(patterns, patternsImages, "image");
-    campusList = attachImagesToItems(campusList, campusImages, "image");
-    facts = attachImagesToItems(facts, factsImages, "image");
-    const finalData = {
-      // ✅ BASIC INFO
-      slug: req.body.slug || "",
-      name: req.body.name || "",
-      position: req.body.position || "",
-
-      // ✅ ABOUT SECTION
-      about_title: req.body.about_title || "",
-      about_desc: req.body.about_desc || "",
-      descriptions: parseArray(req.body.descriptions),
-
-      // ✅ MEDIA
-      icon: uploadedFiles["icon"] || null,
-      cover_image: uploadedFiles["cover_image"] || null,
-
-      // ✅ MAIN ARRAYS (Parsed)
-      services,
-      patterns,
-      advantages,
-      campusList,
-      fees,
-      facts,
-      onlines,
-      faqs,
-
-      // ✅ EXTRA SECTIONS (If Required)
-      approvals: parseArray(req.body.approvals),
-      partners: parseArray(req.body.partners),
-      rankings_name: req.body.rankings_name || "",
-      rankings_description: req.body.rankings_description || "",
-
-      // ✅ FINANCIAL / CERTIFICATE
-      financialname: req.body.financialname || "",
-      financialdescription: req.body.financialdescription || "",
-      certificatename: req.body.certificatename || "",
-      certificatedescription: req.body.certificatedescription || "",
-
-      // ✅ ADVANTAGE TITLES
-      advantagesname: req.body.advantagesname || "",
-      advantagesdescription: req.body.advantagesdescription || "",
-
-      // ✅ FACTS TITLE
-      factsname: req.body.factsname || "",
-
-      // ✅ PARTNERS
-      partnersname: req.body.partnersname || "",
-      partnersdesc: req.body.partnersdesc || "",
-
-      // ✅ ONLINE HEADING
-      onlinetitle: req.body.onlinetitle || "",
-      onlinedesc: req.body.onlinedesc || "",
-    };
-
-    console.log("campusList", campusList)
-
-    Logger.silly(finalData)
-
-    return res.status(200).json({
-      status: true,
-      message: "University Saved Successfully!",
-      data: finalData
-    });
-
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({ status: false, message: "Internal Server Error" });
-  }
-};
 
 exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
@@ -399,5 +197,298 @@ exports.universitiesDelete = catchAsync(async (req, res) => {
       return errorResponse(res, "University not found", 404);
     }
     return errorResponse(res, error.message, 500);
+  }
+});
+
+// helpers at top of file
+
+async function generateUniqueSlug(baseSlug) {
+  let slug = baseSlug;
+  let counter = 1;
+
+  while (true) {
+    const existing = await prisma.University.findUnique({
+      where: { slug }
+    });
+
+    if (!existing) return slug;
+
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+}
+
+// Convert Windows Path to Public URL
+function toPublicUrl(req, filePath) {
+  if (!filePath) return null;
+  const normalized = filePath.replace(/\\/g, "/");
+  const index = normalized.indexOf("/uploads/");
+  if (index === -1) return null;
+  const cleanPath = normalized.substring(index);
+  const BASE_URL = `${req.protocol}://${req.get("host")}`;
+  return BASE_URL + cleanPath;
+}
+
+// Parse JSON safely (returns array or empty array)
+function parseArray(jsonString) {
+  if (!jsonString) return [];
+  try {
+    return typeof jsonString === "string" ? JSON.parse(jsonString) : jsonString;
+  } catch (err) {
+    return [];
+  }
+}
+
+// Extract file arrays like uploadedFiles["servicesimages[0]"] -> arr[0] = filePath
+function mapUploadedArray(req, uploadedFiles, fieldPrefix) {
+  const arr = [];
+  Object.keys(uploadedFiles).forEach(key => {
+    if (key.startsWith(fieldPrefix + "[")) {
+      const match = key.match(/\[(\d+)\]/);
+      if (!match) return;
+      const index = Number(match[1]);
+      // uploadedFiles stores raw path (file.path)
+      arr[index] = toPublicUrl(req, uploadedFiles[key]);
+    }
+  });
+  return arr;
+}
+
+// Attach images into items array: items[idx][keyName] = images[idx]
+function attachImagesToItems(items = [], images = [], keyName) {
+  if (!Array.isArray(items)) return items;
+  items.forEach((item, idx) => {
+    if (images[idx]) {
+      // ensure item is object
+      if (typeof item === "object" && item !== null) {
+        item[keyName] = images[idx];
+      } else {
+        // if item is primitive (string), replace with object
+        items[idx] = { value: item, [keyName]: images[idx] };
+      }
+    }
+  });
+  return items;
+}
+
+// ----------------------
+// Controller
+// ----------------------
+exports.addUniversity = catchAsync(async (req, res) => {
+  try {
+    Logger.info(req.body);
+
+    // collect uploaded files: store raw path under fieldname keys
+    const uploadedFiles = {};
+    req.files?.forEach(file => {
+      // file.fieldname might be "servicesimages[0]" or "icon" etc.
+      uploadedFiles[file.fieldname] = file.path;
+    });
+    Logger.info(uploadedFiles);
+
+    // parse arrays safely (accepts already-parsed arrays too)
+    let services = parseArray(req.body.services);
+    let patterns = parseArray(req.body.patterns);
+    let advantages = parseArray(req.body.advantages);
+    let campusList = parseArray(req.body.campusList);
+    let fees = parseArray(req.body.fees);
+    let facts = parseArray(req.body.facts);
+    let onlines = parseArray(req.body.onlines);
+    let faqs = parseArray(req.body.faqs);
+    let descriptions = parseArray(req.body.descriptions);
+
+    // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
+    const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
+    const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
+    const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
+    const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
+    const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
+
+    // attach images to corresponding items
+    services = attachImagesToItems(services, servicesImages, "image");
+    services = attachImagesToItems(services, servicesIcons, "icon");
+    patterns = attachImagesToItems(patterns, patternsImages, "image");
+    campusList = attachImagesToItems(campusList, campusImages, "image");
+    facts = attachImagesToItems(facts, factsImages, "image");
+
+    // build final data (ensure icon/cover are converted to public URLs too)
+    const finalData = {
+      slug: req.body.slug || "",
+      name: req.body.name || "",
+      position: req.body.position || 0,
+      about_title: req.body.about_title || "",
+      about_desc: req.body.about_desc || "",
+      partnersdesc: req.body.partnersdesc || "",
+      advantagesname: req.body.advantagesname || "",
+      advantagesdescription: req.body.advantagesdescription || "",
+      descriptions: descriptions,
+      approvals_name: req.body.approvals_name,
+      approvals_desc: req.body.approvals_desc,
+      certificatename: req.body.certificatename,
+      certificatedescription: req.body.certificatedescription,
+      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
+      icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
+      cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
+      servicedesc: req.body.servicedesc,
+      servicetitle: req.bosy.servicetitle,
+      services,
+      patterns,
+      partnersname : req.body.partnersname ,
+      partnersdesc : req.body.partnersdesc,
+      patterndescription : req.body.patterndescription,
+      title : req.body.patternname ,
+      bottompatterndesc : req.body.bottompatterndesc ,
+      advantages,
+      campusList,
+      fees,
+      facts,
+      factsname: req.bosy.factsname,
+      onlines,
+      onlinetitle : req.body.onlinetitle,
+      onlinedesc : req.bosy.onlinedesc,
+      faqs,
+      approvals: parseArray(req.body.approvals),
+      partners: parseArray(req.body.partners),
+      rankings_name: req.body.rankings_name || "",
+      rankings_description: req.body.rankings_description || ""
+      // add other fields as needed
+    };
+
+    Logger.silly(finalData);
+
+    // Save with Prisma (example)
+    const Universitydata = await prisma.University.create({
+      data: {
+        name: finalData.name || "Untitled",
+        cover_image: finalData.cover_image,
+        position: Number(finalData.position || 0),
+        description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
+        icon: finalData.icon,
+        slug: finalData.slug,
+      }
+    });
+    console.log("Universitydata", Universitydata)
+    if (Universitydata.id) {
+      await prisma.UniversityAbout.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.about_title,
+          description: finalData.about_desc
+        }
+      })
+
+       await prisma.UniversityFaq.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          faqs: finalData.faqs,
+        }
+      })
+
+        await prisma.UniversityCampus.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          campus: finalData.campusList,
+        }
+      })
+
+    
+      await prisma.UniversityServices.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.servicetitle,
+          descriptions: finalData.servicedesc,
+          services: finalData.services || ""
+        }
+      })
+      await prisma.UniversityFacts.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.factsname,
+          facts: finalData.facts || ""
+        }
+      })
+
+
+      await prisma.UniversityAdvantages.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.advantagesname,
+          description: finalData.advantagesdescription,
+          advantages: finalData.advantages
+        }
+      })
+
+      await prisma.UniversityApprovals.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.approvals_name,
+          description: finalData.approvals_desc,
+          approval_ids: finalData.approvals
+        }
+      })
+
+      
+        await prisma.UniversityAdmissionProcess.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.onlinetitle,
+          description: finalData.onlinedesc,
+          process: finalData.onlines
+        }
+      })
+      await prisma.UniversityCertificates.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.certificatename,
+          description: finalData.certificatedescription,
+          image: finalData.certificatemage
+        }
+      })
+      await prisma.UniversityFinancialAid.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.financialname,
+          description: finalData.financialdescription,
+          aid: finalData.fees
+        }
+      })
+
+      await prisma.UniversityRankings.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.rankings_name,
+          description: finalData.rankings_description,
+        }
+      })
+
+      await prisma.UniversityExamPatterns.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.patterndescription,
+          description: finalData.patterndescription,
+          bottompatterndesc : finalData.bottompatterndesc, 
+          patterns: finalData.patterns
+        }
+      })
+
+      await prisma.UniversityPartners.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.partnersname,
+          description: finalData.partnersdesc,
+          placement_partner_id: finalData.partners
+        }
+      })
+
+    }
+    return res.status(200).json({
+      status: true,
+      message: "University Saved Successfully!",
+      data: finalData
+    });
+
+  } catch (error) {
+    console.error("addUniversity error:", error);
+    return res.status(500).json({ status: false, message: "Internal Server Error" });
   }
 });
