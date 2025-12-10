@@ -232,17 +232,17 @@ const prisma = new PrismaClient();
 
 // app.get('/', async (req, res) => {
 //   try {
-//     const baseURL = "http://localhost:5000/uploads/placements/";
+//     const baseURL = "http://localhost:5000/uploads/approvals/";
 
 //     // Update Approvals image URLs
 //     await prisma.$queryRawUnsafe(`
-//       UPDATE "Placements"
+//       UPDATE "Approvals"
 //       SET image = '${baseURL}' || image
 //       WHERE image IS NOT NULL AND image NOT LIKE 'http%';
 //     `);
 
 //     return res.status(200).json({
-//       message: "placements image URLs updated successfully"
+//       message: "approvals image URLs updated successfully"
 //     });
 
 //   } catch (error) {
