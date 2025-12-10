@@ -38,7 +38,7 @@ model University {
   icon               String?
   cover_image        String?
   position           Int?                         @default(0)
-  description        Array?
+  description        Json?
   created_at         DateTime                     @default(now())
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
@@ -156,7 +156,6 @@ model UniversityPartners {
   placement_partner_id Json?
   title                String
   description          String?
-  placement            Placements @relation(fields: [placement_partner_id], references: [id])
   university           University @relation(fields: [university_id], references: [id])
 }
 
@@ -306,7 +305,6 @@ model Placements {
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   deleted_at         DateTime?
-  universityPartners UniversityPartners[]
 }
 
 model Campus {

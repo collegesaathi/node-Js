@@ -122,7 +122,8 @@ CREATE TABLE "UniversityExamPatterns" (
     "university_id" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "facts" JSONB,
+    "bottompatterndesc" TEXT,
+    "patterns" JSONB,
 
     CONSTRAINT "UniversityExamPatterns_pkey" PRIMARY KEY ("id")
 );
@@ -142,8 +143,7 @@ CREATE TABLE "UniversityFinancialAid" (
 CREATE TABLE "UniversityCampus" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER NOT NULL,
-    "title" TEXT NOT NULL,
-    "image" TEXT,
+    "campus" JSONB,
 
     CONSTRAINT "UniversityCampus_pkey" PRIMARY KEY ("id")
 );
@@ -152,7 +152,7 @@ CREATE TABLE "UniversityCampus" (
 CREATE TABLE "UniversityPartners" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER NOT NULL,
-    "placement_partner_id" INTEGER NOT NULL,
+    "placement_partner_id" JSONB,
     "title" TEXT NOT NULL,
     "description" TEXT,
 
@@ -185,8 +185,7 @@ CREATE TABLE "UniversityAdmissionProcess" (
 CREATE TABLE "UniversityFaq" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER NOT NULL,
-    "question" TEXT NOT NULL,
-    "answer" TEXT,
+    "faqs" JSONB,
 
     CONSTRAINT "UniversityFaq_pkey" PRIMARY KEY ("id")
 );
@@ -410,9 +409,6 @@ ALTER TABLE "UniversityFinancialAid" ADD CONSTRAINT "UniversityFinancialAid_univ
 
 -- AddForeignKey
 ALTER TABLE "UniversityCampus" ADD CONSTRAINT "UniversityCampus_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "UniversityPartners" ADD CONSTRAINT "UniversityPartners_placement_partner_id_fkey" FOREIGN KEY ("placement_partner_id") REFERENCES "Placements"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UniversityPartners" ADD CONSTRAINT "UniversityPartners_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
