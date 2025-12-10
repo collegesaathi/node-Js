@@ -352,41 +352,12 @@ CREATE TABLE "leads" (
     "state" TEXT,
     "city" TEXT,
     "content" TEXT,
+    "page_name" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "leads_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "state" (
-    "id" SERIAL NOT NULL,
-    "state_name" TEXT NOT NULL,
-    "slug" TEXT,
-    "country_id" INTEGER NOT NULL,
-    "state_code" TEXT,
-    "status" INTEGER NOT NULL DEFAULT 1,
-    "created_at" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "state_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "cities" (
-    "id" SERIAL NOT NULL,
-    "city_name" TEXT NOT NULL,
-    "slug" TEXT,
-    "state_id" INTEGER NOT NULL,
-    "state_code" TEXT,
-    "country_id" INTEGER NOT NULL,
-    "country_code" TEXT,
-    "status" INTEGER NOT NULL DEFAULT 1,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "cities_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -487,6 +458,3 @@ ALTER TABLE "leads" ADD CONSTRAINT "leads_course_id_fkey" FOREIGN KEY ("course_i
 
 -- AddForeignKey
 ALTER TABLE "leads" ADD CONSTRAINT "leads_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "cities" ADD CONSTRAINT "cities_state_id_fkey" FOREIGN KEY ("state_id") REFERENCES "state"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
