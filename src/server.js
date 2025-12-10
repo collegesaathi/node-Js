@@ -52,40 +52,40 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 
-app.get('/', async (req, res) => {
-  try {
-    // 1️⃣ Get MAX(id)
-    const maxResult = await prisma.$queryRaw`
-      SELECT MAX(id) AS max_id FROM "Approvals"
-    `;
-    const maxId = maxResult[0]?.max_id || 0;
+// app.get('/', async (req, res) => {
+//   try {
+//     // 1️⃣ Get MAX(id)
+//     const maxResult = await prisma.$queryRaw`
+//       SELECT MAX(id) AS max_id FROM "Approvals"
+//     `;
+//     const maxId = maxResult[0]?.max_id || 0;
 
-    // 2️⃣ Reset sequence
-    await prisma.$queryRaw`
-      SELECT setval('"Approvals_id_seq"', ${maxId + 1}, false);
-    `;
+//     // 2️⃣ Reset sequence
+//     await prisma.$queryRaw`
+//       SELECT setval('"Approvals_id_seq"', ${maxId + 1}, false);
+//     `;
 
-    console.log("Approvals sequence updated to:", maxId + 1);
+//     console.log("Approvals sequence updated to:", maxId + 1);
 
-    // 3️⃣ Create test record (use correct field: title)
-    const test = await prisma.approvals.create({
-      data: {
-        title: "Test Approval " + Date.now(),
-        image: null
-      }
-    });
+//     // 3️⃣ Create test record (use correct field: title)
+//     const test = await prisma.approvals.create({
+//       data: {
+//         title: "Test Approval " + Date.now(),
+//         image: null
+//       }
+//     });
 
-    res.json({
-      success: true,
-      expectedNextId: maxId + 1,
-      actualInsertedId: test.id
-    });
+//     res.json({
+//       success: true,
+//       expectedNextId: maxId + 1,
+//       actualInsertedId: test.id
+//     });
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error });
-  }
-});
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error });
+//   }
+// });
 // app.get('/', async (req, res) => {
 //   try {
 //     const maxResult = await prisma.$queryRaw`
