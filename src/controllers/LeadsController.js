@@ -13,7 +13,8 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
             phone_number,
             state,
             city,
-            content
+            content,
+            page_name
         };
 
         // Add relations only if IDs are provided

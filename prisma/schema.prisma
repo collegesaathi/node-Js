@@ -331,6 +331,7 @@ model leads {
   state         String?
   city          String?
   content       String?
+  page_name     String?     
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
   deleted_at    DateTime?
@@ -338,28 +339,3 @@ model leads {
   university    University? @relation(fields: [university_id], references: [id])
 }
 
-model state {
-  id         Int       @id @default(autoincrement())
-  state_name String
-  slug       String?
-  country_id Int
-  state_code String?
-  status     Int       @default(1)
-  created_at DateTime? @default(now())
-  updated_at DateTime  @updatedAt
-  cities     cities[]
-}
-
-model cities {
-  id           Int      @id @default(autoincrement())
-  city_name    String
-  slug         String?
-  state_id     Int
-  state_code   String?
-  country_id   Int
-  country_code String?
-  status       Int      @default(1)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  state        state    @relation(fields: [state_id], references: [id])
-}
