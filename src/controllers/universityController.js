@@ -491,7 +491,21 @@ exports.addUniversity = catchAsync(async (req, res) => {
     });
 
   } catch (error) {
-    console.error("addUniversity error:", error);
-    return res.status(500).json({ status: false, message: "Internal Server Error" });
+  console.error("addUniversity error:", error);
+
+  // check for Prisma unique constraint error
+  if (error.code === "P2002") {
+    return res.status(400).json({
+      status: false,
+      message: `Duplicate field value: ${error.meta.target.join(", ")}`,
+      code: error.code
+    });
   }
+
+  // fallback for any other errors
+  return res.status(500).json({
+    status: false,
+    message: error.message || "Something went wrong",
+  });
+}
 });
