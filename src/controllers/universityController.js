@@ -5,6 +5,42 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
 const Logger = require("../utils/Logger");
 
 
+const makeSlug = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-");
+};
+
+const generateUniqueSlug = async (prisma, title) => {
+  let baseSlug = makeSlug(title);
+  let slug = baseSlug;
+  let counter = 1;
+
+  // Already existing slugs load
+  const existingSlugs = await prisma.university.findMany({
+    where: {
+      slug: {
+        startsWith: baseSlug,
+      },
+    },
+    select: { slug: true },
+  });
+
+  // Unique slug find karna
+  while (existingSlugs.some((item) => item.slug === slug)) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
+  return slug;
+};
+
+
+
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
   const page = parseInt(req.query.page) || 1;
@@ -202,21 +238,6 @@ exports.universitiesDelete = catchAsync(async (req, res) => {
 
 // helpers at top of file
 
-async function generateUniqueSlug(baseSlug) {
-  let slug = baseSlug;
-  let counter = 1;
-
-  while (true) {
-    const existing = await prisma.University.findUnique({
-      where: { slug }
-    });
-
-    if (!existing) return slug;
-
-    slug = `${baseSlug}-${counter}`;
-    counter++;
-  }
-}
 
 // Convert Windows Path to Public URL
 function toPublicUrl(req, filePath) {
@@ -357,6 +378,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     };
 
     Logger.silly(finalData);
+    const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
 
     // Save with Prisma (example)
     const Universitydata = await prisma.University.create({
@@ -366,7 +388,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug: finalData.slug,
+        slug: finalData.slug ? finalData.slug : generatedSlug,
       }
     });
     console.log("Universitydata", Universitydata)
