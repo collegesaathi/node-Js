@@ -60,6 +60,7 @@ model University {
   partners           UniversityPartners[]
   rankings           UniversityRankings[]
   services           UniversityServices[]
+  seo                Seo[]
 }
 
 model UniversityDetail {
@@ -209,6 +210,7 @@ model Course {
   descriptions CourseDescription[]
   details      CourseDetails[]
   leads        leads[]
+  seo                Seo[]
 }
 
 model CourseDescription {
@@ -267,6 +269,7 @@ model Blog {
   deleted_at    DateTime?
   university    University? @relation(fields: [university_id], references: [id])
   tags          Tags[]
+  seo                Seo[]
 }
 
 model Tags {
@@ -336,3 +339,23 @@ model leads {
   university    University? @relation(fields: [university_id], references: [id])
 }
 
+model Seo {
+  id            Int        @id @default(autoincrement())
+  university_id Int?
+  course_id     Int?
+  blog_id       Int?
+
+  meta_title       String?
+  meta_description String?
+  meta_keywords    String?
+  canonical_url    String?
+  json_ld          Json?
+
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  deleted_at    DateTime?
+  // Relations
+  university    University? @relation(fields: [university_id], references: [id])
+  course        Course?     @relation(fields: [course_id], references: [id])
+  blog          Blog?       @relation(fields: [blog_id], references: [id])
+}
