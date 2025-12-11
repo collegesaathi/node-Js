@@ -140,7 +140,7 @@ model UniversityFinancialAid {
   title         String
   description   String?
   aid           Json?
-  university    University @relation(fields: [university_id], references: [id])
+  university University? @relation(fields: [university_id], references: [id])
 }
 
 model UniversityCampus {

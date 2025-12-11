@@ -330,27 +330,29 @@ exports.addUniversity = catchAsync(async (req, res) => {
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc,
-      servicetitle: req.bosy.servicetitle,
+      servicetitle: req.body.servicetitle,
       services,
       patterns,
-      partnersname : req.body.partnersname ,
-      partnersdesc : req.body.partnersdesc,
-      patterndescription : req.body.patterndescription,
-      title : req.body.patternname ,
-      bottompatterndesc : req.body.bottompatterndesc ,
+      partnersname: req.body.partnersname,
+      partnersdesc: req.body.partnersdesc,
+      patterndescription: req.body.patterndescription,
+      title: req.body.patternname,
+      bottompatterndesc: req.body.bottompatterndesc,
       advantages,
       campusList,
       fees,
       facts,
-      factsname: req.bosy.factsname,
+      factsname: req.body.factsname,
       onlines,
-      onlinetitle : req.body.onlinetitle,
-      onlinedesc : req.bosy.onlinedesc,
+      onlinetitle: req.body.onlinetitle,
+      onlinedesc: req.body.onlinedesc,
+      financialdescription: req.body.financialdescription,
       faqs,
       approvals: parseArray(req.body.approvals),
       partners: parseArray(req.body.partners),
       rankings_name: req.body.rankings_name || "",
-      rankings_description: req.body.rankings_description || ""
+      rankings_description: req.body.rankings_description || "",
+      financialname: req.body.financialname,
       // add other fields as needed
     };
 
@@ -377,26 +379,26 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-       await prisma.UniversityFaq.create({
+      await prisma.UniversityFaq.create({
         data: {
           university_id: Number(Universitydata.id),
           faqs: finalData.faqs,
         }
       })
 
-        await prisma.UniversityCampus.create({
+      await prisma.UniversityCampus.create({
         data: {
           university_id: Number(Universitydata.id),
           campus: finalData.campusList,
         }
       })
 
-    
+
       await prisma.UniversityServices.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.servicetitle,
-          descriptions: finalData.servicedesc,
+          description: finalData.servicedesc,
           services: finalData.services || ""
         }
       })
@@ -427,8 +429,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      
-        await prisma.UniversityAdmissionProcess.create({
+
+      await prisma.UniversityAdmissionProcess.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.onlinetitle,
@@ -446,10 +448,10 @@ exports.addUniversity = catchAsync(async (req, res) => {
       })
       await prisma.UniversityFinancialAid.create({
         data: {
-          university_id: Number(Universitydata.id),
           title: finalData.financialname,
-          description: finalData.financialdescription,
-          aid: finalData.fees
+          description: finalData.financialdescription || null,
+          aid: finalData.fees,
+          university_id: Number(Universitydata.id),
         }
       })
 
@@ -466,7 +468,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
           university_id: Number(Universitydata.id),
           title: finalData.patterndescription,
           description: finalData.patterndescription,
-          bottompatterndesc : finalData.bottompatterndesc, 
+          bottompatterndesc: finalData.bottompatterndesc,
           patterns: finalData.patterns
         }
       })
@@ -481,6 +483,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       })
 
     }
+
     return res.status(200).json({
       status: true,
       message: "University Saved Successfully!",
