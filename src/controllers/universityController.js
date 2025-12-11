@@ -509,3 +509,47 @@ exports.addUniversity = catchAsync(async (req, res) => {
   });
 }
 });
+
+
+exports.getUniversityById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return errorResponse(res, "University ID is required", 400);
+  }
+
+  const universityId = parseInt(id);
+
+  const university = await prisma.university.findUnique({
+    where: { id: universityId, deleted_at: null },
+    include: {
+      details: true,
+      about: true,
+      approvals: true,
+      rankings: true,
+      advantages: true,
+      facts: true,
+      certificates: true,
+      examPatterns: true,
+      financialAid: true,
+      universityCampuses: true,
+      partners: true,
+      services: true,
+      admissionProcess: true,
+      faq: true,
+      seo: true,
+      blogs: true,
+      campus: true,
+      courseDetails: true,
+      leads: true,
+    }
+  });
+
+  if (!university) {
+    return errorResponse(res, "University not found", 404);
+  }
+
+  return successResponse(res, "University fetched successfully", 200, {
+    university
+  });
+});
