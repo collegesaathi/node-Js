@@ -271,9 +271,6 @@ function attachImagesToItems(items = [], images = [], keyName) {
   return items;
 }
 
-// ----------------------
-// Controller
-// ----------------------
 exports.addUniversity = catchAsync(async (req, res) => {
   try {
     Logger.info(req.body);
@@ -310,9 +307,11 @@ exports.addUniversity = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image");
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
-
-    // build final data (ensure icon/cover are converted to public URLs too)
     const finalData = {
+      meta_title: req.body.meta_title,
+      meta_description: req.body.meta_description,
+      canonical_url: req.body.canonical_url,
+      meta_keywords: req.body.meta_keywords,
       slug: req.body.slug || "",
       name: req.body.name || "",
       position: req.body.position || 0,
@@ -326,6 +325,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       approvals_desc: req.body.approvals_desc,
       certificatename: req.body.certificatename,
       certificatedescription: req.body.certificatedescription,
+
       certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
@@ -482,8 +482,17 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
+      await prisma.Seo.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          meta_title: finalData.meta_title,
+          meta_description: finalData.meta_description,
+          meta_keywords: finalData.meta_keywords,
+          canonical_url: finalData.canonical_url,
+        }
+      })
     }
-
+    console.log("Done  all  point ")
     return res.status(200).json({
       status: true,
       message: "University Saved Successfully!",
@@ -491,21 +500,23 @@ exports.addUniversity = catchAsync(async (req, res) => {
     });
 
   } catch (error) {
-  console.error("addUniversity error:", error);
+    console.error("addUniversity error:", error);
 
-  // check for Prisma unique constraint error
-  if (error.code === "P2002") {
-    return res.status(400).json({
+    // check for Prisma unique constraint error
+    if (error.code === "P2002") {
+      return res.status(400).json({
+        status: false,
+        message: `Duplicate field value: ${error.meta.target.join(", ")}`,
+        code: error.code
+      });
+    }
+
+    // fallback for any other errors
+    return res.status(500).json({
       status: false,
-      message: `Duplicate field value: ${error.meta.target.join(", ")}`,
-      code: error.code
+      message: error.message || "Something went wrong",
     });
   }
-
-  // fallback for any other errors
-  return res.status(500).json({
-    status: false,
-    message: error.message || "Something went wrong",
-  });
-}
 });
+
+
