@@ -43,23 +43,22 @@ model University {
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
   blogs              Blog[]
-  campus             Campus[]
   courseDetails      CourseDetails[]
   leads              leads[]
-  about              UniversityAbout[]
-  admissionProcess   UniversityAdmissionProcess[]
-  advantages         UniversityAdvantages[]
-  approvals          UniversityApprovals[]
-  universityCampuses UniversityCampus[]
-  certificates       UniversityCertificates[]
+  about              UniversityAbout?
+  admissionProcess   UniversityAdmissionProcess?
+  advantages         UniversityAdvantages?
+  approvals          UniversityApprovals?
+  universityCampuses UniversityCampus?
+  certificates       UniversityCertificates?
   details            UniversityDetail[]
-  examPatterns       UniversityExamPatterns[]
-  facts              UniversityFacts[]
-  faq                UniversityFaq[]
-  financialAid       UniversityFinancialAid[]
-  partners           UniversityPartners[]
-  rankings           UniversityRankings[]
-  services           UniversityServices[]
+  examPatterns       UniversityExamPatterns?
+  facts              UniversityFacts?
+  faq                UniversityFaq?
+  financialAid       UniversityFinancialAid?
+  partners           UniversityPartners?
+  rankings           UniversityRankings?
+  services           UniversityServices?
   seo                Seo[]
 }
 
@@ -76,15 +75,16 @@ model UniversityDetail {
 
 model UniversityAbout {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int        @unique
   title         String
   description   String?
   university    University @relation(fields: [university_id], references: [id])
 }
 
+
 model UniversityApprovals {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   description   String?
   approval_ids  Json?
@@ -93,7 +93,7 @@ model UniversityApprovals {
 
 model UniversityRankings {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   university    University @relation(fields: [university_id], references: [id])
@@ -101,7 +101,7 @@ model UniversityRankings {
 
 model UniversityAdvantages {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   description   String?
   advantages    Json?
@@ -110,7 +110,7 @@ model UniversityAdvantages {
 
 model UniversityFacts {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   facts         Json?
   university    University @relation(fields: [university_id], references: [id])
@@ -118,7 +118,7 @@ model UniversityFacts {
 
 model UniversityCertificates {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   image         String?
@@ -127,7 +127,7 @@ model UniversityCertificates {
 
 model UniversityExamPatterns {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   bottompatterndesc   String?
@@ -137,7 +137,7 @@ model UniversityExamPatterns {
 
 model UniversityFinancialAid {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   aid           Json?
@@ -146,14 +146,14 @@ model UniversityFinancialAid {
 
 model UniversityCampus {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int    @unique
   campus         Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
 model UniversityPartners {
   id                   Int        @id @default(autoincrement())
-  university_id        Int
+  university_id        Int @unique
   placement_partner_id Json?
   title                String
   description          String?
@@ -162,7 +162,7 @@ model UniversityPartners {
 
 model UniversityServices {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   services      Json?
@@ -171,7 +171,7 @@ model UniversityServices {
 
 model UniversityAdmissionProcess {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   description   String?
   process       Json?
@@ -180,7 +180,7 @@ model UniversityAdmissionProcess {
 
 model UniversityFaq {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   faqs          Json?
   university    University @relation(fields: [university_id], references: [id])
 }
@@ -310,16 +310,6 @@ model Placements {
   deleted_at         DateTime?
 }
 
-model Campus {
-  id            Int         @id @default(autoincrement())
-  university_id Int?
-  title         String
-  image         String?
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  deleted_at    DateTime?
-  university    University? @relation(fields: [university_id], references: [id])
-}
 
 model leads {
   id            Int         @id @default(autoincrement())

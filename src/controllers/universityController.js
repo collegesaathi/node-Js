@@ -174,6 +174,10 @@ exports.allAdminUniversities = catchAsync(async (req, res) => {
   const universities = await prisma.university.findMany({
     skip,
     take: limit,
+    orderBy: [
+      { position: { sort: "asc", nulls: "last" } },
+      { created_at: "desc" }
+    ],
   });
 
   if (!universities) {
@@ -488,7 +492,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       await prisma.UniversityExamPatterns.create({
         data: {
           university_id: Number(Universitydata.id),
-          title: finalData.patterndescription,
+          title: finalData.patternname,
           description: finalData.patterndescription,
           bottompatterndesc: finalData.bottompatterndesc,
           patterns: finalData.patterns
@@ -538,6 +542,62 @@ exports.addUniversity = catchAsync(async (req, res) => {
       status: false,
       message: error.message || "Something went wrong",
     });
+  }
+});
+
+exports.getUniversityById = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+
+    const university = await prisma.University.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null
+      },
+      include: {
+        details: true,
+        about: true,
+        approvals: true,
+        rankings: true,
+        advantages: true,
+        facts: true,
+        certificates: true,
+        examPatterns: true,
+        financialAid: true,
+        universityCampuses: true,
+        partners: true,
+        services: true,
+        admissionProcess: true,
+        faq: true,
+        seo: true,
+        blogs: true,
+        courseDetails: true,
+        leads: true,
+      }
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "University fetched successfully",
+      200,
+      { university }
+    );
+
+  } catch (error) {
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
+    );
   }
 });
 
