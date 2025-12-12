@@ -51,7 +51,6 @@ model University {
   approvals          UniversityApprovals?
   universityCampuses UniversityCampus?
   certificates       UniversityCertificates?
-  details            UniversityDetail[]
   examPatterns       UniversityExamPatterns?
   facts              UniversityFacts?
   faq                UniversityFaq?
@@ -59,19 +58,9 @@ model University {
   partners           UniversityPartners?
   rankings           UniversityRankings?
   services           UniversityServices?
-  seo                Seo[]
+  seo                Seo?
 }
 
-model UniversityDetail {
-  id            Int        @id @default(autoincrement())
-  university_id Int
-  cover_image   String?
-  description   String?
-  created_at    DateTime   @default(now())
-  deleted_at    DateTime?
-  updated_at    DateTime   @default(now())
-  university    University @relation(fields: [university_id], references: [id])
-}
 
 model UniversityAbout {
   id            Int        @id @default(autoincrement())
@@ -210,7 +199,7 @@ model Course {
   descriptions CourseDescription[]
   details      CourseDetails[]
   leads        leads[]
-  seo                Seo[]
+  seo                Seo?
 }
 
 model CourseDescription {
@@ -269,7 +258,7 @@ model Blog {
   deleted_at    DateTime?
   university    University? @relation(fields: [university_id], references: [id])
   tags          Tags[]
-  seo                Seo[]
+  seo                Seo?
 }
 
 model Tags {
@@ -331,9 +320,9 @@ model leads {
 
 model Seo {
   id            Int        @id @default(autoincrement())
-  university_id Int?
-  course_id     Int?
-  blog_id       Int?
+  university_id Int? @unique
+  course_id     Int? @unique
+  blog_id       Int? @unique
 
   meta_title       String?
   meta_description String?
