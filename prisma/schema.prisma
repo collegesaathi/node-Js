@@ -45,10 +45,10 @@ model University {
   blogs              Blog[]
   courseDetails      CourseDetails[]
   leads              leads[]
-  about              UniversityAbout?
+  about              About?
   admissionProcess   UniversityAdmissionProcess?
   advantages         UniversityAdvantages?
-  approvals          UniversityApprovals?
+  approvals          Approvals?
   universityCampuses UniversityCampus?
   certificates       UniversityCertificates?
   examPatterns       UniversityExamPatterns?
@@ -62,23 +62,63 @@ model University {
 }
 
 
-model UniversityAbout {
-  id            Int        @id @default(autoincrement())
-  university_id Int        @unique
-  title         String
-  description   String?
-  university    University @relation(fields: [university_id], references: [id])
+model Course {
+  id           Int                 @id @default(autoincrement())
+  category_id  Int
+  slug         String              @unique
+  name         String
+  icon         String?
+  image        String?
+  created_at   DateTime            @default(now())
+  updated_at   DateTime            @updatedAt
+  deleted_at   DateTime?
+  category     Category            @relation(fields: [category_id], references: [id])
+  description        Json?
+  details      CourseDetails[]
+  leads        leads[]
+  seo                Seo?
+  fees          CourseFees?
+  about              About?
+    approvals    Approvals?   
+
+}
+
+model CourseFees {
+  id  Int @id @default(autoincrement())
+  annual_fees  String?
+  semester_wise_fees String? 
+  tuition_fees String?
+  course_id  Int?   @unique
+  course     Course?  @relation(fields: [course_id], references: [id])
 }
 
 
-model UniversityApprovals {
+model About {
   id            Int        @id @default(autoincrement())
-  university_id Int @unique
+  university_id Int?       @unique
+  course_id     Int?       @unique
+  title         String
+  description   String?
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  course        Course?  @relation(fields: [course_id], references: [id])
+}
+
+
+model Approvals {
+  id            Int        @id @default(autoincrement())
+  university_id Int?       @unique
+  course_id     Int?       @unique
+
   title         String
   description   String?
   approval_ids  Json?
-  university    University @relation(fields: [university_id], references: [id])
+
+  university    University? @relation(fields: [university_id], references: [id])
+  course        Course?     @relation(fields: [course_id], references: [id])
 }
+
 
 model UniversityRankings {
   id            Int        @id @default(autoincrement())
@@ -185,35 +225,8 @@ model Category {
   courses     Course[]
 }
 
-model Course {
-  id           Int                 @id @default(autoincrement())
-  category_id  Int
-  slug         String              @unique
-  name         String
-  icon         String?
-  image        String?
-  created_at   DateTime            @default(now())
-  updated_at   DateTime            @updatedAt
-  deleted_at   DateTime?
-  category     Category            @relation(fields: [category_id], references: [id])
-  descriptions CourseDescription[]
-  details      CourseDetails[]
-  leads        leads[]
-  seo                Seo?
-}
 
-model CourseDescription {
-  id          Int       @id @default(autoincrement())
-  course_id   Int
-  title       String
-  description String?
-  file        String?
-  position    Int       @default(0)
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  deleted_at  DateTime?
-  course      Course    @relation(fields: [course_id], references: [id])
-}
+
 
 model CourseDetails {
   id            Int        @id @default(autoincrement())
@@ -281,14 +294,6 @@ model BlacklistedToken {
   user       User?    @relation(fields: [user_id], references: [id])
 }
 
-model Approvals {
-  id         Int       @id @default(autoincrement())
-  title      String
-  image      String?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-}
 
 model Placements {
   id                 Int                  @id @default(autoincrement())

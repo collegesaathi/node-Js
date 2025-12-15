@@ -41,19 +41,6 @@ CREATE TABLE "University" (
 );
 
 -- CreateTable
-CREATE TABLE "UniversityDetail" (
-    "id" SERIAL NOT NULL,
-    "university_id" INTEGER NOT NULL,
-    "cover_image" TEXT,
-    "description" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "deleted_at" TIMESTAMP(3),
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "UniversityDetail_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "UniversityAbout" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER NOT NULL,
@@ -328,19 +315,6 @@ CREATE TABLE "Placements" (
 );
 
 -- CreateTable
-CREATE TABLE "Campus" (
-    "id" SERIAL NOT NULL,
-    "university_id" INTEGER,
-    "title" TEXT NOT NULL,
-    "image" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "deleted_at" TIMESTAMP(3),
-
-    CONSTRAINT "Campus_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "leads" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER,
@@ -359,6 +333,24 @@ CREATE TABLE "leads" (
     CONSTRAINT "leads_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Seo" (
+    "id" SERIAL NOT NULL,
+    "university_id" INTEGER,
+    "course_id" INTEGER,
+    "blog_id" INTEGER,
+    "meta_title" TEXT,
+    "meta_description" TEXT,
+    "meta_keywords" TEXT,
+    "canonical_url" TEXT,
+    "json_ld" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "Seo_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
@@ -369,6 +361,45 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 CREATE UNIQUE INDEX "University_slug_key" ON "University"("slug");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "UniversityAbout_university_id_key" ON "UniversityAbout"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityApprovals_university_id_key" ON "UniversityApprovals"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityRankings_university_id_key" ON "UniversityRankings"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityAdvantages_university_id_key" ON "UniversityAdvantages"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityFacts_university_id_key" ON "UniversityFacts"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityCertificates_university_id_key" ON "UniversityCertificates"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityExamPatterns_university_id_key" ON "UniversityExamPatterns"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityFinancialAid_university_id_key" ON "UniversityFinancialAid"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityCampus_university_id_key" ON "UniversityCampus"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityPartners_university_id_key" ON "UniversityPartners"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityServices_university_id_key" ON "UniversityServices"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityAdmissionProcess_university_id_key" ON "UniversityAdmissionProcess"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "UniversityFaq_university_id_key" ON "UniversityFaq"("university_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Course_slug_key" ON "Course"("slug");
 
 -- CreateIndex
@@ -377,11 +408,17 @@ CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
 -- CreateIndex
 CREATE UNIQUE INDEX "BlacklistedToken_token_key" ON "BlacklistedToken"("token");
 
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+-- CreateIndex
+CREATE UNIQUE INDEX "Seo_university_id_key" ON "Seo"("university_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Seo_course_id_key" ON "Seo"("course_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Seo_blog_id_key" ON "Seo"("blog_id");
 
 -- AddForeignKey
-ALTER TABLE "UniversityDetail" ADD CONSTRAINT "UniversityDetail_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "UniversityAbout" ADD CONSTRAINT "UniversityAbout_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -447,10 +484,16 @@ ALTER TABLE "tags" ADD CONSTRAINT "tags_tag_id_fkey" FOREIGN KEY ("tag_id") REFE
 ALTER TABLE "BlacklistedToken" ADD CONSTRAINT "BlacklistedToken_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Campus" ADD CONSTRAINT "Campus_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "leads" ADD CONSTRAINT "leads_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "leads" ADD CONSTRAINT "leads_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Seo" ADD CONSTRAINT "Seo_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Seo" ADD CONSTRAINT "Seo_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Seo" ADD CONSTRAINT "Seo_blog_id_fkey" FOREIGN KEY ("blog_id") REFERENCES "Blog"("id") ON DELETE SET NULL ON UPDATE CASCADE;
