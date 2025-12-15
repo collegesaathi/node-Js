@@ -43,56 +43,86 @@ model University {
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
   blogs              Blog[]
-  campus             Campus[]
   courseDetails      CourseDetails[]
   leads              leads[]
-  about              UniversityAbout[]
-  admissionProcess   UniversityAdmissionProcess[]
-  advantages         UniversityAdvantages[]
-  approvals          UniversityApprovals[]
-  universityCampuses UniversityCampus[]
-  certificates       UniversityCertificates[]
-  details            UniversityDetail[]
-  examPatterns       UniversityExamPatterns[]
-  facts              UniversityFacts[]
-  faq                UniversityFaq[]
-  financialAid       UniversityFinancialAid[]
-  partners           UniversityPartners[]
-  rankings           UniversityRankings[]
-  services           UniversityServices[]
+  about              About?
+  admissionProcess   UniversityAdmissionProcess?
+  advantages         UniversityAdvantages?
+  approvals          Approvals?
+  universityCampuses UniversityCampus?
+  certificates       UniversityCertificates?
+  examPatterns       UniversityExamPatterns?
+  facts              UniversityFacts?
+  faq                UniversityFaq?
+  financialAid       UniversityFinancialAid?
+  partners           UniversityPartners?
+  rankings           UniversityRankings?
+  services           UniversityServices?
+  seo                Seo?
 }
 
-model UniversityDetail {
-  id            Int        @id @default(autoincrement())
-  university_id Int
-  cover_image   String?
-  description   String?
-  created_at    DateTime   @default(now())
-  deleted_at    DateTime?
-  updated_at    DateTime   @default(now())
-  university    University @relation(fields: [university_id], references: [id])
+
+model Course {
+  id           Int                 @id @default(autoincrement())
+  category_id  Int
+  slug         String              @unique
+  name         String
+  icon         String?
+  image        String?
+  created_at   DateTime            @default(now())
+  updated_at   DateTime            @updatedAt
+  deleted_at   DateTime?
+  category     Category            @relation(fields: [category_id], references: [id])
+  description        Json?
+  details      CourseDetails[]
+  leads        leads[]
+  seo                Seo?
+  fees          CourseFees?
+  about              About?
+    approvals    Approvals?   
+
 }
 
-model UniversityAbout {
+model CourseFees {
+  id  Int @id @default(autoincrement())
+  annual_fees  String?
+  semester_wise_fees String? 
+  tuition_fees String?
+  course_id  Int?   @unique
+  course     Course?  @relation(fields: [course_id], references: [id])
+}
+
+
+model About {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int?       @unique
+  course_id     Int?       @unique
   title         String
   description   String?
-  university    University @relation(fields: [university_id], references: [id])
+
+  university    University? @relation(fields: [university_id], references: [id])
+
+  course        Course?  @relation(fields: [course_id], references: [id])
 }
 
-model UniversityApprovals {
+
+model Approvals {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int?       @unique
+  course_id     Int?       @unique
+
   title         String
   description   String?
   approval_ids  Json?
-  university    University @relation(fields: [university_id], references: [id])
+
+  university    University? @relation(fields: [university_id], references: [id])
+  course        Course?     @relation(fields: [course_id], references: [id])
 }
+
 
 model UniversityRankings {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   university    University @relation(fields: [university_id], references: [id])
@@ -100,7 +130,7 @@ model UniversityRankings {
 
 model UniversityAdvantages {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   description   String?
   advantages    Json?
@@ -109,7 +139,7 @@ model UniversityAdvantages {
 
 model UniversityFacts {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   facts         Json?
   university    University @relation(fields: [university_id], references: [id])
@@ -117,7 +147,7 @@ model UniversityFacts {
 
 model UniversityCertificates {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   image         String?
@@ -126,43 +156,42 @@ model UniversityCertificates {
 
 model UniversityExamPatterns {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
-  facts         Json?
+  bottompatterndesc   String?
+  patterns         Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
 model UniversityFinancialAid {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   aid           Json?
-  university    University @relation(fields: [university_id], references: [id])
+  university University? @relation(fields: [university_id], references: [id])
 }
 
 model UniversityCampus {
   id            Int        @id @default(autoincrement())
-  university_id Int
-  title         String
-  image         String?
+  university_id Int    @unique
+  campus         Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
 model UniversityPartners {
   id                   Int        @id @default(autoincrement())
-  university_id        Int
-  placement_partner_id Int
+  university_id        Int @unique
+  placement_partner_id Json?
   title                String
   description          String?
-  placement            Placements @relation(fields: [placement_partner_id], references: [id])
   university           University @relation(fields: [university_id], references: [id])
 }
 
 model UniversityServices {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int  @unique
   title         String
   description   String?
   services      Json?
@@ -171,7 +200,7 @@ model UniversityServices {
 
 model UniversityAdmissionProcess {
   id            Int        @id @default(autoincrement())
-  university_id Int
+  university_id Int @unique
   title         String
   description   String?
   process       Json?
@@ -180,9 +209,8 @@ model UniversityAdmissionProcess {
 
 model UniversityFaq {
   id            Int        @id @default(autoincrement())
-  university_id Int
-  question      String
-  answer        String?
+  university_id Int  @unique
+  faqs          Json?
   university    University @relation(fields: [university_id], references: [id])
 }
 
@@ -197,34 +225,8 @@ model Category {
   courses     Course[]
 }
 
-model Course {
-  id           Int                 @id @default(autoincrement())
-  category_id  Int
-  slug         String              @unique
-  name         String
-  icon         String?
-  image        String?
-  created_at   DateTime            @default(now())
-  updated_at   DateTime            @updatedAt
-  deleted_at   DateTime?
-  category     Category            @relation(fields: [category_id], references: [id])
-  descriptions CourseDescription[]
-  details      CourseDetails[]
-  leads        leads[]
-}
 
-model CourseDescription {
-  id          Int       @id @default(autoincrement())
-  course_id   Int
-  title       String
-  description String?
-  file        String?
-  position    Int       @default(0)
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  deleted_at  DateTime?
-  course      Course    @relation(fields: [course_id], references: [id])
-}
+
 
 model CourseDetails {
   id            Int        @id @default(autoincrement())
@@ -269,6 +271,7 @@ model Blog {
   deleted_at    DateTime?
   university    University? @relation(fields: [university_id], references: [id])
   tags          Tags[]
+  seo                Seo?
 }
 
 model Tags {
@@ -291,14 +294,6 @@ model BlacklistedToken {
   user       User?    @relation(fields: [user_id], references: [id])
 }
 
-model Approvals {
-  id         Int       @id @default(autoincrement())
-  title      String
-  image      String?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-}
 
 model Placements {
   id                 Int                  @id @default(autoincrement())
@@ -307,19 +302,8 @@ model Placements {
   created_at         DateTime             @default(now())
   updated_at         DateTime             @updatedAt
   deleted_at         DateTime?
-  universityPartners UniversityPartners[]
 }
 
-model Campus {
-  id            Int         @id @default(autoincrement())
-  university_id Int?
-  title         String
-  image         String?
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  deleted_at    DateTime?
-  university    University? @relation(fields: [university_id], references: [id])
-}
 
 model leads {
   id            Int         @id @default(autoincrement())
@@ -339,3 +323,23 @@ model leads {
   university    University? @relation(fields: [university_id], references: [id])
 }
 
+model Seo {
+  id            Int        @id @default(autoincrement())
+  university_id Int? @unique
+  course_id     Int? @unique
+  blog_id       Int? @unique
+
+  meta_title       String?
+  meta_description String?
+  meta_keywords    String?
+  canonical_url    String?
+  json_ld          Json?
+
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  deleted_at    DateTime?
+  // Relations
+  university    University? @relation(fields: [university_id], references: [id])
+  course        Course?     @relation(fields: [course_id], references: [id])
+  blog          Blog?       @relation(fields: [blog_id], references: [id])
+}
