@@ -245,14 +245,12 @@ exports.getUniversityById = catchAsync(async (req, res) => {
     if (!slug) {
       return errorResponse(res, "University slug is required", 400);
     }
-    // Fetch university and one-to-one relations (per your prisma model)
     const university = await prisma.University.findFirst({
       where: {
         slug: slug,
         deleted_at: null,
       },
       include: {
-        // fields taken from the schema you provided (one-to-one or arrays)
         blogs: true,
         leads: true,
         about: true,

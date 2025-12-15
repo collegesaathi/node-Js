@@ -407,7 +407,6 @@ model Curriculum {
   semester_title     String?
   course    Course? @relation(fields: [course_id], references: [id])
 }
-
 model  EligibilityCriteria{
     id            Int        @id @default(autoincrement())
   course_id      Int? @unique
