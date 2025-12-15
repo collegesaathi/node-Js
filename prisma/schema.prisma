@@ -45,7 +45,7 @@ model University {
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
   blogs               Blog[]
-    courses   Course?
+  courses             Course?
   leads              leads[]
   about              About?
   admissionProcess   AdmissionProcess?
@@ -167,7 +167,7 @@ model Certificates {
 model ExamPatterns {
   id            Int        @id @default(autoincrement())
   university_id Int?  @unique
-    course_id     Int?       @unique
+  course_id     Int?       @unique
   title         String
   description   String?
   bottompatterndesc   String?
