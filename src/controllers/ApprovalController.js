@@ -293,7 +293,6 @@ exports.PlacementSoftDelete = catchAsync(async (req, res) => {
 
 
 exports.ApprovalandPlacements = catchAsync(async (req, res) => {
-    const BASE_URL = process.env.BASE_URL;
     // --- Fetch Approvals ---
     let approvals = await prisma.approvals.findMany({
         orderBy: { created_at: "asc" },

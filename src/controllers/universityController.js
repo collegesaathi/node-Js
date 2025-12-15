@@ -101,9 +101,12 @@ exports.adminUniversitylisting = catchAsync(async (req, res) => {
 
   let universities = await prisma.university.findMany({
     where: { deleted_at: null },
-    orderBy: [
-      { position: "asc" },
-      { created_at: "desc" }
+    // orderBy: [
+    //   { position: "asc" },
+    //   { created_at: "asc" }
+    // ]
+      orderBy: [
+      { created_at: "asc" }
     ]
   });
 
@@ -162,8 +165,6 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
     placements,
   });
 });
-
-
 
 exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
@@ -253,7 +254,6 @@ exports.getUniversityById = catchAsync(async (req, res) => {
       include: {
         // fields taken from the schema you provided (one-to-one or arrays)
         blogs: true,
-        courseDetails: true,
         leads: true,
         about: true,
         admissionProcess: true,
@@ -433,7 +433,6 @@ exports.addUniversity = catchAsync(async (req, res) => {
     let onlines = parseArray(req.body.onlines);
     let faqs = parseArray(req.body.faqs);
     let descriptions = parseArray(req.body.descriptions);
-
     // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
@@ -465,7 +464,6 @@ exports.addUniversity = catchAsync(async (req, res) => {
       approvals_desc: req.body.approvals_desc,
       certificatename: req.body.certificatename,
       certificatedescription: req.body.certificatedescription,
-
       certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
@@ -493,6 +491,10 @@ exports.addUniversity = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname,
+      cover_image_alt : req.body.cover_image_alt ,
+      icon_alt : req.body.icon_alt ,
+      image_alt : req.body.image_alt ,
+
       // add other fields as needed
     };
 
@@ -507,10 +509,12 @@ exports.addUniversity = catchAsync(async (req, res) => {
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
         slug: finalData.slug ? finalData.slug : generatedSlug,
+        cover_image_alt : finalData?.cover_image_alt , 
+        icon_alt :  finalData?.icon_alt
       }
     });
     if (Universitydata.id) {
-      await prisma.UniversityAbout.create({
+      await prisma.About.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.about_title,
@@ -518,7 +522,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityFaq.create({
+      await prisma.Faq.create({
         data: {
           university_id: Number(Universitydata.id),
           faqs: finalData.faqs,
@@ -532,7 +536,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityServices.create({
+      await prisma.Services.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.servicetitle,
@@ -558,7 +562,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityApprovals.create({
+      await prisma.Approvals_Management.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.approvals_name,
@@ -567,7 +571,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityAdmissionProcess.create({
+      await prisma.AdmissionProcess.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.onlinetitle,
@@ -575,15 +579,16 @@ exports.addUniversity = catchAsync(async (req, res) => {
           process: finalData.onlines
         }
       })
-      await prisma.UniversityCertificates.create({
+      await prisma.Certificates.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.certificatename,
           description: finalData.certificatedescription,
-          image: finalData.certificatemage
+          image: finalData.certificatemage,
+          image_alt :finalData?.image_alt
         }
       })
-      await prisma.UniversityFinancialAid.create({
+      await prisma.FinancialAid.create({
         data: {
           title: finalData.financialname,
           description: finalData.financialdescription || null,
@@ -592,7 +597,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityRankings.create({
+      await prisma.Rankings.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.rankings_name,
@@ -600,7 +605,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityExamPatterns.create({
+      await prisma.ExamPatterns.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.patternname,
@@ -610,7 +615,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityPartners.create({
+      await prisma.Partners.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.partnersname,
@@ -756,28 +761,24 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       name: req.body.name || existing.name,
       slug: req.body.slug || existing.slug,
       position: req.body.position || existing.position,
-
+      icon_alt : req.body.icon_alt || existing.icon_alt, 
       about_title: req.body.about_title || existing.about?.title,
       about_desc: req.body.about_desc || existing.about?.description,
-
       partnersdesc: req.body.partnersdesc || existing.partners?.description,
       partnersname: req.body.partnersname || existing.partners?.title,
-
       advantagesname: req.body.advantagesname || existing.advantages?.title,
       advantagesdescription: req.body.advantagesdescription || existing.advantages?.description,
-
       descriptions: descriptions?.length ? descriptions : existing.description,
-
       approvals_name: req.body.approvals_name || existing.approvals?.title,
       approvals_desc: req.body.approvals_desc || existing.approvals?.description,
-
       certificatename: req.body.certificatename || existing.certificates?.title,
       certificatedescription: req.body.certificatedescription || existing.certificates?.description,
+      image_alt : req.body.image_alt || existing.certificates?.image_alt,
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
-          : existing?.image || null,
+          : existing?.certificatemage || null,
 
       icon:
         uploadedFiles["icon"]
@@ -793,7 +794,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
       servicedesc: req.body.servicedesc || existing.services?.description,
       servicetitle: req.body.servicetitle || existing.services?.title,
-
+      cover_image_alt : req.body.cover_image_alt || existing.cover_image_alt,
       services: services?.length ? services : existing.services?.services,
       patterns: patterns?.length ? patterns : existing.examPatterns?.patterns,
 
@@ -844,17 +845,19 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         description: finalData.descriptions,
         icon: finalData.icon,
         slug: finalData.slug || newSlug,
+        cover_image_alt :finalData.cover_image_alt || "",
+    icon_alt :finalData.icon_alt || "",
       }
     });
 
     // UPDATE RELATIONS (UPSERTS)
-    await prisma.UniversityAbout.upsert({
+    await prisma.About.upsert({
       where: { university_id: universityId },
       update: { title: finalData.about_title, description: finalData.about_desc },
       create: { university_id: universityId, title: finalData.about_title, description: finalData.about_desc }
     });
 
-    await prisma.UniversityFaq.upsert({
+    await prisma.Faq.upsert({
       where: { university_id: universityId },
       update: { faqs: finalData.faqs },
       create: { university_id: universityId, faqs: finalData.faqs }
@@ -865,7 +868,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       update: { campus: finalData.campusList },
       create: { university_id: universityId, campus: finalData.campusList }
     });
-    await prisma.UniversityServices.upsert({
+    await prisma.Services.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.servicetitle,
@@ -901,7 +904,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityApprovals.upsert({
+    await prisma.Approvals_Management.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.approvals_name,
@@ -916,7 +919,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityAdmissionProcess.upsert({
+    await prisma.AdmissionProcess.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.onlinetitle,
@@ -931,22 +934,25 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityCertificates.upsert({
+    await prisma.Certificates.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.certificatename,
         description: finalData.certificatedescription,
         image: finalData.certificatemage,
+        image_alt :  finalData.image_alt ,
       },
       create: {
         university_id: universityId,
         title: finalData.certificatename,
         description: finalData.certificatedescription,
         image: finalData.certificatemage,
+        image_alt :  finalData.image_alt ,
+
       }
     });
 
-    await prisma.UniversityFinancialAid.upsert({
+    await prisma.FinancialAid.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.financialname,
@@ -961,13 +967,13 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityRankings.upsert({
+    await prisma.Rankings.upsert({
       where: { university_id: universityId },
       update: { title: finalData.rankings_name, description: finalData.rankings_description },
       create: { university_id: universityId, title: finalData.rankings_name, description: finalData.rankings_description }
     });
 
-    const record = await prisma.UniversityExamPatterns.upsert({
+    const record = await prisma.ExamPatterns.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.patternname,
@@ -984,7 +990,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityPartners.upsert({
+    await prisma.Partners.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.partnersname,
