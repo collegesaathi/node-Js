@@ -175,7 +175,7 @@ exports.allAdminUniversities = catchAsync(async (req, res) => {
     skip,
     take: limit,
     orderBy: [
-      { position: { sort: "asc", nulls: "last" } },
+      // { position: { sort: "asc", nulls: "last" } },
       { created_at: "desc" }
     ],
   });

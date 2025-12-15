@@ -22,5 +22,4 @@ router.get("/university/:slug" ,  getUniversityById)
 
 router.post("/admin/universities/update",dynamicUpload("universities").any(),  updateUniversity)
 
-
 module.exports = router;
