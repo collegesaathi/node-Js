@@ -660,31 +660,6 @@ exports.addUniversity = catchAsync(async (req, res) => {
   }
 });
 
-
-async function replaceImage(req, uploadedFiles, field, oldPath) {
-  const file = uploadedFiles[field]?.[0];
-
-  if (file && file.filename) {
-    // Delete old image if exists
-    if (oldPath) {
-      try {
-        await deleteUploadedFiles([oldPath]);
-      } catch (err) {
-        console.log("Failed to delete old image:", err.message);
-      }
-    }
-
-    // Build new image URL
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
-    return `${baseUrl}/uploads/${field}/${file.filename}`;
-  }
-
-  // No new upload → keep old image
-  return oldPath || null;
-}
-
-
-
 exports.updateUniversity = catchAsync(async (req, res) => {
   try {
     const universityId = Number(req.body.id);
