@@ -404,8 +404,7 @@ model Curriculum {
   course_id      Int? @unique
   title         String
   description   String?
-  semester_desc     Json?
-  semester_title     String?
+  semesters     Json?
   course    Course? @relation(fields: [course_id], references: [id])
 }
 model  EligibilityCriteria{
@@ -413,8 +412,7 @@ model  EligibilityCriteria{
   course_id      Int? @unique
   title         String
   description   String?
-  criteria_desc     String?
-  criteria_title     String?
-  criteria_images    String?
+  IndianCriteria Json?
+  NRICriteria Json?
   course    Course? @relation(fields: [course_id], references: [id])
 }

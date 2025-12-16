@@ -142,6 +142,9 @@ exports.AddCourse = catchAsync(async (req, res) => {
       category_id: req.body.category_id,
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
+      semester_fees : req.body.semester_fees || "",
+      anuual_fees : req.body.anuual_fees || "",
+      tuition_fees : req.body.tuition_fees || "",
       partnersdesc: req.body.partnersdesc || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
@@ -177,12 +180,17 @@ exports.AddCourse = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname,
- 
-
-       meta_title: req.body.meta_title,
+      meta_title: req.body.meta_title,
       meta_description: req.body.meta_description,
       canonical_url: req.body.canonical_url,
       meta_keywords: req.body.meta_keywords,
+      creteria : req.body.creteria,
+      IndianCriteria :req.body.indian,
+      NRICriteria :  req.body.nri ,
+      semesters_title :  req.body.semesters_title , 
+      semesters : req.body.semesters ,
+      skillsname :  req.body.skillsname ,
+      
       // add other fields as needed
     };
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
@@ -198,40 +206,98 @@ exports.AddCourse = catchAsync(async (req, res) => {
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         category_id: Number(finalData.category_id || 0),
+        university_id : Number(finalData.university_id || 0)
       }
     });
-    // if (Universitydata.id) {
-    //   await prisma.About.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.about_title,
-    //       description: finalData.about_desc
-    //     }
-    //   })
+    if (CoursesData.id) {
+      await prisma.About.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          title: finalData.about_title,
+          description: finalData.about_desc
+        }
+      })
+    }
 
-    //   await prisma.Faq.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       faqs: finalData.faqs,
-    //     }
-    //   })
+     await prisma.CourseFees.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          annual_fees: Number(finalData?.anuual_fees),
+          semester_wise_fees :Number(finalData?.semester_fees) ,
+          tuition_fees: Number(finalData?.tuition_fees)
+        }
+      })
 
-    //   await prisma.UniversityCampus.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       campus: finalData.campusList,
-    //     }
-    //   })
+      await prisma.Faq.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          faqs: finalData.faqs,
+        }
+      })
 
-    //   await prisma.Services.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.servicetitle,
-    //       description: finalData.servicedesc,
-    //       services: finalData.services || ""
-    //     }
-    //   })
+        await prisma.Approvals_Management.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          title: finalData.approvals_name,
+          description: finalData.approvals_desc,
+          approval_ids: finalData.approvals
+        }
+      })
+  await prisma.Rankings.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          title: finalData.rankings_name,
+          description: finalData.rankings_description,
+        }
+      })
 
+
+
+  await prisma.EligibilityCriteria.create({
+        data: {
+          course_id: Number(CoursesData.id), 
+          title: finalData.creteria,
+          NRICriteria: finalData.NRICriteria,
+          IndianCriteria: finalData.IndianCriteria || ""
+        }
+      })
+  await prisma.Curriculum.create({
+        data: {
+          course_id: Number(CoursesData.id), 
+          title: finalData.semesters_title,
+          semesters: finalData.semesters,
+          IndianCriteria: finalData.IndianCriteria || ""
+        }
+      })
+      
+      await prisma.Services.create({
+        data: {
+          course_id: Number(CoursesData.id), 
+          title: finalData.title,
+          description: finalData.servicedesc,
+          services: finalData.services || ""
+        }
+      })
+   await prisma.Certificates.create({
+        data: {
+         course_id: Number(CoursesData.id), 
+          title: finalData.certificatename,
+          description: finalData.certificatedescription,
+          image: finalData.certificatemage,
+          image_alt: finalData?.image_alt
+        }
+      })
+
+        await prisma.CourseSkills.create({
+        data: {
+          course_id: Number(CoursesData.id), 
+          title: finalData.title,
+          description: finalData.servicedesc,
+          services: finalData.services || ""
+        }
+      })
+
+      
     //   await prisma.UniversityFacts.create({
     //     data: {
     //       university_id: Number(Universitydata.id),
@@ -249,14 +315,6 @@ exports.AddCourse = catchAsync(async (req, res) => {
     //     }
     //   })
 
-    //   await prisma.Approvals_Management.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.approvals_name,
-    //       description: finalData.approvals_desc,
-    //       approval_ids: finalData.approvals
-    //     }
-    //   })
 
     //   await prisma.AdmissionProcess.create({
     //     data: {
@@ -266,15 +324,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     //       process: finalData.onlines
     //     }
     //   })
-    //   await prisma.Certificates.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.certificatename,
-    //       description: finalData.certificatedescription,
-    //       image: finalData.certificatemage,
-    //       image_alt: finalData?.image_alt
-    //     }
-    //   })
+   
     //   await prisma.FinancialAid.create({
     //     data: {
     //       title: finalData.financialname,
@@ -284,14 +334,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     //     }
     //   })
 
-    //   await prisma.Rankings.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.rankings_name,
-    //       description: finalData.rankings_description,
-    //     }
-    //   })
-
+    
     //   await prisma.ExamPatterns.create({
     //     data: {
     //       university_id: Number(Universitydata.id),

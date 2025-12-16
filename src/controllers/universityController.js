@@ -742,7 +742,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
-          : existing?.certificatemage || null,
+          : existing?.certificatemage ,
 
       icon:
         uploadedFiles["icon"]
