@@ -70,9 +70,10 @@ model Course {
   slug         String              @unique
   name         String
   icon         String?
-  image        String?
-  icon_alt               String?
+  cover_image        String?
+  position           Int?                         @default(0)
   cover_image_alt         String?
+  icon_alt              String?
   created_at   DateTime            @default(now())
   updated_at   DateTime            @updatedAt
   deleted_at   DateTime?
@@ -95,7 +96,7 @@ model Course {
   admissionprocess   AdmissionProcess?
   faq                Faq?
   seo                Seo?
-   university_id  Int?     @unique
+  university_id      Int?     @unique
   university     University? @relation(fields: [university_id], references: [id])
 }
 

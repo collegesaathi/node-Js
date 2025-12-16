@@ -3,6 +3,7 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 
 const makeSlug = (text) => {
   return text
@@ -99,6 +100,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
+    Loggers.info(req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
@@ -321,7 +323,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
 
 
   } catch (error) {
-    console.error("addUniversity error:", error);
+   console.error("addUniversity error:", error);
     // check for Prisma unique constraint error
     if (error.code === "P2002") {
       return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
