@@ -100,15 +100,14 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-    Loggers.info(req.body)
-    console.log("req", req.body)
+    Loggers.errror(req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-
+    Loggers.errror(uploadedFiles)
     // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -703,20 +702,11 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
 });
 
-
-
-
-
-
-
-
-
-exports.allCourses = catchAsync(async (req, res) => {
+exports.AllCourses = catchAsync(async (req, res) => {
   // Pagination
   const page = parseInt(req.query.page) || 1;
   const limit = 9;
   const skip = (page - 1) * limit;
-  // --- Fetch Course ---
   const courses = await prisma.Course.findMany({
     where: { deleted_at: null },
     orderBy: [
@@ -726,12 +716,13 @@ exports.allCourses = catchAsync(async (req, res) => {
     take: limit,
   });
 
+  console.log("courses" ,courses)
   if (!courses) {
     return errorResponse(res, "Failed to fetch courses", 500);
   }
 
   // --- Count total ---
-  const totalCourses = await prisma.Courses.count({
+  const totalCourses = await prisma.Course.count({
     where: { deleted_at: null }
   });
 

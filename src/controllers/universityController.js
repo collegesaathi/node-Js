@@ -631,12 +631,21 @@ exports.addUniversity = catchAsync(async (req, res) => {
       finalData,
     });
   } catch (error) {
-    console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-    return errorResponse(error, `Something went wrong`, 400);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
 });
 
@@ -986,11 +995,20 @@ return successResponse(
 
   }
   catch (error) {
-    console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-      return errorResponse(res, "Failed to fetch placements", 500);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
 });
