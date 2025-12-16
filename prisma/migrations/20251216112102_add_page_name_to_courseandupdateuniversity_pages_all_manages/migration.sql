@@ -368,7 +368,7 @@ CREATE TABLE "CourseCareer" (
     "course_id" INTEGER,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "advantages" JSONB,
+    "Career" JSONB,
 
     CONSTRAINT "CourseCareer_pkey" PRIMARY KEY ("id")
 );
@@ -379,8 +379,7 @@ CREATE TABLE "Curriculum" (
     "course_id" INTEGER,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "semester_desc" JSONB,
-    "semester_title" TEXT,
+    "semesters" JSONB,
 
     CONSTRAINT "Curriculum_pkey" PRIMARY KEY ("id")
 );
@@ -391,9 +390,8 @@ CREATE TABLE "EligibilityCriteria" (
     "course_id" INTEGER,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "criteria_desc" TEXT,
-    "criteria_title" TEXT,
-    "criteria_images" TEXT,
+    "IndianCriteria" JSONB,
+    "NRICriteria" JSONB,
 
     CONSTRAINT "EligibilityCriteria_pkey" PRIMARY KEY ("id")
 );
@@ -409,9 +407,6 @@ CREATE UNIQUE INDEX "University_slug_key" ON "University"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Course_slug_key" ON "Course"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Course_university_id_key" ON "Course"("university_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "CourseFees_course_id_key" ON "CourseFees"("course_id");

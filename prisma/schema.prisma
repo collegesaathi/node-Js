@@ -45,7 +45,7 @@ model University {
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
   blogs               Blog[]
-  courses             Course?
+  courses             Course[]   
   leads              leads[]
   about              About?
   admissionProcess   AdmissionProcess?
@@ -96,7 +96,7 @@ model Course {
   admissionprocess   AdmissionProcess?
   faq                Faq?
   seo                Seo?
-  university_id      Int?     @unique
+  university_id      Int?    
   university     University? @relation(fields: [university_id], references: [id])
 }
 
@@ -394,7 +394,7 @@ model CourseCareer {
   course_id      Int? @unique
   title         String
   description   String?
-  advantages    Json?
+  Career    Json?
   course    Course? @relation(fields: [course_id], references: [id])
 }
 
