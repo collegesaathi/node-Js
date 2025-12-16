@@ -457,7 +457,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       approvals_desc: req.body.approvals_desc,
       certificatename: req.body.certificatename,
       certificatedescription: req.body.certificatedescription,
-      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
+      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.certificatemage || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc,

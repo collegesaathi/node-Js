@@ -100,14 +100,14 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-    Loggers.errror(req.body)
+    Logger.error(req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-    Loggers.errror(uploadedFiles)
+      Logger.error(uploadedFiles)
     // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -132,13 +132,14 @@ exports.AddCourse = catchAsync(async (req, res) => {
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
     const finalData = {
-      meta_title: req.body.meta_title,
-      meta_description: req.body.meta_description,
-      canonical_url: req.body.canonical_url,
-      meta_keywords: req.body.meta_keywords,
-      slug: req.body.slug || "",
       name: req.body.name || "",
+      slug: req.body.slug || "",
       position: req.body.position || 0,
+      cover_image_alt: req.body.cover_image_alt,
+      university_id :  req.body.university_id ,
+      icon_alt: req.body.icon_alt,
+      image_alt: req.body.image_alt,
+      category_id: req.body.category_id,
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       partnersdesc: req.body.partnersdesc || "",
@@ -176,10 +177,12 @@ exports.AddCourse = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname,
-      cover_image_alt: req.body.cover_image_alt,
-      icon_alt: req.body.icon_alt,
-      image_alt: req.body.image_alt,
-      category_id: req.body.category_id
+ 
+
+       meta_title: req.body.meta_title,
+      meta_description: req.body.meta_description,
+      canonical_url: req.body.canonical_url,
+      meta_keywords: req.body.meta_keywords,
       // add other fields as needed
     };
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
