@@ -2,7 +2,6 @@
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
-const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
 const makeSlug = (text) => {
   return text
@@ -37,8 +36,6 @@ const generateUniqueSlug = async (prisma, title) => {
 
   return slug;
 };
-
-
 
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
@@ -95,7 +92,6 @@ exports.allUniversities = catchAsync(async (req, res) => {
 
 });
 
-// Admin University Listing
 exports.adminUniversitylisting = catchAsync(async (req, res) => {
   const BASE_URL = process.env.BASE_URL;
 
@@ -105,7 +101,7 @@ exports.adminUniversitylisting = catchAsync(async (req, res) => {
     //   { position: "asc" },
     //   { created_at: "asc" }
     // ]
-      orderBy: [
+    orderBy: [
       { created_at: "asc" }
     ]
   });
@@ -205,7 +201,7 @@ exports.universitiesDelete = catchAsync(async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
-      return errorResponse(res, "Univesirty ID is required", 400);
+      return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
     const existingApproval = await prisma.university.findUnique({
       where: {
@@ -213,7 +209,7 @@ exports.universitiesDelete = catchAsync(async (req, res) => {
       }
     });
     if (!existingApproval) {
-      return errorResponse(res, "University not found", 404);
+      return validationErrorResponse(res, "University not found", 404);
     }
     let updatedRecord;
     if (existingApproval.deleted_at) {
@@ -351,7 +347,6 @@ exports.getUniversityById = catchAsync(async (req, res) => {
   }
 });
 
-// helpers at top of file
 
 
 // Convert Windows Path to Public URL
@@ -489,9 +484,9 @@ exports.addUniversity = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname,
-      cover_image_alt : req.body.cover_image_alt ,
-      icon_alt : req.body.icon_alt ,
-      image_alt : req.body.image_alt ,
+      cover_image_alt: req.body.cover_image_alt,
+      icon_alt: req.body.icon_alt,
+      image_alt: req.body.image_alt,
 
       // add other fields as needed
     };
@@ -507,8 +502,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
         slug: finalData.slug ? finalData.slug : generatedSlug,
-        cover_image_alt : finalData?.cover_image_alt , 
-        icon_alt :  finalData?.icon_alt
+        cover_image_alt: finalData?.cover_image_alt,
+        icon_alt: finalData?.icon_alt
       }
     });
     if (Universitydata.id) {
@@ -583,7 +578,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
           title: finalData.certificatename,
           description: finalData.certificatedescription,
           image: finalData.certificatemage,
-          image_alt :finalData?.image_alt
+          image_alt: finalData?.image_alt
         }
       })
       await prisma.FinancialAid.create({
@@ -632,29 +627,16 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
     }
-    return res.status(200).json({
-      status: true,
-      message: "University Saved Successfully!",
-      data: finalData
+    return successResponse(res, "Universities Saved successfully", 201, {
+      finalData,
     });
-
   } catch (error) {
     console.error("addUniversity error:", error);
-
     // check for Prisma unique constraint error
     if (error.code === "P2002") {
-      return res.status(400).json({
-        status: false,
-        message: `Duplicate field value: ${error.meta.target.join(", ")}`,
-        code: error.code
-      });
+      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
     }
-
-    // fallback for any other errors
-    return res.status(500).json({
-      status: false,
-      message: error.message || "Something went wrong",
-    });
+    return errorResponse(error, `Something went wrong`, 400);
   }
 });
 
@@ -662,7 +644,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
   try {
     const universityId = Number(req.body.id);
     if (!universityId) {
-      return res.status(400).json({ status: false, message: "University ID is required" });
+      return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
 
     // Fetch existing university with all relations
@@ -734,7 +716,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       name: req.body.name || existing.name,
       slug: req.body.slug || existing.slug,
       position: req.body.position || existing.position,
-      icon_alt : req.body.icon_alt || existing.icon_alt, 
+      icon_alt: req.body.icon_alt || existing.icon_alt,
       about_title: req.body.about_title || existing.about?.title,
       about_desc: req.body.about_desc || existing.about?.description,
       partnersdesc: req.body.partnersdesc || existing.partners?.description,
@@ -746,7 +728,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       approvals_desc: req.body.approvals_desc || existing.approvals?.description,
       certificatename: req.body.certificatename || existing.certificates?.title,
       certificatedescription: req.body.certificatedescription || existing.certificates?.description,
-      image_alt : req.body.image_alt || existing.certificates?.image_alt,
+      image_alt: req.body.image_alt || existing.certificates?.image_alt,
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
@@ -767,7 +749,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
       servicedesc: req.body.servicedesc || existing.services?.description,
       servicetitle: req.body.servicetitle || existing.services?.title,
-      cover_image_alt : req.body.cover_image_alt || existing.cover_image_alt,
+      cover_image_alt: req.body.cover_image_alt || existing.cover_image_alt,
       services: services?.length ? services : existing.services?.services,
       patterns: patterns?.length ? patterns : existing.examPatterns?.patterns,
 
@@ -818,8 +800,8 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         description: finalData.descriptions,
         icon: finalData.icon,
         slug: finalData.slug || newSlug,
-        cover_image_alt :finalData.cover_image_alt || "",
-    icon_alt :finalData.icon_alt || "",
+        cover_image_alt: finalData.cover_image_alt || "",
+        icon_alt: finalData.icon_alt || "",
       }
     });
 
@@ -913,14 +895,14 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         title: finalData.certificatename,
         description: finalData.certificatedescription,
         image: finalData.certificatemage,
-        image_alt :  finalData.image_alt ,
+        image_alt: finalData.image_alt,
       },
       create: {
         university_id: universityId,
         title: finalData.certificatename,
         description: finalData.certificatedescription,
         image: finalData.certificatemage,
-        image_alt :  finalData.image_alt ,
+        image_alt: finalData.image_alt,
 
       }
     });
@@ -995,25 +977,20 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
     console.log("updatedUniversity", updatedUniversity)
-    return res.status(200).json({
-      status: true,
-      message: "University Updated Successfully!",
-      data: updatedUniversity,
-    });
+return successResponse(
+  res,
+  "University Updated Successfully!",
+  201,
+  updatedUniversity
+);
 
-  } catch (error) {
-    console.error("UPDATE ERROR:", error);
+  }
+  catch (error) {
+    console.error("addUniversity error:", error);
+    // check for Prisma unique constraint error
     if (error.code === "P2002") {
-      return res.status(400).json({
-        status: false,
-        message: `Duplicate value: ${error.meta.target.join(", ")}`,
-        code: error.code,
-      });
+      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
     }
-
-    return res.status(500).json({
-      status: false,
-      message: error.message || "Something went wrong",
-    });
+      return errorResponse(res, "Failed to fetch placements", 500);
   }
 });

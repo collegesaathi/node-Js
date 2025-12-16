@@ -60,14 +60,21 @@ exports.LeadsGet = catchAsync(async (req, res) => {
 });
 
 exports.allLeadsUniversities = catchAsync(async (req, res) => {
-  // Pagination
-  const universities = await prisma.university.findMany({
+try {
+    const universities = await prisma.university.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
   });
 
-  if (!universities) {
-    return errorResponse(res, "Failed to fetch universities", 500);
-  }
-  return successResponse(res, "Universities fetched successfully", 201, {
-    universities,
-  });
+  return successResponse(
+    res,
+    "Universities fetched successfully",
+    200,
+    { universities }
+  );
+} catch (error) {
+    return errorResponse(res, error.message, 500);
+}
 });
