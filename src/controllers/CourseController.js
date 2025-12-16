@@ -21,7 +21,7 @@ const generateUniqueSlug = async (prisma, title) => {
   let counter = 1;
 
   // Already existing slugs load
-  const existingSlugs = await prisma.university.findMany({
+  const existingSlugs = await prisma.Course.findMany({
     where: {
       slug: {
         startsWith: baseSlug,
@@ -101,6 +101,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
     Loggers.info(req.body)
+    console.log("req", req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
@@ -179,7 +180,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       cover_image_alt: req.body.cover_image_alt,
       icon_alt: req.body.icon_alt,
       image_alt: req.body.image_alt,
-
+      category_id: req.body.category_id
       // add other fields as needed
     };
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
@@ -193,7 +194,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         icon: finalData.icon,
         slug: finalData.slug ? finalData.slug : generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
-        icon_alt: finalData?.icon_alt
+        icon_alt: finalData?.icon_alt,
+        category_id: Number(finalData.category_id || 0),
       }
     });
     // if (Universitydata.id) {
@@ -323,13 +325,23 @@ exports.AddCourse = catchAsync(async (req, res) => {
 
 
   } catch (error) {
-   console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-    return errorResponse(error, `Something went wrong`, 400);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
+
 });
 
 exports.updateUniversity = catchAsync(async (req, res) => {
@@ -672,13 +684,23 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     return successResponse(res, "University Updated Successfully!", updatedUniversity, 201);
   }
   catch (error) {
-    console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-    return errorResponse(error, `Something went wrong`, 400);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
+
 });
 
 

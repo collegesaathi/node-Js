@@ -47,6 +47,8 @@ app.use("/api", require("./routes/universityRoutes"));
 app.use("/api", require("./routes/approvalRoute"));
 app.use("/api", require("./routes/leadsRoute"));
 app.use("/api", require("./routes/courseRoutes"));
+app.use("/api", require("./routes/CommonRoute"));
+
 
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
