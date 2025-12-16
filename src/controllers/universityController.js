@@ -655,7 +655,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     if (!universityId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
-
     // Fetch existing university with all relations
     const existing = await prisma.University.findUnique({
       where: { id: universityId },
