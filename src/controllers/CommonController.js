@@ -22,10 +22,9 @@ try {
 }
 });
 
-
 exports.List = catchAsync(async (req, res) => {
 try {
-    const CategoryLists = await prisma.Category.findMany({  });
+    const CategoryLists = await prisma.Category.findMany({});
    const universities = await prisma.university.findMany({
     select: {
       id: true,
