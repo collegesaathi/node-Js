@@ -249,7 +249,7 @@ CREATE TABLE "Skills" (
 CREATE TABLE "Advantages" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER,
-    "course_id" INTEGER NOT NULL,
+    "course_id" INTEGER,
     "specialisation_id" INTEGER,
     "title" TEXT NOT NULL,
     "description" TEXT,
@@ -731,7 +731,7 @@ ALTER TABLE "Skills" ADD CONSTRAINT "Skills_specialisation_id_fkey" FOREIGN KEY 
 ALTER TABLE "Advantages" ADD CONSTRAINT "Advantages_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Advantages" ADD CONSTRAINT "Advantages_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "Course"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Advantages" ADD CONSTRAINT "Advantages_course_id_fkey" FOREIGN KEY ("course_id") REFERENCES "Course"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Advantages" ADD CONSTRAINT "Advantages_specialisation_id_fkey" FOREIGN KEY ("specialisation_id") REFERENCES "Specialisation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
