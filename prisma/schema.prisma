@@ -309,13 +309,13 @@ model Skills {
 
 model Advantages {
   id            Int        @id @default(autoincrement())
-  university_id Int @unique
+  university_id Int? @unique
   course_id Int @unique
   specialisation_id Int?      @unique
   title         String
   description   String?
   advantages    Json?
-  university    University @relation(fields: [university_id], references: [id])
+  university    University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
@@ -327,7 +327,7 @@ model Facts {
   specialisation_id Int?      @unique
   title         String
   facts         Json?
-  university    University @relation(fields: [university_id], references: [id])
+  university    University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
