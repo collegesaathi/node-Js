@@ -12,6 +12,7 @@ router.post("/admin/course/add", dynamicUpload("course").any(), AddCourse);
 
 router.get("/course/:slug", GetCourseById)
 
+
 // router.post("/admin/universities/update", dynamicUpload("universities").any(), updateUniversity)
 
 module.exports = router;

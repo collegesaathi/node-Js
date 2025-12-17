@@ -534,7 +534,6 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 
 
 
-
 exports.UpdateCourse = catchAsync(async (req, res) => {
   try {
     const CourseId = Number(req.body.id);
