@@ -546,7 +546,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityAdvantages.create({
+      await prisma.Advantages.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.advantagesname,
@@ -852,7 +852,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       create: { university_id: universityId, title: finalData.factsname, facts: finalData.facts }
     });
 
-    await prisma.UniversityAdvantages.upsert({
+    await prisma.Advantages.upsert({
       where: { university_id: universityId },
       update: {
         title: finalData.advantagesname,

@@ -387,7 +387,6 @@ exports.AllCourses = catchAsync(async (req, res) => {
   const limit = 9;
   const skip = (page - 1) * limit;
   const courses = await prisma.Course.findMany({
-    where: { deleted_at: null },
     orderBy: [
       { created_at: "desc" }
     ],
@@ -900,9 +899,6 @@ return successResponse(
     );
   }
 });
-
-
-
 
 exports.CoursesDelete = catchAsync(async (req, res) => {
   try {
