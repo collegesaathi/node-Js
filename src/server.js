@@ -225,12 +225,12 @@ const prisma = new PrismaClient();
 
 
 
-// app.get("/", (req, res) => {
-//   res.json({
-//     msg: "Hello World",
-//     status: 200,
-//   });
-// });
+app.get("/", (req, res) => {
+  res.json({
+    msg: "Hello World",
+    status: 200,
+  });
+});
 
 // app.get('/', async (req, res) => {
 //   try {
