@@ -100,14 +100,14 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-    Logger.error(req.body)
-    // collect uploaded files: store raw path under fieldname keys
+
+     Logger.warn(req.body)
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-    Logger.error(uploadedFiles)
+     Logger.warn(uploadedFiles)
     // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -117,6 +117,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     let facts = parseArray(req.body.facts);
     let onlines = parseArray(req.body.onlines);
     let faqs = parseArray(req.body.faqs);
+    let skills = parseArray(req.body.skills);
     let descriptions = parseArray(req.body.descriptions);
     // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
@@ -135,20 +136,20 @@ exports.AddCourse = catchAsync(async (req, res) => {
       name: req.body.name || "",
       slug: req.body.slug || "",
       position: req.body.position || 0,
+      descriptions: descriptions,
+      category_id: req.body.category_id,
       cover_image_alt: req.body.cover_image_alt,
       university_id: req.body.university_id,
       icon_alt: req.body.icon_alt,
       image_alt: req.body.image_alt,
-      category_id: req.body.category_id,
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       semester_fees: req.body.semester_fees || "",
       anuual_fees: req.body.anuual_fees || "",
       tuition_fees: req.body.tuition_fees || "",
       partnersdesc: req.body.partnersdesc || "",
-      advantagesname: req.body.advantagesname || "",
+       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
-      descriptions: descriptions,
       approvals_name: req.body.approvals_name,
       approvals_desc: req.body.approvals_desc,
       certificatename: req.body.certificatename,
@@ -190,13 +191,18 @@ exports.AddCourse = catchAsync(async (req, res) => {
       semesters_title: req.body.semesters_title,
       semesters: req.body.semesters,
       skillsname: req.body.skillsname,
-      skilsdescription: req.body.skilsdescription,
-      skills: req.body.skills,
+      skilldesc: req.body.skilldesc,
+      skills: skills,
       careername: req.body.careername,
       careermanages: req.body.careermanages,
       careerdesc: req.body.careerdesc,
       // add other fields as needed
     };
+if (!finalData.university_id) {
+  return errorResponse(res, "University is required", 400);
+}
+
+    console.log("finalData" ,finalData)
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
     // Save with Prisma (example)
     const CoursesData = await prisma.Course.create({
@@ -223,7 +229,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       })
     }
 
-    await prisma.CourseFees.create({
+    await prisma.Fees.create({
       data: {
         course_id: Number(CoursesData.id),
         annual_fees: (finalData?.anuual_fees),
@@ -291,15 +297,23 @@ exports.AddCourse = catchAsync(async (req, res) => {
       }
     })
 
-    await prisma.CourseSkills.create({
+    await prisma.Skills.create({
       data: {
         course_id: Number(CoursesData.id),
         title: finalData.skillsname,
-        description: finalData.skilsdescription,
+        description: finalData.skilldesc,
         skills: finalData.skills || ""
       }
     })
 
+     await prisma.Advantages.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          title: finalData.advantagesname,
+          description: finalData.advantagesdescription,
+          advantages: finalData.advantages
+        }
+      })
     await prisma.ExamPatterns.create({
       data: {
         course_id: Number(CoursesData.id),
@@ -318,7 +332,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       }
     })
 
-    await prisma.CourseCareer.create({
+    await prisma.Career.create({
       data: {
         title: finalData.careername,
         description: finalData.careerdesc || null,
