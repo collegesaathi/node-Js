@@ -387,7 +387,6 @@ exports.AllCourses = catchAsync(async (req, res) => {
   const limit = 9;
   const skip = (page - 1) * limit;
   const courses = await prisma.Course.findMany({
-    where: { deleted_at: null },
     orderBy: [
       { created_at: "desc" }
     ],
@@ -531,7 +530,6 @@ exports.GetCourseById = catchAsync(async (req, res) => {
     );
   }
 });
-
 
 
 
@@ -899,5 +897,43 @@ return successResponse(
       "Something went wrong",
       500
     );
+  }
+});
+
+exports.CoursesDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return validationErrorResponse(res, "Course ID is required", 400);
+    }
+    const existingcourse = await prisma.Course.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+    if (!existingcourse) {
+      return validationErrorResponse(res, "Course not found", 404);
+    }
+    let updatedRecord;
+    if (existingcourse.deleted_at) {
+      updatedRecord = await prisma.Course.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
+
+      return successResponse(res, "Course restored successfully", 200, updatedRecord);
+    }
+
+    updatedRecord = await prisma.Course.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
+
+    return successResponse(res, "Course deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Course not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
   }
 });

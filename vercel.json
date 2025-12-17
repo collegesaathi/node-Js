@@ -1,0 +1,17 @@
+{
+    "version": 2,
+    "name": "College Sathi backend ",
+    "builds": [
+      { 
+        "src": "/src/server.js", 
+        "use": "@vercel/node",
+        "config": {
+          "maxDuration": 30,
+          "memory": 3009
+        }
+      }
+    ],
+    "routes": [
+      { "src": "/(.*)", "dest": "/src/server.js" }
+    ]
+  }
