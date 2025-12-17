@@ -322,8 +322,8 @@ model Advantages {
 
 model Facts {
   id            Int        @id @default(autoincrement())
-  university_id Int @unique
-  course_id Int @unique
+  university_id Int? @unique
+  course_id Int? @unique
   specialisation_id Int?      @unique
   title         String
   facts         Json?
