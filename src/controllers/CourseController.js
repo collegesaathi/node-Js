@@ -100,15 +100,14 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-    Loggers.info(req.body)
-    console.log("req", req.body)
+    Logger.error(req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-
+    Logger.error(uploadedFiles)
     // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -133,15 +132,19 @@ exports.AddCourse = catchAsync(async (req, res) => {
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
     const finalData = {
-      meta_title: req.body.meta_title,
-      meta_description: req.body.meta_description,
-      canonical_url: req.body.canonical_url,
-      meta_keywords: req.body.meta_keywords,
-      slug: req.body.slug || "",
       name: req.body.name || "",
+      slug: req.body.slug || "",
       position: req.body.position || 0,
+      cover_image_alt: req.body.cover_image_alt,
+      university_id: req.body.university_id,
+      icon_alt: req.body.icon_alt,
+      image_alt: req.body.image_alt,
+      category_id: req.body.category_id,
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
+      semester_fees: req.body.semester_fees || "",
+      anuual_fees: req.body.anuual_fees || "",
+      tuition_fees: req.body.tuition_fees || "",
       partnersdesc: req.body.partnersdesc || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
@@ -177,10 +180,21 @@ exports.AddCourse = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname,
-      cover_image_alt: req.body.cover_image_alt,
-      icon_alt: req.body.icon_alt,
-      image_alt: req.body.image_alt,
-      category_id: req.body.category_id
+      meta_title: req.body.meta_title,
+      meta_description: req.body.meta_description,
+      canonical_url: req.body.canonical_url,
+      meta_keywords: req.body.meta_keywords,
+      creteria: req.body.creteria,
+      IndianCriteria: req.body.indian,
+      NRICriteria: req.body.nri,
+      semesters_title: req.body.semesters_title,
+      semesters: req.body.semesters,
+      skillsname: req.body.skillsname,
+      skilsdescription: req.body.skilsdescription,
+      skills: req.body.skills,
+      careername: req.body.careername,
+      careermanages: req.body.careermanages,
+      careerdesc: req.body.careerdesc,
       // add other fields as needed
     };
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
@@ -196,129 +210,150 @@ exports.AddCourse = catchAsync(async (req, res) => {
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         category_id: Number(finalData.category_id || 0),
+        university_id: Number(finalData.university_id || 0)
       }
     });
-    // if (Universitydata.id) {
-    //   await prisma.About.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.about_title,
-    //       description: finalData.about_desc
-    //     }
-    //   })
+    if (CoursesData.id) {
+      await prisma.About.create({
+        data: {
+          course_id: Number(CoursesData.id),
+          title: finalData.about_title,
+          description: finalData.about_desc
+        }
+      })
+    }
 
-    //   await prisma.Faq.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       faqs: finalData.faqs,
-    //     }
-    //   })
+    await prisma.CourseFees.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        annual_fees: (finalData?.anuual_fees),
+        semester_wise_fees: (finalData?.semester_fees),
+        tuition_fees: (finalData?.tuition_fees)
+      }
+    })
 
-    //   await prisma.UniversityCampus.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       campus: finalData.campusList,
-    //     }
-    //   })
+    await prisma.Faq.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        faqs: finalData.faqs,
+      }
+    })
 
-    //   await prisma.Services.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.servicetitle,
-    //       description: finalData.servicedesc,
-    //       services: finalData.services || ""
-    //     }
-    //   })
+    await prisma.Approvals_Management.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.approvals_name,
+        description: finalData.approvals_desc,
+        approval_ids: finalData.approvals
+      }
+    })
+    await prisma.Rankings.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.rankings_name,
+        description: finalData.rankings_description,
+      }
+    })
 
-    //   await prisma.UniversityFacts.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.factsname,
-    //       facts: finalData.facts || ""
-    //     }
-    //   })
 
-    //   await prisma.UniversityAdvantages.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.advantagesname,
-    //       description: finalData.advantagesdescription,
-    //       advantages: finalData.advantages
-    //     }
-    //   })
 
-    //   await prisma.Approvals_Management.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.approvals_name,
-    //       description: finalData.approvals_desc,
-    //       approval_ids: finalData.approvals
-    //     }
-    //   })
+    await prisma.EligibilityCriteria.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.creteria,
+        NRICriteria: finalData.NRICriteria,
+        IndianCriteria: finalData.IndianCriteria || ""
+      }
+    })
+    await prisma.Curriculum.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.semesters_title,
+        semesters: finalData.semesters,
+      }
+    })
 
-    //   await prisma.AdmissionProcess.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.onlinetitle,
-    //       description: finalData.onlinedesc,
-    //       process: finalData.onlines
-    //     }
-    //   })
-    //   await prisma.Certificates.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.certificatename,
-    //       description: finalData.certificatedescription,
-    //       image: finalData.certificatemage,
-    //       image_alt: finalData?.image_alt
-    //     }
-    //   })
-    //   await prisma.FinancialAid.create({
-    //     data: {
-    //       title: finalData.financialname,
-    //       description: finalData.financialdescription || null,
-    //       aid: finalData.fees,
-    //       university_id: Number(Universitydata.id),
-    //     }
-    //   })
+    await prisma.Services.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.servicetitle,
+        description: finalData.servicedesc,
+        services: finalData.services || ""
+      }
+    })
+    await prisma.Certificates.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.certificatename,
+        description: finalData.certificatedescription,
+        image: finalData.certificatemage,
+        image_alt: finalData?.image_alt
+      }
+    })
 
-    //   await prisma.Rankings.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.rankings_name,
-    //       description: finalData.rankings_description,
-    //     }
-    //   })
+    await prisma.CourseSkills.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.skillsname,
+        description: finalData.skilsdescription,
+        skills: finalData.skills || ""
+      }
+    })
 
-    //   await prisma.ExamPatterns.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.patternname,
-    //       description: finalData.patterndescription,
-    //       bottompatterndesc: finalData.bottompatterndesc,
-    //       patterns: finalData.patterns
-    //     }
-    //   })
+    await prisma.ExamPatterns.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.patternname,
+        description: finalData.patterndescription,
+        bottompatterndesc: finalData.bottompatterndesc,
+        patterns: finalData.patterns
+      }
+    })
+    await prisma.FinancialAid.create({
+      data: {
+        title: finalData.financialname,
+        description: finalData.financialdescription || null,
+        aid: finalData.fees,
+        course_id: Number(CoursesData.id),
+      }
+    })
 
-    //   await prisma.Partners.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.partnersname,
-    //       description: finalData.partnersdesc,
-    //       placement_partner_id: finalData.partners
-    //     }
-    //   })
+    await prisma.CourseCareer.create({
+      data: {
+        title: finalData.careername,
+        description: finalData.careerdesc || null,
+        Career: finalData.careermanages,
+        course_id: Number(CoursesData.id),
+      }
+    })
+    await prisma.Partners.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.partnersname,
+        description: finalData.partnersdesc,
+        placement_partner_id: finalData.partners
+      }
+    })
+    await prisma.AdmissionProcess.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        title: finalData.onlinetitle,
+        description: finalData.onlinedesc,
+        process: finalData.onlines
+      }
+    })
 
-    //   await prisma.Seo.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       meta_title: finalData.meta_title,
-    //       meta_description: finalData.meta_description,
-    //       meta_keywords: finalData.meta_keywords,
-    //       canonical_url: finalData.canonical_url,
-    //     }
-    //   })
-    // }
+
+    await prisma.Seo.create({
+      data: {
+        course_id: Number(CoursesData.id),
+        meta_title: finalData.meta_title,
+        meta_description: finalData.meta_description,
+        meta_keywords: finalData.meta_keywords,
+        canonical_url: finalData.canonical_url,
+      }
+    })
+    console.log("CoursesData" ,CoursesData)
     return successResponse(res, "Course Saved successfully", 201, {
       CoursesData,
     });
@@ -344,30 +379,187 @@ exports.AddCourse = catchAsync(async (req, res) => {
 
 });
 
-exports.updateUniversity = catchAsync(async (req, res) => {
-  try {
-    const universityId = Number(req.body.id);
-    if (!universityId) {
-      return validationErrorResponse(res, "Univesirty ID is required", 400);
-    }
 
-    // Fetch existing university with all relations
-    const existing = await prisma.University.findUnique({
-      where: { id: universityId },
+
+exports.AllCourses = catchAsync(async (req, res) => {
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
+  const courses = await prisma.Course.findMany({
+    where: { deleted_at: null },
+    orderBy: [
+      { created_at: "desc" }
+    ],
+    skip,
+    take: limit,
+  });
+
+  console.log("courses", courses)
+  if (!courses) {
+    return errorResponse(res, "Failed to fetch courses", 500);
+  }
+
+  // --- Count total ---
+  const totalCourses = await prisma.Course.count({
+    where: { deleted_at: null }
+  });
+
+  const totalPages = Math.ceil(totalCourses / limit);
+
+  return successResponse(res, "Course fetched successfully", 201, {
+    courses,
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalCourses,
+    }
+  });
+
+});
+
+
+exports.GetCourseById = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return errorResponse(res, "Course slug is required", 400);
+    }
+    const CourseData = await prisma.Course.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
       include: {
         about: true,
-        faq: true,
-        universityCampuses: true,
-        services: true,
-        facts: true,
-        advantages: true,
+        fees: true,
         approvals: true,
-        admissionProcess: true,
+        rankings:true, 
+        eligibilitycriteria: true,
+        curriculum: true,
         certificates: true,
-        financialAid: true,
-        rankings: true,
+        skills: true,
         examPatterns: true,
+        financialAid: true,
+        career: true,
         partners: true,
+        services: true,
+        admissionprocess: true,
+        faq: true,
+        seo: true,
+      },
+    });
+
+    if (!CourseData) {
+      return errorResponse(res, "CourseData not found", 404);
+    }
+
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+
+    // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
+
+    const partnersRaw = CourseData.partners;
+    if (partnersRaw) {
+      const partnersArr = toArray(partnersRaw);
+      placementPartnerIds = partnersArr.flatMap((p) => {
+        if (!p) return [];
+        if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
+        if (p.placement_partner_id) return [p.placement_partner_id];
+        if (Array.isArray(p.partner_id)) return p.partner_id;
+        if (p.partner_id) return [p.partner_id];
+        if (p.id) return [p.id];
+        return [];
+      });
+      placementPartnerIds = Array.from(new Set(placementPartnerIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: { id: { in: placementPartnerIds } },
+      });
+    }
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = CourseData.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
+
+    return successResponse(
+      res,
+      "Course fetched successfully",
+      200,
+      { CourseData, approvalsData, placementPartners }
+    );
+  } catch (error) {
+    console.error("getUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
+    );
+  }
+});
+
+
+
+
+exports.UpdateCourse = catchAsync(async (req, res) => {
+  try {
+    const CourseId = Number(req.body.id);
+    if (!CourseId) {
+      return validationErrorResponse(res, "Univesirty ID is required", 400);
+    }
+    // Fetch existing university with all relations
+    const existing = await prisma.Course.findUnique({
+      where: { id: CourseId },
+      include: {
+        about: true,
+        fees: true,
+        approvals: true,
+        rankings:true, 
+        eligibilitycriteria: true,
+        curriculum: true,
+        certificates: true,
+        skills: true,
+        examPatterns: true,
+        financialAid: true,
+        career: true,
+        partners: true,
+        services: true,
+        admissionprocess: true,
+        faq: true,
         seo: true,
       }
     });
@@ -412,15 +604,14 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
+       name: req.body.name || existing.name,
+      slug: req.body.slug || existing.slug,
+      position: req.body.position || existing.position,
+      icon_alt: req.body.icon_alt || existing.icon_alt,
       meta_title: req.body.meta_title || existing.seo?.meta_title,
       meta_description: req.body.meta_description || existing.seo?.meta_description,
       canonical_url: req.body.canonical_url || existing.seo?.canonical_url,
       meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords,
-
-      name: req.body.name || existing.name,
-      slug: req.body.slug || existing.slug,
-      position: req.body.position || existing.position,
-      icon_alt: req.body.icon_alt || existing.icon_alt,
       about_title: req.body.about_title || existing.about?.title,
       about_desc: req.body.about_desc || existing.about?.description,
       partnersdesc: req.body.partnersdesc || existing.partners?.description,
@@ -437,7 +628,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
-          : existing?.certificatemage || null,
+          : existing?.certificatemage ,
 
       icon:
         uploadedFiles["icon"]
@@ -495,7 +686,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     }
 
     // UPDATE MAIN UNIVERSITY
-    const updatedUniversity = await prisma.University.update({
+    const UpdateCourse = await prisma.Course.update({
       where: { id: universityId },
       data: {
         name: finalData.name,
@@ -508,6 +699,9 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         icon_alt: finalData.icon_alt || "",
       }
     });
+if(UpdateCourse.id){
+
+}
 
     // UPDATE RELATIONS (UPSERTS)
     await prisma.About.upsert({
@@ -681,7 +875,13 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
     console.log("updatedUniversity", updatedUniversity)
-    return successResponse(res, "University Updated Successfully!", updatedUniversity, 201);
+return successResponse(
+  res,
+  "Courses Updated Successfully!",
+  201,
+  updatedUniversity
+);
+
   }
   catch (error) {
     console.error("AddCourse error:", error);
@@ -700,51 +900,4 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       500
     );
   }
-
-});
-
-
-
-
-
-
-
-
-
-exports.allCourses = catchAsync(async (req, res) => {
-  // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const limit = 9;
-  const skip = (page - 1) * limit;
-  // --- Fetch Course ---
-  const courses = await prisma.Course.findMany({
-    where: { deleted_at: null },
-    orderBy: [
-      { created_at: "desc" }
-    ],
-    skip,
-    take: limit,
-  });
-
-  if (!courses) {
-    return errorResponse(res, "Failed to fetch courses", 500);
-  }
-
-  // --- Count total ---
-  const totalCourses = await prisma.Courses.count({
-    where: { deleted_at: null }
-  });
-
-  const totalPages = Math.ceil(totalCourses / limit);
-
-  return successResponse(res, "Course fetched successfully", 201, {
-    courses,
-    pagination: {
-      page,
-      limit,
-      totalPages,
-      totalCourses,
-    }
-  });
-
 });

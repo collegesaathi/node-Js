@@ -457,7 +457,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       approvals_desc: req.body.approvals_desc,
       certificatename: req.body.certificatename,
       certificatedescription: req.body.certificatedescription,
-      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
+      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.certificatemage || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc,
@@ -631,12 +631,21 @@ exports.addUniversity = catchAsync(async (req, res) => {
       finalData,
     });
   } catch (error) {
-    console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-    return errorResponse(error, `Something went wrong`, 400);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
 });
 
@@ -646,7 +655,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     if (!universityId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
-
     // Fetch existing university with all relations
     const existing = await prisma.University.findUnique({
       where: { id: universityId },
@@ -733,7 +741,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
-          : existing?.certificatemage || null,
+          : existing?.certificatemage ,
 
       icon:
         uploadedFiles["icon"]
@@ -986,11 +994,20 @@ return successResponse(
 
   }
   catch (error) {
-    console.error("addUniversity error:", error);
-    // check for Prisma unique constraint error
+    console.error("AddCourse error:", error);
+
     if (error.code === "P2002") {
-      return errorResponse(error, `Duplicate field value: ${error.meta.target.join(", ")}`, 400);
+      return errorResponse(
+        res,
+        `Duplicate field value: ${error.meta.target.join(", ")}`,
+        400
+      );
     }
-      return errorResponse(res, "Failed to fetch placements", 500);
+
+    return errorResponse(
+      res,
+      "Something went wrong",
+      500
+    );
   }
 });
