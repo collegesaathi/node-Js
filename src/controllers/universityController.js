@@ -538,7 +538,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
 
-      await prisma.UniversityFacts.create({
+      await prisma.Facts.create({
         data: {
           university_id: Number(Universitydata.id),
           title: finalData.factsname,
@@ -846,7 +846,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.UniversityFacts.upsert({
+    await prisma.Facts.upsert({
       where: { university_id: universityId },
       update: { title: finalData.factsname, facts: finalData.facts },
       create: { university_id: universityId, title: finalData.factsname, facts: finalData.facts }

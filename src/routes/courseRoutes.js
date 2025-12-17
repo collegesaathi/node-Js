@@ -4,7 +4,7 @@ const upload = require("../utils/Uploader");
 const dynamicUpload = require("../utils/Uploader");
 const { AddCourse, AllCourses, GetCourseById, CoursesDelete } = require("../Controllers/CourseController");
 
-router.get("/all/Coueses", AllCourses);
+router.get("/all/course", AllCourses);
 
 router.post("/admin/course/add", dynamicUpload("course").any(), AddCourse);
 

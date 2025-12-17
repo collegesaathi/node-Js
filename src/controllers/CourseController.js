@@ -916,7 +916,7 @@ exports.CoursesDelete = catchAsync(async (req, res) => {
     }
     let updatedRecord;
     if (existingcourse.deleted_at) {
-      updatedRecord = await prisma.university.update({
+      updatedRecord = await prisma.Course.update({
         where: { id: parseInt(id) },
         data: { deleted_at: null }
       });
