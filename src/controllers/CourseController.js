@@ -640,7 +640,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     let onlines = parseArray(req.body.onlines);
     let faqs = parseArray(req.body.faqs);
     let descriptions = parseArray(req.body.descriptions);
-    let careermanages = parseArray(req.body.careermanages);
 
     // Build images from uploads
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
@@ -674,7 +673,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc || existing.about?.description,
       tuition_fees: req.body.tuition_fees || existing.fees.tuition_fees,
       anuual_fees: req.body.anuual_fees || existing.fees.anuual_fees,
-      semester_wise_fees: req.body.semester_fees || existing.fees.semester_wise_fees,
+      semester_fees: req.body.semester_fees || existing.fees.semester_wise_fees,
       approvals_name: req.body.approvals_name || existing.approvals?.title,
       approvals_desc: req.body.approvals_desc || existing.approvals?.description,
       approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids,
@@ -791,13 +790,13 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         where: { course_id: CourseId },
         update: {
           annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData?.semester_fees),
+          semester_wise_fees: (finalData.semester_fees),
           tuition_fees: (finalData?.tuition_fees)
         },
         create: {
           course_id: Number(CourseId),
           annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData?.semester_fees),
+          semester_wise_fees: (finalData.semester_fees),
           tuition_fees: (finalData?.tuition_fees)
         }
       })
