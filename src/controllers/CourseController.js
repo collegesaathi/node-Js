@@ -110,16 +110,6 @@ exports.AddCourse = catchAsync(async (req, res) => {
     });
     Logger.warn(uploadedFiles)
     // parse arrays safely (accepts already-parsed arrays too)
-    let services = parseArray(req.body.services);
-    let patterns = parseArray(req.body.patterns);
-    let advantages = parseArray(req.body.advantages);
-    let campusList = parseArray(req.body.campusList);
-    let fees = parseArray(req.body.fees);
-    let facts = parseArray(req.body.facts);
-    let onlines = parseArray(req.body.onlines);
-    let faqs = parseArray(req.body.faqs);
-    let skills = parseArray(req.body.skills);
-    let descriptions = parseArray(req.body.descriptions);
     // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
@@ -137,12 +127,12 @@ exports.AddCourse = catchAsync(async (req, res) => {
       name: req.body.name || "",
       slug: req.body.slug || "",
       position: req.body.position || 0,
-      descriptions: descriptions,
-      category_id: req.body.category_id,
-      cover_image_alt: req.body.cover_image_alt,
-      university_id: req.body.university_id,
-      icon_alt: req.body.icon_alt,
-      image_alt: req.body.image_alt,
+      descriptions: parseArray(req.body.descriptions) || "",
+      category_id: req.body.category_id || "",
+      cover_image_alt: req.body.cover_image_alt || "",
+      university_id: req.body.university_id || "",
+      icon_alt: req.body.icon_alt || "",
+      image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       semester_fees: req.body.semester_fees || "",
@@ -151,53 +141,52 @@ exports.AddCourse = catchAsync(async (req, res) => {
       partnersdesc: req.body.partnersdesc || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
-      approvals_name: req.body.approvals_name,
-      approvals_desc: req.body.approvals_desc,
-      certificatename: req.body.certificatename,
-      certificatedescription: req.body.certificatedescription,
+      approvals_name: req.body.approvals_name || "",
+      approvals_desc: req.body.approvals_desc || "",
+      certificatename: req.body.certificatename || "",
+      certificatedescription: req.body.certificatedescription || "",
       certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
-      servicedesc: req.body.servicedesc,
-      servicetitle: req.body.servicetitle,
-      services,
-      patterns,
-      partnersname: req.body.partnersname,
-      partnersdesc: req.body.partnersdesc,
-      patterndescription: req.body.patterndescription,
-      patternname: req.body.patternname,
-      bottompatterndesc: req.body.bottompatterndesc,
-      advantages,
-      campusList,
-      fees,
-      facts,
-      factsname: req.body.factsname,
-      onlines,
+      servicedesc: req.body.servicedesc || "",
+      servicetitle: req.body.servicetitle || "",
+      services: parseArray(req.body.services) || "",
+      patterns: req.body.patterns || "",
+      partnersname: req.body.partnersname || "",
+      partnersdesc: req.body.partnersdesc || "",
+      patterndescription: req.body.patterndescription || "",
+      patternname: req.body.patternname || "",
+      bottompatterndesc: req.body.bottompatterndesc || "",
+      advantages: parseArray(req.body.advantages) || "",
+      campusList: parseArray(req.body.campusList) || "",
+      fees: parseArray(req.body.fees) || "",
+      facts: parseArray(req.body.facts) || "",
+      factsname: req.body.factsname || "",
+      onlines: parseArray(req.body.onlines) || "",
       onlinetitle: req.body.onlinetitle,
       onlinedesc: req.body.onlinedesc,
       financialdescription: req.body.financialdescription,
-      faqs,
-      approvals: parseArray(req.body.approvals),
-      partners: parseArray(req.body.partners),
+      faqs: parseArray(req.body.faqs) || "",
+      approvals: parseArray(req.body.approvals) || "",
+      partners: parseArray(req.body.partners) || "",
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
-      financialname: req.body.financialname,
-      meta_title: req.body.meta_title,
-      meta_description: req.body.meta_description,
-      canonical_url: req.body.canonical_url,
-      meta_keywords: req.body.meta_keywords,
-      creteria: req.body.creteria,
-      NRICriteria: parseArray(req.body.nri),
-      IndianCriteria: parseArray(req.body.indian),
-      semesters_title: req.body.semesters_title,
-      semesters: parseArray(req.body.semesters),
-      skillsname: req.body.skillsname,
-      skilldesc: req.body.skilldesc,
-      skills: skills,
-      careername: req.body.careername,
-      careermanages: parseArray(req.body.careermanages),
-      careerdesc: req.body.careerdesc,
-      // add other fields as needed
+      financialname: req.body.financialname || "",
+      meta_title: req.body.meta_title || "",
+      meta_description: req.body.meta_description || "",
+      canonical_url: req.body.canonical_url || "",
+      meta_keywords: req.body.meta_keywords || "",
+      creteria: req.body.creteria || "",
+      NRICriteria: parseArray(req.body.nri) || "",
+      IndianCriteria: parseArray(req.body.indian) || "",
+      semesters_title: req.body.semesters_title || "",
+      semesters: parseArray(req.body.semesters) || "",
+      skillsname: req.body.skillsname || "",
+      skilldesc: req.body.skilldesc || "",
+      skills: parseArray(req.body.skills) || "",
+      careername: req.body.careername || "",
+      careermanages: parseArray(req.body.careermanages) || "",
+      careerdesc: req.body.careerdesc || "",
     };
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
@@ -640,7 +629,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     let onlines = parseArray(req.body.onlines);
     let faqs = parseArray(req.body.faqs);
     let descriptions = parseArray(req.body.descriptions);
-    let careermanages = parseArray(req.body.careermanages);
 
     // Build images from uploads
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
@@ -674,7 +662,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc || existing.about?.description,
       tuition_fees: req.body.tuition_fees || existing.fees.tuition_fees,
       anuual_fees: req.body.anuual_fees || existing.fees.anuual_fees,
-      semester_wise_fees: req.body.semester_fees || existing.fees.semester_wise_fees,
+      semester_fees: req.body.semester_fees || existing.fees.semester_wise_fees,
       approvals_name: req.body.approvals_name || existing.approvals?.title,
       approvals_desc: req.body.approvals_desc || existing.approvals?.description,
       approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids,
@@ -775,7 +763,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         slug: finalData.slug || newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
-        university_id: Number(finalData.university_id )|| "",
+        university_id: Number(finalData.university_id) || "",
         category_id: Number(finalData.category_id) || ""
       }
     });
@@ -791,13 +779,13 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         where: { course_id: CourseId },
         update: {
           annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData?.semester_fees),
+          semester_wise_fees: (finalData.semester_fees),
           tuition_fees: (finalData?.tuition_fees)
         },
         create: {
           course_id: Number(CourseId),
           annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData?.semester_fees),
+          semester_wise_fees: (finalData.semester_fees),
           tuition_fees: (finalData?.tuition_fees)
         }
       })
@@ -924,88 +912,88 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         }
       });
 
-       await prisma.Career.upsert({
-         where: { course_id: CourseId, },
+      await prisma.Career.upsert({
+        where: { course_id: CourseId, },
         update: {
-         title: finalData.careername,
-        description: finalData.careerdesc || null,
-        Career: finalData.careermanages,
+          title: finalData.careername,
+          description: finalData.careerdesc || null,
+          Career: finalData.careermanages,
         },
-      create: {
-        title: finalData.careername,
-        description: finalData.careerdesc || null,
-        Career: finalData.careermanages,
-        course_id: Number(CourseId),
-      }
-    })
+        create: {
+          title: finalData.careername,
+          description: finalData.careerdesc || null,
+          Career: finalData.careermanages,
+          course_id: Number(CourseId),
+        }
+      })
 
-        await prisma.Partners.upsert({
-      where: {  course_id: Number(CourseId),},
-      update: {
-        title: finalData.partnersname,
-        description: finalData.partnersdesc,
-        placement_partner_id: finalData.partners,
-      },
-      create: {
-        course_id: Number(CourseId),
-        title: finalData.partnersname,
-        description: finalData.partnersdesc,
-        placement_partner_id: finalData.partners,
-      }
-    });
+      await prisma.Partners.upsert({
+        where: { course_id: Number(CourseId), },
+        update: {
+          title: finalData.partnersname,
+          description: finalData.partnersdesc,
+          placement_partner_id: finalData.partners,
+        },
+        create: {
+          course_id: Number(CourseId),
+          title: finalData.partnersname,
+          description: finalData.partnersdesc,
+          placement_partner_id: finalData.partners,
+        }
+      });
 
-     await prisma.Faq.upsert({
-      where: { course_id: Number(CourseId)},
-      update: { faqs: finalData.faqs },
-      create: { course_id: Number(CourseId), faqs: finalData.faqs }
-    });
+      await prisma.Faq.upsert({
+        where: { course_id: Number(CourseId) },
+        update: { faqs: finalData.faqs },
+        create: { course_id: Number(CourseId), faqs: finalData.faqs }
+      });
 
-        await prisma.Seo.upsert({
-      where: {  course_id: Number(CourseId), },
-      update: {
-        meta_title: finalData.meta_title,
-        meta_description: finalData.meta_description,
-        meta_keywords: finalData.meta_keywords,
-        canonical_url: finalData.canonical_url,
-      },
-      create: {
-         course_id: Number(CourseId),
-        meta_title: finalData.meta_title,
-        meta_description: finalData.meta_description,
-        meta_keywords: finalData.meta_keywords,
-        canonical_url: finalData.canonical_url,
-      }
-    });
+      await prisma.Seo.upsert({
+        where: { course_id: Number(CourseId), },
+        update: {
+          meta_title: finalData.meta_title,
+          meta_description: finalData.meta_description,
+          meta_keywords: finalData.meta_keywords,
+          canonical_url: finalData.canonical_url,
+        },
+        create: {
+          course_id: Number(CourseId),
+          meta_title: finalData.meta_title,
+          meta_description: finalData.meta_description,
+          meta_keywords: finalData.meta_keywords,
+          canonical_url: finalData.canonical_url,
+        }
+      });
 
-    await prisma.Services.upsert({
-      where: {  course_id: Number(CourseId) },
-      update: {
-        title: finalData.servicetitle,
-        description: finalData.servicedesc,
-        services: finalData.services,
-      },
-      create: {
-        course_id: Number(CourseId),
-        title: finalData.servicetitle,
-        description: finalData.servicedesc,
-        services: finalData.services,
-      }
-    });
+      await prisma.Services.upsert({
+        where: { course_id: Number(CourseId) },
+        update: {
+          title: finalData.servicetitle,
+          description: finalData.servicedesc,
+          services: finalData.services,
+        },
+        create: {
+          course_id: Number(CourseId),
+          title: finalData.servicetitle,
+          description: finalData.servicedesc,
+          services: finalData.services,
+        }
+      });
 
-       await prisma.AdmissionProcess.upsert({
-      where: {   course_id: Number(CourseId) },
-      update: {
-        title: finalData.onlinetitle,
-        description: finalData.onlinedesc,
-        process: finalData.onlines,
-      },
-      create: {
-        course_id: Number(CourseId),
-        title: finalData.onlinetitle,
-        description: finalData.onlinedesc,
-        process: finalData.onlines,
-      }
-    });
+      await prisma.AdmissionProcess.upsert({
+        where: { course_id: Number(CourseId) },
+        update: {
+          title: finalData.onlinetitle,
+          description: finalData.onlinedesc,
+          process: finalData.onlines,
+        },
+        create: {
+          course_id: Number(CourseId),
+          title: finalData.onlinetitle,
+          description: finalData.onlinedesc,
+          process: finalData.onlines,
+        }
+      });
     }
     console.log("updatedUniversity", UpdateCourse)
     return successResponse(
