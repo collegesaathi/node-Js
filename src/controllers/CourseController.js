@@ -102,20 +102,21 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
 
-    Logger.warn(req.body)
     const uploadedFiles = {};
     req.files?.forEach(file => {
-      // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-    Logger.warn(uploadedFiles)
-      let services = parseArray(req.body.services);
+    let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
     let campusList = parseArray(req.body.campusList);
     let facts = parseArray(req.body.facts);
-    // parse arrays safely (accepts already-parsed arrays too)
-    // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
+    let indian = parseArray(req.body.indian);
+    let nri = parseArray(req.body.nri);
+
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
+    const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
+    const indianimages = mapUploadedArray(req, uploadedFiles, "Indianimages");
+
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
@@ -127,6 +128,9 @@ exports.AddCourse = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image");
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
+    indian = attachImagesToItems(indian, indianimages, "image");
+    nri = attachImagesToItems(facts, nriimages, "image");
+
     const finalData = {
       name: req.body.name || "",
       slug: req.body.slug || "",
@@ -177,6 +181,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       rankings_description: req.body.rankings_description || "",
       financialname: req.body.financialname || "",
       meta_title: req.body.meta_title || "",
+      fees_title: req.body.fees_title || "",
+
       meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
@@ -228,7 +234,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         course_id: Number(CoursesData.id),
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
-        tuition_fees: (finalData?.tuition_fees)
+        tuition_fees: (finalData?.tuition_fees),
+        fees_title: finalData.fees_title
       }
     })
 
@@ -650,7 +657,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
 
-
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
       name: req.body.name || existing.name || "",
@@ -680,6 +686,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       certificatename: req.body.certificatename || existing.certificates?.title || "",
       certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
       image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
+      fees_title: req.body.fees_title || existing.fees_title,
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
@@ -783,13 +790,15 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         update: {
           annual_fees: (finalData?.anuual_fees),
           semester_wise_fees: (finalData.semester_fees),
-          tuition_fees: (finalData?.tuition_fees)
+          tuition_fees: (finalData?.tuition_fees),
+          fees_title: finalData?.fees_title
         },
         create: {
           course_id: Number(CourseId),
           annual_fees: (finalData?.anuual_fees),
           semester_wise_fees: (finalData.semester_fees),
-          tuition_fees: (finalData?.tuition_fees)
+          tuition_fees: (finalData?.tuition_fees),
+          fees_title: finalData?.fees_title
         }
       })
 
