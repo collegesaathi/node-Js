@@ -43,7 +43,7 @@ model University {
   updated_at         DateTime                     @updatedAt
   deleted_at         DateTime?
   blogs               Blog[]
-  courses             Course[]   
+  courses   Course[]   // ✅ one university → many courses
   specialisation      Specialisation[]   
   leads              leads[]
   about              About?
@@ -97,16 +97,16 @@ model Course {
   faq                Faq?
    advantages        Advantages?
   seo                Seo?
-  university_id      Int?  
   facts              Facts?  
-  university     University? @relation(fields: [university_id], references: [id])
+  university_id Int        // ❗ NOT UNIQUE
+   university    University @relation(fields: [university_id], references: [id])
 }
 
 
 model Specialisation {
   id            Int       @id @default(autoincrement())
   university_id      Int?   
-  course_id     Int
+  course_id Int
   slug          String    @unique
   name          String
   icon          String?
@@ -114,11 +114,9 @@ model Specialisation {
   icon_alt      String?
   cover_image_alt String?
   position      Int?      @default(0)
-
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   deleted_at    DateTime?
-
   // Relations
   university     University? @relation(fields: [university_id], references: [id])
   course        Course    @relation(fields: [course_id], references: [id])
@@ -308,17 +306,19 @@ model Skills {
 }
 
 model Advantages {
-  id              Int @id @default(autoincrement())
-  university_id   Int? @unique
-  course_id       Int? @unique
-  specialisation_id Int? @unique
-  title           String
-  description     String?
-  advantages      Json?
-  university      University? @relation(fields: [university_id], references: [id])
-  course          Course? @relation(fields: [course_id], references: [id])
-  specialisation  Specialisation? @relation(fields: [specialisation_id], references: [id])
+  id                Int       @id @default(autoincrement())
+  university_id     Int?      @unique
+  course_id         Int?      @unique
+  specialisation_id Int?      @unique
+  title             String
+  description       String?
+  advantages        Json?
+
+  university        University? @relation(fields: [university_id], references: [id])
+  course            Course?     @relation(fields: [course_id], references: [id])
+  specialisation    Specialisation? @relation(fields: [specialisation_id], references: [id])
 }
+
 
 
 model Facts {
