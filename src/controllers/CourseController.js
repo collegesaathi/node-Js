@@ -128,8 +128,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image");
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
-    indian = attachImagesToItems(indian, indianimages, "image");
-    nri = attachImagesToItems(facts, nriimages, "image");
+    indian = attachImagesToItems(indian, indianimages, "images");
+    nri = attachImagesToItems(nri, nriimages, "images");
 
     const finalData = {
       name: req.body.name || "",
@@ -182,13 +182,12 @@ exports.AddCourse = catchAsync(async (req, res) => {
       financialname: req.body.financialname || "",
       meta_title: req.body.meta_title || "",
       fees_title: req.body.fees_title || "",
-
       meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
       creteria: req.body.creteria || "",
-      NRICriteria: parseArray(req.body.nri) || "",
-      IndianCriteria: parseArray(req.body.indian) || "",
+      NRICriteria: nri ||  "",
+      IndianCriteria:  indian  || "",
       semesters_title: req.body.semesters_title || "",
       semesters: parseArray(req.body.semesters) || "",
       skillsname: req.body.skillsname || "",
@@ -199,10 +198,15 @@ exports.AddCourse = catchAsync(async (req, res) => {
       careerdesc: req.body.careerdesc || "",
     };
     if (!finalData.university_id) {
-      return errorResponse(res, "University is required", 400);
+      return errorResponse(res, "University Id is required", 400);
     }
 
-    console.log("finalData", finalData)
+        if (!finalData.category_id) {
+      return errorResponse(res, "category Id is required", 400);
+    }
+
+    Logger.http(finalData)
+
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
     // Save with Prisma (example)
     const CoursesData = await prisma.Course.create({

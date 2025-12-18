@@ -149,6 +149,7 @@ model Fees {
   tuition_fees String?
   course_id  Int?   @unique
   specialisation_id  Int?   @unique
+  fees_title String?
   course     Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
