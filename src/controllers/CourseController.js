@@ -109,6 +109,10 @@ exports.AddCourse = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
     Logger.warn(uploadedFiles)
+      let services = parseArray(req.body.services);
+    let patterns = parseArray(req.body.patterns);
+    let campusList = parseArray(req.body.campusList);
+    let facts = parseArray(req.body.facts);
     // parse arrays safely (accepts already-parsed arrays too)
     // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
