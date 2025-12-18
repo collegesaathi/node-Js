@@ -122,13 +122,16 @@ exports.adminSpecialisationlisting = catchAsync(async (req, res) => {
 exports.adminaddSpecialisation = catchAsync(async (req, res) => {
   try {
     Loggers.silly(req.body)
-    return false ;
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
+
+    Loggers.silly(uploadedFiles)
+
+    return false ;
 
     // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
