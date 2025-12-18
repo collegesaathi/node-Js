@@ -4,39 +4,97 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
 const Loggers = require("../utils/Logger");
-// const makeSlug = (text) => {
-//   return text
-//     .toString()
-//     .toLowerCase()
-//     .trim()
-//     .replace(/[\s_]+/g, "-")
-//     .replace(/[^\w-]+/g, "")
-//     .replace(/--+/g, "-");
-// };
+const makeSlug = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-");
+};
 
-// const generateUniqueSlug = async (prisma, title) => {
-//   let baseSlug = makeSlug(title);
-//   let slug = baseSlug;
-//   let counter = 1;
+const generateUniqueSlug = async (prisma, title) => {
+  let baseSlug = makeSlug(title);
+  let slug = baseSlug;
+  let counter = 1;
 
-//   // Already existing slugs load
-//   const existingSlugs = await prisma.university.findMany({
-//     where: {
-//       slug: {
-//         startsWith: baseSlug,
-//       },
-//     },
-//     select: { slug: true },
-//   });
+  // Already existing slugs load
+  const existingSlugs = await prisma.university.findMany({
+    where: {
+      slug: {
+        startsWith: baseSlug,
+      },
+    },
+    select: { slug: true },
+  });
 
-//   // Unique slug find karna
-//   while (existingSlugs.some((item) => item.slug === slug)) {
-//     slug = `${baseSlug}-${counter}`;
-//     counter++;
-//   }
+  // Unique slug find karna
+  while (existingSlugs.some((item) => item.slug === slug)) {
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
 
-//   return slug;
-// };
+  return slug;
+};
+
+
+// Convert Windows Path to Public URL
+function toPublicUrl(req, filePath) {
+  if (!filePath) return null;
+  const normalized = filePath.replace(/\\/g, "/");
+  const index = normalized.indexOf("/uploads/");
+  if (index === -1) return null;
+  const cleanPath = normalized.substring(index);
+  const BASE_URL = `${req.protocol}://${req.get("host")}`;
+  return BASE_URL + cleanPath;
+}
+
+// Parse JSON safely (returns array or empty array)
+function parseArray(jsonString) {
+  if (!jsonString) return [];
+  try {
+    return typeof jsonString === "string" ? JSON.parse(jsonString) : jsonString;
+  } catch (err) {
+    return [];
+  }
+}
+
+// Extract file arrays like uploadedFiles["servicesimages[0]"] -> arr[0] = filePath
+function mapUploadedArray(req, uploadedFiles, baseKey) {
+  const result = [];
+
+  Object.keys(uploadedFiles).forEach((fieldname) => {
+    if (fieldname.startsWith(baseKey)) {
+      const match = fieldname.match(/\[(\d+)\]/);
+      if (match) {
+        const index = Number(match[1]);
+        result[index] = toPublicUrl(req, uploadedFiles[fieldname]);
+      }
+    }
+  });
+
+  return result;
+}
+
+
+function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) {
+  return newItems?.map((item, index) => {
+    const newImage = uploadedImages[index];
+    const oldImage = existingItems[index]?.[key];
+
+    // अगर नई image upload हुई है तो पुरानी delete कर दो
+    if (newImage && oldImage) {
+      deleteUploadedFiles(oldImage);
+    }
+
+    return {
+      ...item,
+      [key]: newImage || oldImage || null,
+    };
+  });
+}
+
 
 // exports.allUniversities = catchAsync(async (req, res) => {
 //   // Pagination
@@ -94,55 +152,134 @@ const Loggers = require("../utils/Logger");
 // });
 
 exports.adminSpecialisationlisting = catchAsync(async (req, res) => {
-  const BASE_URL = process.env.BASE_URL;
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return errorResponse(res, "Specialisation slug is required", 400);
+    }
+    const SpecialisationData = await prisma.Specialisation.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
+      include: {
+        about: true,
+        fees: true,
+        approvals: true,
+        rankings: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+        certificates: true,
+        skills: true,
+        examPatterns: true,
+        financialAid: true,
+        career: true,
+        partners: true,
+        services: true,
+        admissionprocess: true,
+        faq: true,
+        seo: true,
+        advantages: true,
+      },
+    });
 
-  let Specialisation = await prisma.Specialisation.findMany({
-    where: { deleted_at: null },
-    // orderBy: [
-    //   { position: "asc" },
-    //   { created_at: "asc" }
-    // ]
-    orderBy: [
-      { created_at: "asc" }
-    ]
-  });
+    if (!SpecialisationData) {
+      return errorResponse(res, "SpecialisationData not found", 404);
+    }
 
-//   Specialisation = Specialisation.map(item => ({
-//     ...item,
-//     icon: item.icon ? `${BASE_URL}/universities/icon/${item.icon}` : null,
-//     cover_image: item.cover_image ? `${BASE_URL}/universities/main/${item.cover_image}` : null
-//   }));
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
 
-  return successResponse(res, "Admin all Specialisation data fetched successfully", 200, {
-    Specialisation
-  });
+    // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
+
+    const partnersRaw = SpecialisationData.partners;
+    if (partnersRaw) {
+      const partnersArr = toArray(partnersRaw);
+      placementPartnerIds = partnersArr.flatMap((p) => {
+        if (!p) return [];
+        if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
+        if (p.placement_partner_id) return [p.placement_partner_id];
+        if (Array.isArray(p.partner_id)) return p.partner_id;
+        if (p.partner_id) return [p.partner_id];
+        if (p.id) return [p.id];
+        return [];
+      });
+      placementPartnerIds = Array.from(new Set(placementPartnerIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: { id: { in: placementPartnerIds } },
+      });
+    }
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = SpecialisationData.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
+
+    return successResponse(
+      res,
+      "Specialisation fetched successfully",
+      200,
+      { SpecialisationData, approvalsData, placementPartners }
+    );
+  } catch (error) {
+    console.error("getUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
+    );
+  }
 });
 
 // Admin Add Specialisation
 exports.adminaddSpecialisation = catchAsync(async (req, res) => {
   try {
+
     Loggers.silly(req.body)
-    // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
-
     Loggers.silly(uploadedFiles)
-
-    return false ;
-
-    // parse arrays safely (accepts already-parsed arrays too)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
-    let advantages = parseArray(req.body.advantages);
     let campusList = parseArray(req.body.campusList);
-    let fees = parseArray(req.body.fees);
     let facts = parseArray(req.body.facts);
-    let onlines = parseArray(req.body.onlines);
-    let faqs = parseArray(req.body.faqs);
-    let descriptions = parseArray(req.body.descriptions);
+    // parse arrays safely (accepts already-parsed arrays too)
     // build images arrays from uploadedFiles; pass req so toPublicUrl can use host
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
@@ -157,198 +294,249 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
     const finalData = {
-      meta_title: req.body.meta_title,
-      meta_description: req.body.meta_description,
-      canonical_url: req.body.canonical_url,
-      meta_keywords: req.body.meta_keywords,
-      slug: req.body.slug || "",
       name: req.body.name || "",
+      course_id: req.body.course_id || "",
+      slug: req.body.slug || "",
       position: req.body.position || 0,
+      descriptions: parseArray(req.body.descriptions) || "",
+      category_id: req.body.category_id || "",
+      cover_image_alt: req.body.cover_image_alt || "",
+      university_id: req.body.university_id || "",
+      icon_alt: req.body.icon_alt || "",
+      image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
+      semester_fees: req.body.semester_fees || "",
+      anuual_fees: req.body.anuual_fees || "",
+      tuition_fees: req.body.tuition_fees || "",
       partnersdesc: req.body.partnersdesc || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
-      descriptions: descriptions,
-      approvals_name: req.body.approvals_name,
-      approvals_desc: req.body.approvals_desc,
-      certificatename: req.body.certificatename,
-      certificatedescription: req.body.certificatedescription,
-      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.certificatemage || null,
+      approvals_name: req.body.approvals_name || "",
+      approvals_desc: req.body.approvals_desc || "",
+      certificatename: req.body.certificatename || "",
+      certificatedescription: req.body.certificatedescription || "",
+      certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.icon || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
-      servicedesc: req.body.servicedesc,
-      servicetitle: req.body.servicetitle,
-      services,
-      patterns,
-      partnersname: req.body.partnersname,
-      partnersdesc: req.body.partnersdesc,
-      patterndescription: req.body.patterndescription,
-      patternname: req.body.patternname,
-      bottompatterndesc: req.body.bottompatterndesc,
-      advantages,
-      campusList,
-      fees,
-      facts,
-      factsname: req.body.factsname,
-      onlines,
+      servicedesc: req.body.servicedesc || "",
+      servicetitle: req.body.servicetitle || "",
+      services: parseArray(req.body.services) || "",
+      patterns: req.body.patterns || "",
+      partnersname: req.body.partnersname || "",
+      partnersdesc: req.body.partnersdesc || "",
+      patterndescription: req.body.patterndescription || "",
+      patternname: req.body.patternname || "",
+      bottompatterndesc: req.body.bottompatterndesc || "",
+      advantages: parseArray(req.body.advantages) || "",
+      campusList: parseArray(req.body.campusList) || "",
+      fees: parseArray(req.body.fees) || "",
+      facts: parseArray(req.body.facts) || "",
+      factsname: req.body.factsname || "",
+      onlines: parseArray(req.body.onlines) || "",
       onlinetitle: req.body.onlinetitle,
       onlinedesc: req.body.onlinedesc,
       financialdescription: req.body.financialdescription,
-      faqs,
-      approvals: parseArray(req.body.approvals),
-      partners: parseArray(req.body.partners),
+      faqs: parseArray(req.body.faqs) || "",
+      approvals: parseArray(req.body.approvals) || "",
+      partners: parseArray(req.body.partners) || "",
       rankings_name: req.body.rankings_name || "",
       rankings_description: req.body.rankings_description || "",
-      financialname: req.body.financialname,
-      cover_image_alt: req.body.cover_image_alt,
-      icon_alt: req.body.icon_alt,
-      image_alt: req.body.image_alt,
-
-      // add other fields as needed
+      financialname: req.body.financialname || "",
+      meta_title: req.body.meta_title || "",
+      meta_description: req.body.meta_description || "",
+      canonical_url: req.body.canonical_url || "",
+      meta_keywords: req.body.meta_keywords || "",
+      creteria: req.body.creteria || "",
+      NRICriteria: parseArray(req.body.nri) || "",
+      IndianCriteria: parseArray(req.body.indian) || "",
+      semesters_title: req.body.semesters_title || "",
+      semesters: parseArray(req.body.semesters) || "",
+      skillsname: req.body.skillsname || "",
+      skilldesc: req.body.skilldesc || "",
+      skills: parseArray(req.body.skills) || "",
+      careername: req.body.careername || "",
+      careermanages: parseArray(req.body.careermanages) || "",
+      careerdesc: req.body.careerdesc || "",
     };
+    if (!finalData.university_id) {
+      return errorResponse(res, "University is required", 400);
+    }
 
+    console.log("finalData", finalData)
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
-
     // Save with Prisma (example)
-    const Universitydata = await prisma.University.create({
-      data: {
-        name: finalData.name || "Untitled",
-        cover_image: finalData.cover_image,
-        position: Number(finalData.position || 0),
-        description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
-        icon: finalData.icon,
-        slug: finalData.slug ? finalData.slug : generatedSlug,
-        cover_image_alt: finalData?.cover_image_alt,
-        icon_alt: finalData?.icon_alt
-      }
+    const SpecialisationData = await prisma.Specialisation.create({
+        data: {
+            name: finalData.name || "Untitled",
+            cover_image: finalData.cover_image,
+            position: Number(finalData.position || 0),
+            description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
+            icon: finalData.icon,
+            slug: finalData.slug ? finalData.slug : generatedSlug,
+            cover_image_alt: finalData?.cover_image_alt,
+            icon_alt: finalData?.icon_alt,
+            course_id: Number(finalData.course_id || 0),
+            university_id: Number(finalData.university_id || 0),
+
+        }
     });
-    if (Universitydata.id) {
+    if (SpecialisationData.id) {
       await prisma.About.create({
         data: {
-          university_id: Number(Universitydata.id),
+          specialisation_id: Number(SpecialisationData.id),
           title: finalData.about_title,
           description: finalData.about_desc
         }
       })
-
-      await prisma.Faq.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          faqs: finalData.faqs,
-        }
-      })
-
-      await prisma.UniversityCampus.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          campus: finalData.campusList,
-        }
-      })
-
-      await prisma.Services.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.servicetitle,
-          description: finalData.servicedesc,
-          services: finalData.services || ""
-        }
-      })
-
-      await prisma.Facts.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.factsname,
-          facts: finalData.facts || ""
-        }
-      })
-
-      await prisma.Advantages.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.advantagesname,
-          description: finalData.advantagesdescription,
-          advantages: finalData.advantages
-        }
-      })
-
-      await prisma.Approvals_Management.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.approvals_name,
-          description: finalData.approvals_desc,
-          approval_ids: finalData.approvals
-        }
-      })
-
-      await prisma.AdmissionProcess.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.onlinetitle,
-          description: finalData.onlinedesc,
-          process: finalData.onlines
-        }
-      })
-      await prisma.Certificates.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.certificatename,
-          description: finalData.certificatedescription,
-          image: finalData.certificatemage,
-          image_alt: finalData?.image_alt
-        }
-      })
-      await prisma.FinancialAid.create({
-        data: {
-          title: finalData.financialname,
-          description: finalData.financialdescription || null,
-          aid: finalData.fees,
-          university_id: Number(Universitydata.id),
-        }
-      })
-
-      await prisma.Rankings.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.rankings_name,
-          description: finalData.rankings_description,
-        }
-      })
-
-      await prisma.ExamPatterns.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.patternname,
-          description: finalData.patterndescription,
-          bottompatterndesc: finalData.bottompatterndesc,
-          patterns: finalData.patterns
-        }
-      })
-
-      await prisma.Partners.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          title: finalData.partnersname,
-          description: finalData.partnersdesc,
-          placement_partner_id: finalData.partners
-        }
-      })
-
-      await prisma.Seo.create({
-        data: {
-          university_id: Number(Universitydata.id),
-          meta_title: finalData.meta_title,
-          meta_description: finalData.meta_description,
-          meta_keywords: finalData.meta_keywords,
-          canonical_url: finalData.canonical_url,
-        }
-      })
     }
-    return successResponse(res, "Universities Saved successfully", 201, {
-      finalData,
+
+    await prisma.Fees.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        annual_fees: (finalData?.anuual_fees),
+        semester_wise_fees: (finalData?.semester_fees),
+        tuition_fees: (finalData?.tuition_fees)
+      }
+    })
+
+    await prisma.Faq.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        faqs: finalData.faqs,
+      }
+    })
+
+    await prisma.Approvals_Management.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.approvals_name,
+        description: finalData.approvals_desc,
+        approval_ids: finalData.approvals
+      }
+    })
+    await prisma.Rankings.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.rankings_name,
+        description: finalData.rankings_description,
+      }
+    })
+
+
+
+    await prisma.EligibilityCriteria.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.creteria,
+        NRICriteria: finalData.NRICriteria || "",
+        IndianCriteria: finalData.IndianCriteria || ""
+      }
+    })
+    await prisma.Curriculum.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.semesters_title,
+        semesters: finalData.semesters,
+      }
+    })
+
+    await prisma.Services.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.servicetitle,
+        description: finalData.servicedesc,
+        services: finalData.services || ""
+      }
+    })
+    await prisma.Certificates.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.certificatename,
+        description: finalData.certificatedescription,
+        image: finalData.certificatemage,
+        image_alt: finalData?.image_alt
+      }
+    })
+
+    await prisma.Skills.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.skillsname,
+        description: finalData.skilldesc,
+        skills: finalData.skills || ""
+      }
+    })
+
+    await prisma.Advantages.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.advantagesname,
+        description: finalData.advantagesdescription,
+        advantages: finalData.advantages
+      }
+    })
+    await prisma.ExamPatterns.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.patternname,
+        description: finalData.patterndescription,
+        bottompatterndesc: finalData.bottompatterndesc,
+        patterns: finalData.patterns
+      }
+    })
+    await prisma.FinancialAid.create({
+      data: {
+        title: finalData.financialname,
+        description: finalData.financialdescription || null,
+        aid: finalData.fees,
+        specialisation_id: Number(SpecialisationData.id),
+      }
+    })
+
+    await prisma.Career.create({
+      data: {
+        title: finalData.careername,
+        description: finalData.careerdesc || null,
+        Career: finalData.careermanages,
+        specialisation_id: Number(SpecialisationData.id),
+      }
+    })
+    await prisma.Partners.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.partnersname,
+        description: finalData.partnersdesc,
+        placement_partner_id: finalData.partners
+      }
+    })
+    await prisma.AdmissionProcess.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        title: finalData.onlinetitle,
+        description: finalData.onlinedesc,
+        process: finalData.onlines
+      }
+    })
+
+
+    await prisma.Seo.create({
+      data: {
+        specialisation_id: Number(SpecialisationData.id),
+        meta_title: finalData.meta_title,
+        meta_description: finalData.meta_description,
+        meta_keywords: finalData.meta_keywords,
+        canonical_url: finalData.canonical_url,
+      }
+    })
+    console.log("SpecialisationData", SpecialisationData)
+    return successResponse(res, "Course Saved successfully", 201, {
+      SpecialisationData,
     });
+
+
   } catch (error) {
-    console.error("AddCourse error:", error);
+    console.error("AddSpecialisation error:", error);
 
     if (error.code === "P2002") {
       return errorResponse(
@@ -364,6 +552,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       500
     );
   }
+
 });
 
 // Admin University 
@@ -598,61 +787,6 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
 
 
 
-// Convert Windows Path to Public URL
-// function toPublicUrl(req, filePath) {
-//   if (!filePath) return null;
-//   const normalized = filePath.replace(/\\/g, "/");
-//   const index = normalized.indexOf("/uploads/");
-//   if (index === -1) return null;
-//   const cleanPath = normalized.substring(index);
-//   const BASE_URL = `${req.protocol}://${req.get("host")}`;
-//   return BASE_URL + cleanPath;
-// }
-
-// Parse JSON safely (returns array or empty array)
-// function parseArray(jsonString) {
-//   if (!jsonString) return [];
-//   try {
-//     return typeof jsonString === "string" ? JSON.parse(jsonString) : jsonString;
-//   } catch (err) {
-//     return [];
-//   }
-// }
-
-// Extract file arrays like uploadedFiles["servicesimages[0]"] -> arr[0] = filePath
-// function mapUploadedArray(req, uploadedFiles, baseKey) {
-//   const result = [];
-
-//   Object.keys(uploadedFiles).forEach((fieldname) => {
-//     if (fieldname.startsWith(baseKey)) {
-//       const match = fieldname.match(/\[(\d+)\]/);
-//       if (match) {
-//         const index = Number(match[1]);
-//         result[index] = toPublicUrl(req, uploadedFiles[fieldname]);
-//       }
-//     }
-//   });
-
-//   return result;
-// }
-
-
-// function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) {
-//   return newItems?.map((item, index) => {
-//     const newImage = uploadedImages[index];
-//     const oldImage = existingItems[index]?.[key];
-
-//     // अगर नई image upload हुई है तो पुरानी delete कर दो
-//     if (newImage && oldImage) {
-//       deleteUploadedFiles(oldImage);
-//     }
-
-//     return {
-//       ...item,
-//       [key]: newImage || oldImage || null,
-//     };
-//   });
-// }
 
 
 

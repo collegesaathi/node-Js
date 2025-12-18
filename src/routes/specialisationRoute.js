@@ -4,7 +4,7 @@ const upload = require("../utils/Uploader");
 const dynamicUpload = require("../utils/Uploader");
 const { adminaddSpecialisation, adminSpecialisationlisting, GetSpecialisationById, SpecialisationDelete } = require("../controllers/SpecialisationController");
 
-router.get("/all/specialisations", adminSpecialisationlisting);
+router.get("/all/specialisations/:slug", adminSpecialisationlisting);
 
 router.post("/admin/specialisation/add", dynamicUpload("specialisation").any(), adminaddSpecialisation);
 
