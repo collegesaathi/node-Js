@@ -649,54 +649,54 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
-      name: req.body.name || existing.name,
-      slug: req.body.slug || existing.slug,
-      university_id: req.body.university_id || existing.university_id,
-      position: req.body.position || existing.position,
-      icon_alt: req.body.icon_alt || existing.icon_alt,
-      meta_title: req.body.meta_title || existing.seo?.meta_title,
-      category_id: req.body.category_id || existing?.category_id,
-      descriptions: descriptions?.length ? descriptions : existing.description,
-      cover_image_alt: req.body.cover_image_alt || existing.cover_image_alt,
-      about_title: req.body.about_title || existing.about?.title,
-      about_desc: req.body.about_desc || existing.about?.description,
-      tuition_fees: req.body.tuition_fees || existing.fees.tuition_fees,
-      anuual_fees: req.body.anuual_fees || existing.fees.anuual_fees,
-      semester_fees: req.body.semester_fees || existing.fees.semester_wise_fees,
-      approvals_name: req.body.approvals_name || existing.approvals?.title,
-      approvals_desc: req.body.approvals_desc || existing.approvals?.description,
-      approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids,
-      rankings_name: req.body.rankings_name || existing.rankings?.title,
-      rankings_description: req.body.rankings_description || existing.rankings?.description,
-      creteria: req.body.creteria || existing.eligibilitycriteria.creteria,
-      NRICriteria: parseArray(req.body.nri) || existing.eligibilitycriteria.NRICriteria,
-      IndianCriteria: parseArray(req.body.indian) || existing.eligibilitycriteria.IndianCriteria,
-      semesters_title: req.body.semesters_title || existing.curriculum.semesters_title,
-      semesters: parseArray(req.body.semesters) || existing.curriculum.semesters,
-      certificatename: req.body.certificatename || existing.certificates?.title,
-      certificatedescription: req.body.certificatedescription || existing.certificates?.description,
-      image_alt: req.body.image_alt || existing.certificates?.image_alt,
+      name: req.body.name || existing.name || "",
+      slug: req.body.slug || existing.slug || "",
+      university_id: req.body.university_id || existing.university_id || "",
+      position: req.body.position || existing.position || "",
+      icon_alt: req.body.icon_alt || existing.icon_alt || "",
+      meta_title: req.body.meta_title || existing.seo?.meta_title || "",
+      category_id: req.body.category_id || existing?.category_id || "",
+      descriptions: descriptions?.length ? descriptions : existing.description || "",
+      cover_image_alt: req.body.cover_image_alt || existing.cover_image_alt || "",
+      about_title: req.body.about_title || existing.about?.title || "",
+      about_desc: req.body.about_desc || existing.about?.description || "",
+      tuition_fees: req.body.tuition_fees || existing.fees.tuition_fees || "",
+      anuual_fees: req.body.anuual_fees || existing.fees.anuual_fees || "",
+      semester_fees: req.body.semester_fees || existing.fees.semester_wise_fees || "",
+      approvals_name: req.body.approvals_name || existing.approvals?.title || "",
+      approvals_desc: req.body.approvals_desc || existing.approvals?.description || "",
+      approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids || "",
+      rankings_name: req.body.rankings_name || existing.rankings?.title || "",
+      rankings_description: req.body.rankings_description || existing.rankings?.description || "",
+      creteria: req.body.creteria || existing.eligibilitycriteria.creteria || "",
+      NRICriteria: parseArray(req.body.nri) || existing.eligibilitycriteria.NRICriteria || "",
+      IndianCriteria: parseArray(req.body.indian) || existing.eligibilitycriteria.IndianCriteria || "",
+      semesters_title: req.body.semesters_title || existing.curriculum.semesters_title || "",
+      semesters: parseArray(req.body.semesters) || existing.curriculum.semesters || "",
+      certificatename: req.body.certificatename || existing.certificates?.title || "",
+      certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
+      image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
           : existing?.certificatemage,
-      careername: req.body.careername || existing.career.title,
-      careermanages: parseArray(req.body.careermanages) || existing.career.Career,
-      careerdesc: req.body.careerdesc || existing.career.description,
+      careername: req.body.careername || existing.career.title || "",
+      careermanages: parseArray(req.body.careermanages) || existing.career.Career || "",
+      careerdesc: req.body.careerdesc || existing.career.description || "",
 
 
-      meta_description: req.body.meta_description || existing.seo?.meta_description,
-      canonical_url: req.body.canonical_url || existing.seo?.canonical_url,
-      meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords,
+      meta_description: req.body.meta_description || existing.seo?.meta_description || "",
+      canonical_url: req.body.canonical_url || existing.seo?.canonical_url || "",
+      meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords || "",
 
-      partnersdesc: req.body.partnersdesc || existing.partners?.description,
-      partnersname: req.body.partnersname || existing.partners?.title,
-      advantagesname: req.body.advantagesname || existing.advantages?.title,
-      advantagesdescription: req.body.advantagesdescription || existing.advantages?.description,
-      skills: parseArray(req.body.skills) || existing.skills.skills,
-      skillsname: req.body.skillsname || existing.skills.title,
-      skilldesc: req.body.skilldesc || existing.skills.description,
+      partnersdesc: req.body.partnersdesc || existing.partners?.description || "",
+      partnersname: req.body.partnersname || existing.partners?.title || "",
+      advantagesname: req.body.advantagesname || existing.advantages?.title || "",
+      advantagesdescription: req.body.advantagesdescription || existing.advantages?.description || "",
+      skills: parseArray(req.body.skills) || existing.skills.skills || "",
+      skillsname: req.body.skillsname || existing.skills.title || "",
+      skilldesc: req.body.skilldesc || existing.skills.description || "",
 
       icon:
         uploadedFiles["icon"]
@@ -710,36 +710,35 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
 
-      servicedesc: req.body.servicedesc || existing.services?.description,
-      servicetitle: req.body.servicetitle || existing.services?.title,
-      services: services?.length ? services : existing.services?.services,
-      patterns: patterns?.length ? patterns : existing.examPatterns?.patterns,
+      servicedesc: req.body.servicedesc || existing.services?.description || "",
+      servicetitle: req.body.servicetitle || existing.services?.title || "",
+      services: services?.length ? services : existing.services?.services || "",
+      patterns: patterns?.length ? patterns : existing.examPatterns?.patterns || "",
 
-      patterndescription: req.body.patterndescription || existing.examPatterns?.description,
-      patternname: req.body.patternname || existing.examPatterns?.title,
-      bottompatterndesc: req.body.bottompatterndesc || existing.examPatterns?.bottompatterndesc,
+      patterndescription: req.body.patterndescription || existing.examPatterns?.description || "",
+      patternname: req.body.patternname || existing.examPatterns?.title || "",
+      bottompatterndesc: req.body.bottompatterndesc || existing.examPatterns?.bottompatterndesc || "",
 
-      advantages: advantages?.length ? advantages : existing.advantages?.advantages,
+      advantages: advantages?.length ? advantages : existing.advantages?.advantages || "",
 
-      campusList: campusList?.length ? campusList : existing.universityCampuses,
+      campusList: campusList?.length ? campusList : existing.universityCampuses || "",
 
-      fees: fees?.length ? fees : existing.financialAid?.aid,
+      fees: fees?.length ? fees : existing.financialAid?.aid || "",
 
-      facts: facts?.length ? facts : existing.facts?.facts,
-      factsname: req.body.factsname || existing.facts?.title,
-
-      onlines: onlines?.length ? onlines : existing.admissionProcess?.process,
-      onlinetitle: req.body.onlinetitle || existing.admissionProcess?.title,
-      onlinedesc: req.body.onlinedesc || existing.admissionProcess?.description,
+      facts: facts?.length ? facts : existing.facts?.facts || "",
+      factsname: req.body.factsname || existing.facts?.title || "",
+      onlines: onlines?.length ? onlines : existing.admissionProcess?.process || "",
+      onlinetitle: req.body.onlinetitle || existing.admissionProcess?.title || "",
+      onlinedesc: req.body.onlinedesc || existing.admissionProcess?.description || "",
 
       financialdescription:
-        req.body.financialdescription || existing.financialAid?.description,
-      financialname: req.body.financialname || existing.financialAid?.title,
+        req.body.financialdescription || existing.financialAid?.description || "",
+      financialname: req.body.financialname || existing.financialAid?.title || "",
 
-      faqs: faqs?.length ? faqs : existing.faq?.faqs,
+      faqs: faqs?.length ? faqs : existing.faq?.faqs || "",
 
 
-      partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id,
+      partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id || "",
 
 
     };
