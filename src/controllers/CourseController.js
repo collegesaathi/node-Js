@@ -810,15 +810,15 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         create: { course_id: CourseId, title: finalData.about_title, description: finalData.about_desc }
       });
 
-      await prisma.Fees.upsert({
-        where: { course_id: CourseId },
-        update: {
-          annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData.semester_fees),
-          tuition_fees: (finalData?.tuition_fees),
-          fees_title: finalData?.fees_title
-        },
-      })
+   await prisma.Fees.update({
+    where: { id: existing.id },
+    data: {
+      annual_fees: finalData?.anuual_fees,
+      semester_wise_fees: finalData?.semester_fees,
+      tuition_fees: finalData?.tuition_fees,
+      fees_title: finalData?.fees_title
+    }
+  });
 
       await prisma.Approvals_Management.upsert({
         where: { course_id: CourseId },
