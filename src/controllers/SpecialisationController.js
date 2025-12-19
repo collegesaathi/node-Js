@@ -1057,3 +1057,73 @@ Loggers.silly(finalData)
 
 
 
+
+
+exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
+  try {
+    const { university_id } = req.params;
+    const { course_id } = req.params;
+
+    if (!university_id) {
+      return errorResponse(res, "university_id id is required", 400);
+    }
+
+    if (!course_id) {
+      return errorResponse(res, "course_id id is required", 400);
+    }
+    const SpecialisationList = await prisma.Specialisation.findMany({
+      where: {
+        university_id: Number(university_id),
+        course_id: Number(course_id)
+      }
+    })
+    if (!SpecialisationList) {
+      return validationErrorResponse(res, "Specialisation not found", 404);
+    }
+    return successResponse(res, "Specialisation list successfully", 200, SpecialisationList);
+
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+})
+
+exports.SpecialisationDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return validationErrorResponse(res, "Specialisation ID is required", 400);
+    }
+    const existingcourse = await prisma.Specialisation.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+    if (!existingcourse) {
+      return validationErrorResponse(res, "Specialisation not found", 404);
+    }
+    let updatedRecord;
+    if (existingcourse.deleted_at) {
+      updatedRecord = await prisma.Specialisation.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
+
+      return successResponse(res, "Specialisation restored successfully", 200, updatedRecord);
+    }
+
+    updatedRecord = await prisma.Specialisation.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
+
+    return successResponse(res, "Specialisation deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+});
