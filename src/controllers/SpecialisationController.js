@@ -362,6 +362,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       careername: req.body.careername || "",
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
+      desccreteria: req.body.desccreteria || ""
     };
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
@@ -433,7 +434,8 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     await prisma.EligibilityCriteria.create({
       data: {
         specialisation_id: Number(SpecialisationData.id),
-        title: finalData.creteria,
+        title: finalData.creteria || "",
+        description : finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
         IndianCriteria: finalData.IndianCriteria || ""
       }
@@ -767,7 +769,7 @@ Loggers.silly(uploadedFiles)
 
       faqs: faqs?.length ? faqs : existing.faq?.faqs || "",
 
-
+      desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
       partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id || "",
 
 
@@ -838,15 +840,17 @@ Loggers.silly(finalData)
       await prisma.EligibilityCriteria.upsert({
         where: { specialisation_id: SpecialisationId },
         update: {
-          title: finalData.creteria,
-          NRICriteria: finalData.NRICriteria,
-          IndianCriteria: finalData.IndianCriteria || ""
+          title: finalData.creteria || "",
+          NRICriteria: finalData.NRICriteria || "",
+          IndianCriteria: finalData.IndianCriteria || "",
+          description : finalData.desccreteria || ""
         },
         create: {
           specialisation_id: Number(SpecialisationId),
-          title: finalData.creteria,
-          NRICriteria: finalData.NRICriteria,
-          IndianCriteria: finalData.IndianCriteria || ""
+          title: finalData.creteria || "",
+          NRICriteria: finalData.NRICriteria || "",
+          IndianCriteria: finalData.IndianCriteria || "",
+           description : finalData.desccreteria || ""
         }
       })
 

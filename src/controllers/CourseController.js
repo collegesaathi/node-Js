@@ -194,6 +194,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       careername: req.body.careername || "",
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
+      desccreteria: req.body.desccreteria || "" ,
     };
     if (!finalData.university_id) {
       return errorResponse(res, "University Id is required", 400);
@@ -270,6 +271,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       data: {
         course_id: Number(CoursesData.id),
         title: finalData.creteria,
+        description : finalData.desccreteria || "" ,
         NRICriteria: finalData.NRICriteria || "",
         IndianCriteria: finalData.IndianCriteria || ""
       }
@@ -729,7 +731,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       skills: parseArray(req.body.skills) || existing.skills.skills || "",
       skillsname: req.body.skillsname || existing.skills.title || "",
       skilldesc: req.body.skilldesc || existing.skills.description || "",
-
+desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
       icon:
         uploadedFiles["icon"]
           ? (deleteUploadedFiles([existing?.icon]),
@@ -841,6 +843,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         where: { course_id: CourseId },
         update: {
           title: finalData.creteria,
+          description: finalData.desccreteria,
           NRICriteria: finalData.NRICriteria,
           IndianCriteria: finalData.IndianCriteria || ""
         },
@@ -848,7 +851,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           course_id: Number(CourseId),
           title: finalData.creteria,
           NRICriteria: finalData.NRICriteria,
-          IndianCriteria: finalData.IndianCriteria || ""
+          IndianCriteria: finalData.IndianCriteria || "",
+          description: finalData.desccreteria,
         }
       })
 
