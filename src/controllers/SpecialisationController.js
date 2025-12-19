@@ -555,6 +555,44 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
 
 });
 
+// All Specialisation
+exports.Allspecialisation = catchAsync(async (req, res) => {
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
+  const specialisations = await prisma.Specialisation.findMany({
+    orderBy: [
+      { created_at: "desc" }
+    ],
+    skip,
+    take: limit,
+  });
+
+//   console.log("specialisations", specialisations)
+  if (!specialisations) {
+    return errorResponse(res, "Failed to fetch specialisations", 500);
+  }
+
+  // --- Count total ---
+  const totalspecialisations = await prisma.Specialisation.count({
+    where: { deleted_at: null }
+  });
+
+  const totalPages = Math.ceil(totalspecialisations / limit);
+
+  return successResponse(res, "Specialisations fetched successfully", 201, {
+    specialisations,
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalspecialisations,
+    }
+  });
+
+});
+
 // Admin University 
 // exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 //   const BASE_URL = process.env.BASE_URL;
