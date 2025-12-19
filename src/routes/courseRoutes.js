@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const upload = require("../utils/Uploader");
 const dynamicUpload = require("../utils/Uploader");
-const { AddCourse, AllCourses, GetCourseById, CoursesDelete, UpdateCourse, GetCourseByName, GetUniversityCourseList } = require("../Controllers/CourseController");
+const { AddCourse, AllCourses, GetCourseById, CoursesDelete, UpdateCourse, GetCourseByName, GetUniversityCourseList, GetSpecialisationCourseList } = require("../Controllers/CourseController");
 
 router.get("/all/course", AllCourses);
 
@@ -16,5 +16,8 @@ router.get("/course/university/:id", GetUniversityCourseList)
 router.get("/course_name/:id", GetCourseByName)
 
 router.post("/admin/course/update", dynamicUpload("universities").any(), UpdateCourse)
+
+
+router.get("/course/specialisation/:university_id/:course_id", GetSpecialisationCourseList)
 
 module.exports = router;
