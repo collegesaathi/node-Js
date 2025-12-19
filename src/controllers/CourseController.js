@@ -779,7 +779,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     // HANDLE SLUG
     let newSlug = existing.slug;
     if (finalData.name !== existing.name) {
-      newSlug = await generateUniqueSlug(prisma, finalData.name, universityId);
+      newSlug = await generateUniqueSlug(prisma, finalData.name, CourseId);
     }
 
     // UPDATE MAIN UNIVERSITY

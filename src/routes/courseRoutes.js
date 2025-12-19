@@ -23,5 +23,4 @@ router.get("/course/specialisation/:university_id/:course_id", GetSpecialisation
 
 router.get("/specialisation/delete/:id", SpecialisationDelete)
 
-
 module.exports = router;
