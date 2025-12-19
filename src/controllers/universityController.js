@@ -464,23 +464,23 @@ exports.addUniversity = catchAsync(async (req, res) => {
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
-      services :services  ||"" ,
-      patterns : patterns || "",
+      services: services || "",
+      patterns: patterns || "",
       partnersname: req.body.partnersname || "",
       partnersdesc: req.body.partnersdesc || "",
       patterndescription: req.body.patterndescription || "",
       patternname: req.body.patternname || "",
       bottompatterndesc: req.body.bottompatterndesc || "",
-      advantages : advantages || "",
-      campusList : campusList || "",
-      fees : fees || "",
-      facts : facts || "",
+      advantages: advantages || "",
+      campusList: campusList || "",
+      fees: fees || "",
+      facts: facts || "",
       factsname: req.body.factsname || "",
-      onlines : onlines || "",
-      onlinetitle: req.body.onlinetitle || "", 
+      onlines: onlines || "",
+      onlinetitle: req.body.onlinetitle || "",
       onlinedesc: req.body.onlinedesc || "",
       financialdescription: req.body.financialdescription || "",
-      faqs : faqs || "",
+      faqs: faqs || "",
       approvals: parseArray(req.body.approvals) || "",
       partners: parseArray(req.body.partners) || "",
       rankings_name: req.body.rankings_name || "",
@@ -488,7 +488,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       financialname: req.body.financialname || "",
       cover_image_alt: req.body.cover_image_alt || "",
       icon_alt: req.body.icon_alt || "",
-      image_alt: req.body.image_alt || "", 
+      image_alt: req.body.image_alt || "",
 
       // add other fields as needed
     };
@@ -688,7 +688,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
 
-    console.log(req.file)
     // Parse arrays
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -743,7 +742,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
-          : existing?.certificatemage ,
+          : existing?.certificatemage,
 
       icon:
         uploadedFiles["icon"]
@@ -986,13 +985,12 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         canonical_url: finalData.canonical_url,
       }
     });
-    console.log("updatedUniversity", updatedUniversity)
-return successResponse(
-  res,
-  "University Updated Successfully!",
-  201,
-  updatedUniversity
-);
+    return successResponse(
+      res,
+      "University Updated Successfully!",
+      201,
+      updatedUniversity
+    );
 
   }
   catch (error) {

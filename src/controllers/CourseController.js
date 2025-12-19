@@ -3,8 +3,6 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
-const Loggers = require("../utils/Logger");
-const { parse } = require("dotenv");
 
 const makeSlug = (text) => {
   return text
@@ -372,7 +370,6 @@ exports.AddCourse = catchAsync(async (req, res) => {
         canonical_url: finalData.canonical_url,
       }
     })
-    console.log("CoursesData", CoursesData)
     return successResponse(res, "Course Saved successfully", 201, {
       CoursesData,
     });
@@ -580,7 +577,6 @@ exports.GetUniversityCourseList = catchAsync(async (req, res) => {
 
 exports.AllCourses = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  console.log("page", page)
   const limit = 9;
   const skip = (page - 1) * limit;
 
@@ -1025,7 +1021,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         }
       });
     }
-    console.log("updatedUniversity", UpdateCourse)
     return successResponse(
       res,
       "Courses Updated Successfully!",
@@ -1057,7 +1052,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 exports.GetCourseByName = catchAsync(async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id)
     if (!id) {
       return errorResponse(res, "Course id is required", 400);
     }
