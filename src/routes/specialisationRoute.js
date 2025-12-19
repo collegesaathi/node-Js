@@ -15,6 +15,6 @@ router.get("/all/specialisation", Allspecialisation);
 // router.get("/specialisation/:slug", GetSpecialisationById)
 
 
-// router.post("/admin/universities/update", dynamicUpload("universities").any(), updateUniversity)
+// router.post("/admin/specialisation/update", dynamicUpload("universities").any(), updateUniversity)
 
 module.exports = router;
