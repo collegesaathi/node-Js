@@ -113,6 +113,7 @@ model Specialisation {
   cover_image   String?
   icon_alt      String?
   cover_image_alt String?
+    description        Json?
   position      Int?      @default(0)
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
@@ -148,6 +149,7 @@ model Fees {
   tuition_fees String?
   course_id  Int?   @unique
   specialisation_id  Int?   @unique
+  fees_title String?
   course     Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
