@@ -713,7 +713,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       certificatename: req.body.certificatename || existing.certificates?.title || "",
       certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
       image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
-      fees_title: req.body.fees_title || existing.fees_title || "",
+      fees_title: req.body.fees_title || existing.fees.fees_title || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
