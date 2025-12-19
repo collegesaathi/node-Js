@@ -151,13 +151,13 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 // });
 
-exports.adminSpecialisationlisting = catchAsync(async (req, res) => {
+exports.GetBySpecialisationId = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
     if (!slug) {
       return errorResponse(res, "Specialisation slug is required", 400);
     }
-    const SpecialisationData = await prisma.Specialisation.findFirst({
+    const SpecialisationData = await prisma.specialisation.findFirst({
       where: {
         slug: slug,
         deleted_at: null,
@@ -183,9 +183,11 @@ exports.adminSpecialisationlisting = catchAsync(async (req, res) => {
       },
     });
 
+    console.log("SpecialisationData" ,SpecialisationData)
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
+
 
     const toArray = (val) => {
       if (!val && val !== 0) return [];
@@ -306,6 +308,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
+      fees_title: req.body.fees_title || "",
       semester_fees: req.body.semester_fees || "",
       anuual_fees: req.body.anuual_fees || "",
       tuition_fees: req.body.tuition_fees || "",
@@ -321,8 +324,8 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
-      services: parseArray(req.body.services) || "",
-      patterns: req.body.patterns || "",
+      services: services || "",
+      patterns: patterns || "",
       partnersname: req.body.partnersname || "",
       partnersdesc: req.body.partnersdesc || "",
       patterndescription: req.body.patterndescription || "",
@@ -394,6 +397,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     await prisma.Fees.create({
       data: {
         specialisation_id: Number(SpecialisationData.id),
+        fees_title: (finalData?.fees_title),
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
         tuition_fees: (finalData?.tuition_fees)
