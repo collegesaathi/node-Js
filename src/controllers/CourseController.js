@@ -553,6 +553,31 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 });
 
 
+exports.GetUniversityCourseList=catchAsync(async(req,res)=>{
+  try{
+      const { id } = req.params;
+       if (!id) {
+      return errorResponse(res, "univeristy id is required", 400);
+    }
+    const courseList= await prisma.Course.findMany({
+      where: {
+       university_id:Number(id)
+      }
+    }) 
+    if (!courseList) {
+      return validationErrorResponse(res, "Course not found", 404);
+    }
+     return successResponse(res, "Course list successfully", 200, courseList);
+
+  }catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Course not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+})
+
+
 exports.AllCourses = catchAsync(async (req, res) => {
   // Pagination
   const page = parseInt(req.query.page) || 1;
