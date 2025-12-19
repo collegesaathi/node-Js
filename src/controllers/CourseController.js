@@ -239,7 +239,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
         tuition_fees: (finalData?.tuition_fees),
-        fees_title: finalData.fees_title
+        fees_title: finalData.fees_title || ""
       }
     })
 
@@ -594,15 +594,12 @@ exports.AllCourses = catchAsync(async (req, res) => {
 exports.UpdateCourse = catchAsync(async (req, res) => {
   try {
     const CourseId = Number(req.body.id);
-    Loggers.warn(req.body)
     // Collect uploaded files
     const uploadedFiles = {};
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
 
-    console.log(req.file)
-    Logger.warn(uploadedFiles)
     if (!CourseId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
@@ -644,12 +641,18 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     let onlines = parseArray(req.body.onlines);
     let faqs = parseArray(req.body.faqs);
     let descriptions = parseArray(req.body.descriptions);
+    let indian = parseArray(req.body.indian);
+    let nri = parseArray(req.body.nri);
+
 
     // Build images from uploads
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
+    const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
+    const Indianimages = mapUploadedArray(req, uploadedFiles, "Indianimages");
+
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
     // Attach images to arrays
     services = attachImagesToItems(services, servicesImages, "image", existing.services?.services);
@@ -658,6 +661,9 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
 
     campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
+    indian = attachImagesToItems(indian, nriimages, "image", existing.EligibilityCriteria?.IndianCriteria);
+    nri = attachImagesToItems(nri, Indianimages, "image", existing.EligibilityCriteria?.NRICriteria);
+
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
 
@@ -683,14 +689,14 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       rankings_name: req.body.rankings_name || existing.rankings?.title || "",
       rankings_description: req.body.rankings_description || existing.rankings?.description || "",
       creteria: req.body.creteria || existing.eligibilitycriteria.creteria || "",
-      NRICriteria: parseArray(req.body.nri) || existing.eligibilitycriteria.NRICriteria || "",
-      IndianCriteria: parseArray(req.body.indian) || existing.eligibilitycriteria.IndianCriteria || "",
+      NRICriteria: nri?.length ? nri : existing.eligibilitycriteria?.NRICriteria || "",
+      IndianCriteria: indian?.length ? indian : existing.eligibilitycriteria?.IndianCriteria || "",
       semesters_title: req.body.semesters_title || existing.curriculum.semesters_title || "",
       semesters: parseArray(req.body.semesters) || existing.curriculum.semesters || "",
       certificatename: req.body.certificatename || existing.certificates?.title || "",
       certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
       image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
-      fees_title: req.body.fees_title || existing.fees_title,
+      fees_title: req.body.fees_title || existing.fees_title || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
@@ -699,8 +705,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       careername: req.body.careername || existing.career.title || "",
       careermanages: parseArray(req.body.careermanages) || existing.career.Career || "",
       careerdesc: req.body.careerdesc || existing.career.description || "",
-
-
       meta_description: req.body.meta_description || existing.seo?.meta_description || "",
       canonical_url: req.body.canonical_url || existing.seo?.canonical_url || "",
       meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords || "",
