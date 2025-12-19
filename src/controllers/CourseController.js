@@ -554,41 +554,33 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 
 
 exports.AllCourses = catchAsync(async (req, res) => {
-  // Pagination
   const page = parseInt(req.query.page) || 1;
+  console.log("page" ,page)
   const limit = 9;
   const skip = (page - 1) * limit;
+
+
   const courses = await prisma.Course.findMany({
-    orderBy: [
-      { created_at: "desc" }
-    ],
+    orderBy: { created_at: "desc" },
     skip,
     take: limit,
   });
 
-  console.log("courses", courses)
-  if (!courses) {
-    return errorResponse(res, "Failed to fetch courses", 500);
-  }
-
-  // --- Count total ---
-  const totalCourses = await prisma.Course.count({
-    where: { deleted_at: null }
-  });
+  const totalCourses = await prisma.Course.count();
 
   const totalPages = Math.ceil(totalCourses / limit);
 
-  return successResponse(res, "Course fetched successfully", 201, {
+  return successResponse(res, "Course fetched successfully", 200, {
     courses,
     pagination: {
       page,
       limit,
       totalPages,
       totalCourses,
-    }
+    },
   });
-
 });
+
 
 
 exports.UpdateCourse = catchAsync(async (req, res) => {
@@ -1039,6 +1031,42 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       res,
       "Something went wrong",
       500
+    );
+  }
+});
+
+
+exports.GetCourseByName = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id)
+    if (!id) {
+      return errorResponse(res, "Course id is required", 400);
+    }
+    const CourseData = await prisma.Course.findFirst({
+      where: {
+        id: Number(id),
+        deleted_at: null,
+      },
+    });
+
+    if (!CourseData) {
+      return errorResponse(res, "CourseData not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "Course Name fetched successfully",
+      200,
+      { CourseData }
+    );
+  } catch (error) {
+    console.error("getUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
     );
   }
 });
