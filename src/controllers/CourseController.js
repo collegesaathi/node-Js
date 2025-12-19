@@ -1119,3 +1119,42 @@ exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 })
+
+
+exports.SpecialisationDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return validationErrorResponse(res, "Specialisation ID is required", 400);
+    }
+    const existingcourse = await prisma.Specialisation.findUnique({
+      where: {
+        id: parseInt(id),
+      }
+    });
+    if (!existingcourse) {
+      return validationErrorResponse(res, "Specialisation not found", 404);
+    }
+    let updatedRecord;
+    if (existingcourse.deleted_at) {
+      updatedRecord = await prisma.Specialisation.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
+
+      return successResponse(res, "Specialisation restored successfully", 200, updatedRecord);
+    }
+
+    updatedRecord = await prisma.Specialisation.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
+
+    return successResponse(res, "Specialisation deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+});
