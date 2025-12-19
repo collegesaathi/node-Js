@@ -158,8 +158,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
-      services: parseArray(req.body.services) || "",
-      patterns: req.body.patterns || "",
+      services: services || "",
+      patterns: patterns || "",
       partnersname: req.body.partnersname || "",
       partnersdesc: req.body.partnersdesc || "",
       patterndescription: req.body.patterndescription || "",
@@ -186,8 +186,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
       creteria: req.body.creteria || "",
-      NRICriteria: nri ||  "",
-      IndianCriteria:  indian  || "",
+      NRICriteria: nri || "",
+      IndianCriteria: indian || "",
       semesters_title: req.body.semesters_title || "",
       semesters: parseArray(req.body.semesters) || "",
       skillsname: req.body.skillsname || "",
@@ -201,7 +201,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       return errorResponse(res, "University Id is required", 400);
     }
 
-        if (!finalData.category_id) {
+    if (!finalData.category_id) {
       return errorResponse(res, "category Id is required", 400);
     }
 
@@ -553,42 +553,59 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 });
 
 
+exports.GetUniversityCourseList = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return errorResponse(res, "univeristy id is required", 400);
+    }
+    const courseList = await prisma.Course.findMany({
+      where: {
+        university_id: Number(id)
+      }
+    })
+    if (!courseList) {
+      return validationErrorResponse(res, "Course not found", 404);
+    }
+    return successResponse(res, "Course list successfully", 200, courseList);
+
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Course not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+})
+
+
 exports.AllCourses = catchAsync(async (req, res) => {
-  // Pagination
   const page = parseInt(req.query.page) || 1;
+  console.log("page", page)
   const limit = 9;
   const skip = (page - 1) * limit;
+
+
   const courses = await prisma.Course.findMany({
-    orderBy: [
-      { created_at: "desc" }
-    ],
+    orderBy: { created_at: "desc" },
     skip,
     take: limit,
   });
 
-  console.log("courses", courses)
-  if (!courses) {
-    return errorResponse(res, "Failed to fetch courses", 500);
-  }
-
-  // --- Count total ---
-  const totalCourses = await prisma.Course.count({
-    where: { deleted_at: null }
-  });
+  const totalCourses = await prisma.Course.count();
 
   const totalPages = Math.ceil(totalCourses / limit);
 
-  return successResponse(res, "Course fetched successfully", 201, {
+  return successResponse(res, "Course fetched successfully", 200, {
     courses,
     pagination: {
       page,
       limit,
       totalPages,
       totalCourses,
-    }
+    },
   });
-
 });
+
 
 
 exports.UpdateCourse = catchAsync(async (req, res) => {
@@ -696,7 +713,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       certificatename: req.body.certificatename || existing.certificates?.title || "",
       certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
       image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
-      fees_title: req.body.fees_title || existing.fees_title || "",
+      fees_title: req.body.fees_title || existing.fees.fees_title || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
@@ -793,22 +810,15 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         create: { course_id: CourseId, title: finalData.about_title, description: finalData.about_desc }
       });
 
-      await prisma.Fees.upsert({
-        where: { course_id: CourseId },
-        update: {
-          annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData.semester_fees),
-          tuition_fees: (finalData?.tuition_fees),
-          fees_title: finalData?.fees_title
-        },
-        create: {
-          course_id: Number(CourseId),
-          annual_fees: (finalData?.anuual_fees),
-          semester_wise_fees: (finalData.semester_fees),
-          tuition_fees: (finalData?.tuition_fees),
+      await prisma.Fees.update({
+        where: { id: existing.fees.id },
+        data: {
+          annual_fees: finalData?.anuual_fees,
+          semester_wise_fees: finalData?.semester_fees,
+          tuition_fees: finalData?.tuition_fees,
           fees_title: finalData?.fees_title
         }
-      })
+      });
 
       await prisma.Approvals_Management.upsert({
         where: { course_id: CourseId },
@@ -1042,3 +1052,70 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     );
   }
 });
+
+
+exports.GetCourseByName = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id)
+    if (!id) {
+      return errorResponse(res, "Course id is required", 400);
+    }
+    const CourseData = await prisma.Course.findFirst({
+      where: {
+        id: Number(id),
+        deleted_at: null,
+      },
+    });
+
+    if (!CourseData) {
+      return errorResponse(res, "CourseData not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "Course Name fetched successfully",
+      200,
+      { CourseData }
+    );
+  } catch (error) {
+    console.error("getUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
+    );
+  }
+});
+
+exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
+  try {
+    const { university_id } = req.params;
+    const { course_id } = req.params;
+
+    if (!university_id) {
+      return errorResponse(res, "university_id id is required", 400);
+    }
+
+    if (!course_id) {
+      return errorResponse(res, "course_id id is required", 400);
+    }
+    const SpecialisationList = await prisma.Specialisation.findMany({
+      where: {
+        university_id: Number(university_id),
+        course_id: Number(course_id)
+      }
+    })
+    if (!SpecialisationList) {
+      return validationErrorResponse(res, "Specialisation not found", 404);
+    }
+    return successResponse(res, "Specialisation list successfully", 200, SpecialisationList);
+
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+    return errorResponse(res, error.message, 500);
+  }
+})
