@@ -1,8 +1,12 @@
 const express = require("express");
-const { List } = require("../Controllers/CommonController");
+const { List ,University } = require("../Controllers/CommonController");
 const router = express.Router();
 
 
-router.get("/list", List);
+router.get("/all/catergoy/university", List);
+
+router.get("/all/university", University);
+
+
 
 module.exports = router;

@@ -130,7 +130,6 @@ Loggers.http(req.body)
     indian = attachImagesToItems(indian, indianimages, "images");
     nri = attachImagesToItems(nri, nriimages, "images");
 
-    console.log("indianimages" ,indianimages)
     const finalData = {
       name: req.body.name || "",
       slug: req.body.slug || "",
@@ -563,6 +562,9 @@ exports.GetUniversityCourseList = catchAsync(async (req, res) => {
     const courseList = await prisma.Course.findMany({
       where: {
         university_id: Number(id)
+      },
+      include:{
+    fees :true
       }
     })
     if (!courseList) {
@@ -684,8 +686,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
 
-    console.log("1",Indianimages)
-    console.log("2" ,indian)
 
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
@@ -736,7 +736,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       skills: parseArray(req.body.skills) || existing.skills.skills || "",
       skillsname: req.body.skillsname || existing.skills.title || "",
       skilldesc: req.body.skilldesc || existing.skills.description || "",
-desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
+      desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
       icon:
         uploadedFiles["icon"]
           ? (deleteUploadedFiles([existing?.icon]),

@@ -9,17 +9,8 @@ exports.ApprovalAdd = catchAsync(async (req, res) => {
 
         let image = null;
         if (req.file && req.file.filename) {
-            console.log("=== FILE DEBUG INFO ===");
-            console.log("req.protocol:", req.protocol); // 'http' या 'https'
-            console.log("req.get('host'):", req.get("host")); // 'localhost:5000'
-            console.log("req.file.filename:", req.file.filename);
-            console.log("req.file.path:", req.file.path); // ये check करें
-
-            // सही URL बनाएं
             const baseUrl = `${req.protocol}://${req.get("host")}`;
             image = `${baseUrl}/uploads/approvals/${req.file.filename}`;
-            console.log("Final Image URL:", image);
-            console.log("======================");
         }
         const approval = await prisma.Approvals.create({
             data: {
@@ -38,7 +29,6 @@ exports.ApprovalAdd = catchAsync(async (req, res) => {
 exports.ApprovalEdit = catchAsync(async (req, res) => {
     try {
         const { id, title } = req.body;
-        console.log("idEdd")
         // 1️⃣ Approval exists?
         const approval = await prisma.Approvals.findUnique({
             where: { id: Number(id) }
@@ -88,26 +78,12 @@ exports.PlacementAdd = catchAsync(async (req, res) => {
     try {
         const { title } = req.body;
 
-        console.log("=== PLACEMENT ADD DEBUG ===");
-        console.log("Request Body:", req.body);
-        console.log("Uploaded File:", req.file);
-
         let image = null;
         if (req.file && req.file.filename) {
-            console.log("=== FILE UPLOAD DETAILS ===");
-            console.log("Protocol:", req.protocol);
-            console.log("Host:", req.get("host"));
-            console.log("Filename:", req.file.filename);
-            console.log("File Path:", req.file.path);
-            console.log("File Size:", req.file.size, "bytes");
-            console.log("MIME Type:", req.file.mimetype);
-
             // Generate correct URL
             const baseUrl = `${req.protocol}://${req.get("host")}`;
             image = `${baseUrl}/uploads/placements/${req.file.filename}`;
 
-            console.log("Generated Image URL:", image);
-            console.log("==========================");
         } else {
             console.log("No file uploaded or filename missing");
         }
@@ -120,18 +96,10 @@ exports.PlacementAdd = catchAsync(async (req, res) => {
             }
         });
 
-        console.log("Placement created successfully:", placement);
 
         return successResponse(res, "Placement added successfully", 201, placement);
 
     } catch (error) {
-        console.log("=== CREATE PLACEMENT ERROR ===");
-        console.log("Error Message:", error.message);
-        console.log("Error Code:", error.code);
-        console.log("Error Meta:", error.meta);
-        console.log("Stack Trace:", error.stack);
-        console.log("=============================");
-
         // Handle specific Prisma errors
         if (error.code === 'P2002') {
             return errorResponse(res, "Duplicate entry found", 400);
@@ -147,7 +115,6 @@ exports.PlacementAdd = catchAsync(async (req, res) => {
 exports.PlacementEdit = catchAsync(async (req, res) => {
     try {
         const { id, title } = req.body;
-        console.log("idEdd")
         // 1️⃣ Approval exists?
         const Placement = await prisma.placements.findUnique({
             where: { id: Number(id) }
