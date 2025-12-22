@@ -287,7 +287,8 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
-
+   const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
+    const indianimages = mapUploadedArray(req, uploadedFiles, "Indianimages");
     // attach images to corresponding items
     services = attachImagesToItems(services, servicesImages, "image");
     services = attachImagesToItems(services, servicesIcons, "icon");
@@ -673,8 +674,11 @@ Loggers.silly(uploadedFiles)
     patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
 
     campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
-    indian = attachImagesToItems(indian, nriimages, "image", existing.EligibilityCriteria?.IndianCriteria);
-    nri = attachImagesToItems(nri, Indianimages, "image", existing.EligibilityCriteria?.NRICriteria);
+    indian = attachImagesToItems(indian,  Indianimages, "image", existing.EligibilityCriteria?.IndianCriteria);
+    nri = attachImagesToItems(nri, nriimages, "image", existing.EligibilityCriteria?.NRICriteria);
+
+    // console.log("nri", nri)
+    console.log("indian", indian)
 
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
@@ -774,7 +778,6 @@ Loggers.silly(uploadedFiles)
 
 
     };
-Loggers.silly(finalData)
 
     // HANDLE SLUG
     let newSlug = existing.slug;

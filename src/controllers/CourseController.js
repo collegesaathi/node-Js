@@ -3,6 +3,7 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 
 const makeSlug = (text) => {
   return text
@@ -99,7 +100,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-
+Loggers.http(req.body)
     const uploadedFiles = {};
     req.files?.forEach(file => {
       uploadedFiles[file.fieldname] = file.path;
@@ -129,6 +130,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     indian = attachImagesToItems(indian, indianimages, "images");
     nri = attachImagesToItems(nri, nriimages, "images");
 
+    console.log("indianimages" ,indianimages)
     const finalData = {
       name: req.body.name || "",
       slug: req.body.slug || "",
@@ -210,7 +212,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     // Save with Prisma (example)
     const CoursesData = await prisma.Course.create({
       data: {
-        name: finalData.name || "Untitled",
+        name: finalData.name || "Untitled", 
         cover_image: finalData.cover_image,
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
@@ -676,11 +678,14 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
 
     campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
-    indian = attachImagesToItems(indian, nriimages, "image", existing.EligibilityCriteria?.IndianCriteria);
-    nri = attachImagesToItems(nri, Indianimages, "image", existing.EligibilityCriteria?.NRICriteria);
+    indian = attachImagesToItems(indian, Indianimages, "image", existing.EligibilityCriteria?.IndianCriteria);
+    nri = attachImagesToItems(nri, nriimages, "image", existing.EligibilityCriteria?.NRICriteria);
 
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
+
+    console.log("1",Indianimages)
+    console.log("2" ,indian)
 
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
