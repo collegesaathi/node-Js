@@ -41,6 +41,7 @@ const generateUniqueSlug = async (prisma, title) => {
 exports.allUniversities = catchAsync(async (req, res) => {
   // Pagination
   const page = parseInt(req.query.page) || 1;
+   const { search } = req.query;
   const limit = 9;
 
   const skip = (page - 1) * limit;
@@ -60,7 +61,16 @@ exports.allUniversities = catchAsync(async (req, res) => {
 
   // --- Fetch universities ---
   const universities = await prisma.university.findMany({
-    where: { deleted_at: null },
+     where:
+        search && search.length >= 3
+          ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+            deleted_at: null
+          }
+          : {},
     orderBy: [
       { position: { sort: "asc", nulls: "last" } },
       { created_at: "desc" }
@@ -248,8 +258,6 @@ exports.getUniversityById = catchAsync(async (req, res) => {
         deleted_at: null,
       },
       include: {
-        blogs: true,
-        leads: true,
         about: true,
         admissionProcess: true,
         advantages: true,
@@ -349,8 +357,6 @@ exports.getUniversityById = catchAsync(async (req, res) => {
 });
 
 
-
-// Convert Windows Path to Public URL
 function toPublicUrl(req, filePath) {
   if (!filePath) return null;
   const normalized = filePath.replace(/\\/g, "/");
@@ -689,7 +695,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     });
 
     // Parse arrays
-    let services = parseArray(req.body.services );
+    let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
     let advantages = parseArray(req.body.advantages);
     let campusList = parseArray(req.body.campusList);
@@ -788,7 +794,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids || [],
       partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id || [],
 
-      rankings_name: req.body.rankings_name || existing.rankings?.title || "" ,
+      rankings_name: req.body.rankings_name || existing.rankings?.title || "",
       rankings_description: req.body.rankings_description || existing.rankings?.description || "",
     };
 

@@ -4,7 +4,7 @@ const { allUniversities, adminapprovalsplacements, adminUniversitylisting, addUn
 const upload = require("../utils/Uploader");
 const dynamicUpload = require("../utils/Uploader");
 
-router.get("/all/universities", allUniversities);
+router.get("/universities", allUniversities);
 
 router.get("/admin/approvalandpartners", adminapprovalsplacements);
 

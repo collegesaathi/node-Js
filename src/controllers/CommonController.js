@@ -1,6 +1,7 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
+const { Prisma } = require("@prisma/client");
 
 exports.University = catchAsync(async (req, res) => {
   try {
@@ -14,6 +15,7 @@ exports.University = catchAsync(async (req, res) => {
               contains: search,
               mode: "insensitive",
             },
+            deleted_at: null
           }
           : {},
     });
@@ -45,6 +47,151 @@ exports.List = catchAsync(async (req, res) => {
       "List fetched successfully",
       200,
       { CategoryLists, universities }
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+exports.CompareUniversity = catchAsync(async (req, res) => {
+  try {
+    const { firstslug, secondslug, thirdslug } = req.params;
+
+    const [UniversityFirst, UniversitySecond, UniversityThird] =
+      await Promise.all([
+        prisma.university.findUnique({
+          where: { slug: firstslug },
+          include: {
+            approvals: true,
+
+          },
+        }),
+        prisma.university.findUnique({
+          where: { slug: secondslug },
+          include: {
+            approvals: true,
+          },
+        }),
+        prisma.university.findUnique({
+          where: { slug: thirdslug },
+          include: {
+            approvals: true,
+          },
+        }),
+      ]);
+
+    return successResponse(
+      res,
+      "Compare University List fetched successfully",
+      200,
+      { UniversityFirst, UniversitySecond, UniversityThird }
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+
+exports.AllProgram = catchAsync(async (req, res) => {
+  try {
+    const course = req.query.course
+    const specialisation  =  req.query.specialisation
+    const universities  =  req.query.universities
+
+    const CategoryLists = await prisma.Category.findMany({});
+    const CourseData = await prisma.course.findMany({
+      where: {
+        category_id: Number(course)
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+      }
+    });
+ const SpecialisationData = await prisma.Specialisation.findMany({
+      where: {
+        course_id: Number(specialisation)
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+        university_id : true
+      }
+    });
+
+     const UniversityData = await prisma.university.findFirst({
+      where: {
+        id: Number(universities)
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true,
+      }
+    });
+    return successResponse(
+      res,
+      "List fetched successfully",
+      200,
+      { CategoryLists ,CourseData  , SpecialisationData ,UniversityData }
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+exports.PopUniversityApi = catchAsync(async (req, res) => {
+  try {
+    const slug =  req.params.slug
+    const Universities = await prisma.university.findUnique({
+where : {slug : slug},
+      include: {
+        approvals:true
+      }
+    });
+
+      const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = Universities.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
+    return successResponse(
+      res,
+      "Popular University fetched successfully",
+      200,
+      Universities ,
+      approvalsData
     );
   } catch (error) {
     return errorResponse(res, error.message, 500);
