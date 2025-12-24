@@ -1,7 +1,6 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
-const { Prisma } = require("@prisma/client");
 
 exports.University = catchAsync(async (req, res) => {
   try {

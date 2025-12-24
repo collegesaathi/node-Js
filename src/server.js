@@ -23,11 +23,11 @@ app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
 // -----------------------------------------------------
 // ✅ STATIC IMAGE FOLDERS (VERY IMPORTANT)
 // -----------------------------------------------------
-app.use("/approval_images", express.static(path.join(__dirname, "../public/approval_images")));
-app.use("/placement_partners", express.static(path.join(__dirname, "../public/placement_partners")));
+// app.use("/approval_images", express.static(path.join(__dirname, "../public/approval_images")));
+// app.use("/placement_partners", express.static(path.join(__dirname, "../public/placement_partners")));
 
-app.use("/universities/icon", express.static(path.join(__dirname, "../public/universities/icon")));
-app.use("/universities/main", express.static(path.join(__dirname, "../public/universities/main")));
+// app.use("/universities/icon", express.static(path.join(__dirname, "../public/universities/icon")));
+// app.use("/universities/main", express.static(path.join(__dirname, "../public/universities/main")));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // या
 app.use(express.static(path.join(__dirname, 'public')));
@@ -48,11 +48,11 @@ const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
 // // app.use("/api", require("./routes/leadsRoute"));
 // app.use("/api", require("./routes/courseRoutes"));
 // app.use("/api", require("./routes/CommonRoute"));
-// app.use("/api", require("./routes/specialisationRoute"));
+app.use("/api", require("./routes/specialisationRoute"));
 
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+// const { PrismaClient } = require('@prisma/client');
+// const prisma = new PrismaClient();
 
 
 // app.get('/', async (req, res) => {
