@@ -554,5 +554,5 @@ model ProgramFee {
   descbtm     String?
   fees        Json?
   program_id String
-  program   Program @relation(fields: [program_id], references: [id], onDelete: Cascade)
+   program     Program @relation(fields: [program_id], references: [id])
 }
