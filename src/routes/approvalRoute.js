@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
-const { ApprovalAdd, ApprovalEdit, PlacementAdd, PlacementEdit, ApprovalSoftDelete, PlacementSoftDelete, ApprovalandPlacements } = require("../Controllers/ApprovalControllers");
 const dynamicUpload = require("../utils/Uploader");
+const { ApprovalAdd, ApprovalEdit, ApprovalSoftDelete, PlacementAdd, PlacementEdit, PlacementSoftDelete, ApprovalandPlacements } = require("../Controllers/ApprovalControllers");
 router.post("/approval/add", dynamicUpload("approvals").single("image"), ApprovalAdd);
 router.post("/approval/edit", dynamicUpload("approvals").single("image"), ApprovalEdit);
 router.get("/approval/delete/:id", ApprovalSoftDelete)
