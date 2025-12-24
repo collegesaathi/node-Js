@@ -543,7 +543,7 @@ model ProgramPlacement {
   icon        String?
   title       String
   description String?
-  programId   Int? @unique
+  program_id   Int? @unique
   program     Program @relation(fields: [program_id], references: [id])
 }
 
@@ -553,6 +553,6 @@ model ProgramFee {
   description String?
   descbtm     String?
   fees        Json?
-  programId String
-  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  program_id String
+  program   Program @relation(fields: [program_id], references: [id], onDelete: Cascade)
 }
