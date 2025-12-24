@@ -3,7 +3,6 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
-const Loggers = require("../utils/Logger");
 
 const makeSlug = (text) => {
   return text
@@ -100,7 +99,6 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.AddCourse = catchAsync(async (req, res) => {
   try {
-Loggers.http(req.body)
     const uploadedFiles = {};
     req.files?.forEach(file => {
       uploadedFiles[file.fieldname] = file.path;

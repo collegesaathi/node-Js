@@ -3,7 +3,6 @@ const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
-const Loggers = require("../utils/Logger");
 const makeSlug = (text) => {
   return text
     .toString()
@@ -417,7 +416,6 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.addUniversity = catchAsync(async (req, res) => {
   try {
-    Loggers.silly(req.body)
     // collect uploaded files: store raw path under fieldname keys
     const uploadedFiles = {};
     req.files?.forEach(file => {

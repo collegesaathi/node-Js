@@ -3,7 +3,6 @@ const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
-const Loggers = require("../utils/Logger");
 const makeSlug = (text) => {
   return text
     .toString()
@@ -606,7 +605,6 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-Loggers.silly(uploadedFiles)
 
     if (!SpecialisationId) {
       return validationErrorResponse(res, "Specialisation ID is required", 400);
