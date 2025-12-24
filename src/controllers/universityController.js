@@ -513,255 +513,129 @@ exports.addUniversity = catchAsync(async (req, res) => {
         icon_alt: finalData?.icon_alt
       }
     });
-    // if (Universitydata.id) {
-    //   await prisma.About.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.about_title,
-    //       description: finalData.about_desc
-    //     }
-    //   })
-
-    //   await prisma.Faq.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       faqs: finalData.faqs,
-    //     }
-    //   })
-
-    //   await prisma.UniversityCampus.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       campus: finalData.campusList,
-    //     }
-    //   })
-
-    //   await prisma.Services.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.servicetitle,
-    //       description: finalData.servicedesc,
-    //       services: finalData.services || ""
-    //     }
-    //   })
-
-    //   await prisma.Facts.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.factsname,
-    //       facts: finalData.facts || ""
-    //     }
-    //   })
-
-    //   await prisma.Advantages.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.advantagesname,
-    //       description: finalData.advantagesdescription,
-    //       advantages: finalData.advantages
-    //     }
-    //   })
-
-    //   await prisma.Approvals_Management.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.approvals_name,
-    //       description: finalData.approvals_desc,
-    //       approval_ids: finalData.approvals
-    //     }
-    //   })
-
-    //   await prisma.AdmissionProcess.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.onlinetitle,
-    //       description: finalData.onlinedesc,
-    //       process: finalData.onlines
-    //     }
-    //   })
-    //   await prisma.Certificates.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.certificatename,
-    //       description: finalData.certificatedescription,
-    //       image: finalData.certificatemage,
-    //       image_alt: finalData?.image_alt
-    //     }
-    //   })
-    //   await prisma.FinancialAid.create({
-    //     data: {
-    //       title: finalData.financialname,
-    //       description: finalData.financialdescription || null,
-    //       aid: finalData.fees,
-    //       university_id: Number(Universitydata.id),
-    //     }
-    //   })
-
-    //   await prisma.Rankings.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.rankings_name,
-    //       description: finalData.rankings_description,
-    //     }
-    //   })
-
-    //   await prisma.ExamPatterns.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.patternname,
-    //       description: finalData.patterndescription,
-    //       bottompatterndesc: finalData.bottompatterndesc,
-    //       patterns: finalData.patterns
-    //     }
-    //   })
-
-    //   await prisma.Partners.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       title: finalData.partnersname,
-    //       description: finalData.partnersdesc,
-    //       placement_partner_id: finalData.partners
-    //     }
-    //   })
-
-    //   await prisma.Seo.create({
-    //     data: {
-    //       university_id: Number(Universitydata.id),
-    //       meta_title: finalData.meta_title,
-    //       meta_description: finalData.meta_description,
-    //       meta_keywords: finalData.meta_keywords,
-    //       canonical_url: finalData.canonical_url,
-    //     }
-    //   })
-    // }
-
     if (Universitydata.id) {
-      await prisma.$transaction(async (tx) => {
-        return Promise.all([
-          tx.About.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.about_title,
-              description: finalData.about_desc
-            }
-          }),
+      await prisma.About.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.about_title,
+          description: finalData.about_desc
+        }
+      })
 
-          tx.Faq.create({
-            data: {
-              university_id: Universitydata.id,
-              faqs: finalData.faqs
-            }
-          }),
+      await prisma.Faq.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          faqs: finalData.faqs,
+        }
+      })
 
-          tx.UniversityCampus.create({
-            data: {
-              university_id: Universitydata.id,
-              campus: finalData.campusList
-            }
-          }),
+      await prisma.UniversityCampus.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          campus: finalData.campusList,
+        }
+      })
 
-          tx.Services.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.servicetitle,
-              description: finalData.servicedesc,
-              services: finalData.services
-            }
-          }),
+      await prisma.Services.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.servicetitle,
+          description: finalData.servicedesc,
+          services: finalData.services || ""
+        }
+      })
 
-          tx.Facts.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.factsname,
-              facts: finalData.facts
-            }
-          }),
+      await prisma.Facts.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.factsname,
+          facts: finalData.facts || ""
+        }
+      })
 
-          tx.Advantages.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.advantagesname,
-              description: finalData.advantagesdescription,
-              advantages: finalData.advantages
-            }
-          }),
+      await prisma.Advantages.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.advantagesname,
+          description: finalData.advantagesdescription,
+          advantages: finalData.advantages
+        }
+      })
 
-          tx.Approvals_Management.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.approvals_name,
-              description: finalData.approvals_desc,
-              approval_ids: finalData.approvals
-            }
-          }),
+      await prisma.Approvals_Management.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.approvals_name,
+          description: finalData.approvals_desc,
+          approval_ids: finalData.approvals
+        }
+      })
 
-          tx.AdmissionProcess.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.onlinetitle,
-              description: finalData.onlinedesc,
-              process: finalData.onlines
-            }
-          }),
+      await prisma.AdmissionProcess.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.onlinetitle,
+          description: finalData.onlinedesc,
+          process: finalData.onlines
+        }
+      })
+      await prisma.Certificates.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.certificatename,
+          description: finalData.certificatedescription,
+          image: finalData.certificatemage,
+          image_alt: finalData?.image_alt
+        }
+      })
+      await prisma.FinancialAid.create({
+        data: {
+          title: finalData.financialname,
+          description: finalData.financialdescription || null,
+          aid: finalData.fees,
+          university_id: Number(Universitydata.id),
+        }
+      })
 
-          tx.Certificates.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.certificatename,
-              description: finalData.certificatedescription,
-              image: finalData.certificatemage,
-              image_alt: finalData.image_alt
-            }
-          }),
+      await prisma.Rankings.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.rankings_name,
+          description: finalData.rankings_description,
+        }
+      })
 
-          tx.FinancialAid.create({
-            data: {
-              title: finalData.financialname,
-              description: finalData.financialdescription,
-              aid: finalData.fees,
-              university_id: Universitydata.id
-            }
-          }),
+      await prisma.ExamPatterns.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.patternname,
+          description: finalData.patterndescription,
+          bottompatterndesc: finalData.bottompatterndesc,
+          patterns: finalData.patterns
+        }
+      })
 
-          tx.Rankings.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.rankings_name,
-              description: finalData.rankings_description
-            }
-          }),
+      await prisma.Partners.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          title: finalData.partnersname,
+          description: finalData.partnersdesc,
+          placement_partner_id: finalData.partners
+        }
+      })
 
-          tx.ExamPatterns.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.patternname,
-              description: finalData.patterndescription,
-              bottompatterndesc: finalData.bottompatterndesc,
-              patterns: finalData.patterns
-            }
-          }),
-
-          tx.Partners.create({
-            data: {
-              university_id: Universitydata.id,
-              title: finalData.partnersname,
-              description: finalData.partnersdesc,
-              placement_partner_id: finalData.partners
-            }
-          }),
-
-          tx.Seo.create({
-            data: {
-              university_id: Universitydata.id,
-              meta_title: finalData.meta_title,
-              meta_description: finalData.meta_description,
-              meta_keywords: finalData.meta_keywords,
-              canonical_url: finalData.canonical_url
-            }
-          })
-        ]);
-      });
+      await prisma.Seo.create({
+        data: {
+          university_id: Number(Universitydata.id),
+          meta_title: finalData.meta_title,
+          meta_description: finalData.meta_description,
+          meta_keywords: finalData.meta_keywords,
+          canonical_url: finalData.canonical_url,
+        }
+      })
     }
+
+ 
 
     return successResponse(res, "Universities Saved successfully", 201, {
       finalData,
