@@ -277,13 +277,11 @@ model Faq {
   university_id Int?  @unique
   course_id     Int?       @unique
   specialisation_id Int?      @unique
-    program_id Int?      @unique
+
   faqs          Json?
   university University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-  program     Program? @relation(fields: [program_id], references: [id])
-
 }
 
 model  AdmissionProcess {
@@ -526,7 +524,6 @@ id            Int        @id @default(autoincrement())
   careers      ProgramCareer?
   placement    ProgramPlacement?
   fees         ProgramFee?
-  faqs         Faq?
 }
 model ProgramCareer {
   id          String   @id @default(uuid())
