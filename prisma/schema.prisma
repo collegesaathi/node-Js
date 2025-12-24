@@ -277,10 +277,13 @@ model Faq {
   university_id Int?  @unique
   course_id     Int?       @unique
   specialisation_id Int?      @unique
+    program_id Int?      @unique
   faqs          Json?
   university University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  program   Program?  @relation(fields: [program_id], references: [id])
+
 }
 
 model  AdmissionProcess {
@@ -436,7 +439,6 @@ model leads {
   course        Course?     @relation(fields: [course_id], references: [id])
   university    University? @relation(fields: [university_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-
 }
 
 model Seo {
@@ -444,7 +446,7 @@ model Seo {
   university_id Int? @unique
   course_id     Int? @unique
   blog_id       Int? @unique
-specialisation_id  Int? @unique
+  specialisation_id  Int? @unique
   meta_title       String?
   meta_description String?
   meta_keywords    String?
@@ -469,22 +471,22 @@ model Career {
   description   String?
   Career    Json?
   course    Course? @relation(fields: [course_id], references: [id])
-    specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 
 }
 
 
 model Curriculum {
-    id            Int        @id @default(autoincrement())
+  id            Int        @id @default(autoincrement())
   course_id      Int? @unique
   specialisation_id Int? @unique
   title         String
   description   String?
   semesters     Json?
   course    Course? @relation(fields: [course_id], references: [id])
-    specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-
+  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
+
 model  EligibilityCriteria{
     id            Int        @id @default(autoincrement())
   course_id      Int? @unique
@@ -495,5 +497,62 @@ model  EligibilityCriteria{
   NRICriteria Json?
   course    Course? @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+}
 
+
+model Program {
+  id               String   @id @default(uuid())
+  title            String
+  subtitle         String?
+  slug             String   @unique
+  Description      String
+  bannerImage      String?
+  bannerImageAlt   String?
+  shortDescription String?
+  duration         String?
+  mode             String?
+  universityName   String?
+  universitytitle  String?
+  universitydesc   String?
+  universitybtmdesc   String?
+  university_id    Json?
+  Specializations   String?
+  approval         String?
+  audio            String?
+  video            String?
+  conclusion       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  careers      ProgramCareer?
+  placement    ProgramPlacement? 
+  fees         ProgramFee?
+  faqs         Faq?
+}
+
+model ProgramCareer {
+  id          String  @id @default(uuid())
+  title   String
+  description String?
+  career        Json?
+  program_id   Int? @unique
+  program   Program?  @relation(fields: [program_id], references: [id])
+}
+
+model ProgramPlacement {
+  id          String  @id @default(uuid())
+  icon        String?
+  title       String
+  description String?
+  programId   Int? @unique
+  program     Program @relation(fields: [program_id], references: [id])
+}
+
+model ProgramFee {
+  id        String  @id @default(uuid())
+  title       String
+  description String?
+  descbtm     String?
+  fees        Json?
+  programId String
+  program   Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 }
