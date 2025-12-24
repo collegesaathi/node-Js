@@ -499,7 +499,6 @@ model  EligibilityCriteria{
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
-
 model Program {
   id               String   @id @default(uuid())
   title            String
@@ -514,45 +513,46 @@ model Program {
   universityName   String?
   universitytitle  String?
   universitydesc   String?
-  universitybtmdesc   String?
+  universitybtmdesc String?
   university_id    Json?
-  Specializations   String?
+  Specializations  String?
   approval         String?
   audio            String?
   video            String?
   conclusion       String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
   careers      ProgramCareer?
-  placement    ProgramPlacement? 
+  placement    ProgramPlacement?
   fees         ProgramFee?
   faqs         Faq?
 }
-
 model ProgramCareer {
-  id          String  @id @default(uuid())
-  title   String
+  id          String   @id @default(uuid())
+  title       String
   description String?
-  career        Json?
-  program_id   Int? @unique
-  program   Program?  @relation(fields: [program_id], references: [id])
-}
+  career      Json?
 
+  program_id  String?  @unique
+  program     Program? @relation(fields: [program_id], references: [id])
+}
 model ProgramPlacement {
-  id          String  @id @default(uuid())
+  id          String   @id @default(uuid())
   icon        String?
   title       String
   description String?
-  program_id   Int? @unique
-  program     Program @relation(fields: [program_id], references: [id])
-}
 
+  program_id  String?  @unique
+  program     Program? @relation(fields: [program_id], references: [id])
+}
 model ProgramFee {
-  id        String  @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
   description String?
   descbtm     String?
   fees        Json?
-  program_id String
-   program     Program @relation(fields: [program_id], references: [id])
+
+  program_id  String
+  program     Program @relation(fields: [program_id], references: [id], onDelete: Cascade)
 }
