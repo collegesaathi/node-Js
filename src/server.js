@@ -40,10 +40,10 @@ app.use(express.static('public'));
 
 const PORT = process.env.REACT_APP_SERVER_DOMAIN || 5000;
 
-// app.use("/api", require("./routes/authRoutes"));
-// app.use("/api", require("./routes/homeRoutes"));
-// app.use("/api", require("./routes/userRoutes"));
-// app.use("/api", require("./routes/universityRoutes"));
+app.use("/api", require("./routes/authRoutes"));
+app.use("/api", require("./routes/homeRoutes"));
+app.use("/api", require("./routes/userRoutes"));
+app.use("/api", require("./routes/universityRoutes"));
 // // app.use("/api", require("./routes/ApprovalRoute"));
 // // app.use("/api", require("./routes/leadsRoute"));
 // app.use("/api", require("./routes/courseRoutes"));
