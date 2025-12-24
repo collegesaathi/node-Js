@@ -70,7 +70,7 @@ exports.ApprovalEdit = catchAsync(async (req, res) => {
 
     } catch (error) {
         console.log("Error updating approval:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return errorResponse(res, "Approval not found", 404);
     }
 });
 
@@ -148,15 +148,12 @@ exports.PlacementEdit = catchAsync(async (req, res) => {
                 image
             }
         });
+return successResponse(res, "Placement updated successfully", 200, updatedPlacement);
 
-        return res.status(200).json({
-            message: "Placement updated successfully",
-            approval: updatedPlacement
-        });
 
     } catch (error) {
         console.log("Error updating approval:", error);
-        return res.status(500).json({ message: "Internal Server Error" });
+        return errorResponse(res, "Approval not found", 404);
     }
 });
 
@@ -276,8 +273,6 @@ exports.ApprovalandPlacements = catchAsync(async (req, res) => {
     if (!placements) {
         return errorResponse(res, "Failed to fetch placements", 500);
     }
-
-
     return successResponse(res, "Admin university data fetched successfully", 200, {
         approvals,
         placements,
