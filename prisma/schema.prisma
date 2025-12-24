@@ -500,7 +500,7 @@ model  EligibilityCriteria{
 }
 
 model Program {
-  id               Int   @id @default(uuid())
+id            Int        @id @default(autoincrement())
   title            String
   subtitle         String?
   slug             String   @unique
