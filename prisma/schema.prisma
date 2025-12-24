@@ -282,7 +282,7 @@ model Faq {
   university University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-  program   Program?  @relation(fields: [program_id], references: [id])
+  program     Program? @relation(fields: [program_id], references: [id])
 
 }
 
@@ -500,7 +500,7 @@ model  EligibilityCriteria{
 }
 
 model Program {
-  id               String   @id @default(uuid())
+  id               Int   @id @default(uuid())
   title            String
   subtitle         String?
   slug             String   @unique
@@ -534,7 +534,7 @@ model ProgramCareer {
   description String?
   career      Json?
 
-  program_id  String?  @unique
+  program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
 model ProgramPlacement {
@@ -543,7 +543,7 @@ model ProgramPlacement {
   title       String
   description String?
 
-  program_id  String?  @unique
+  program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
 model ProgramFee {
@@ -552,7 +552,6 @@ model ProgramFee {
   description String?
   descbtm     String?
   fees        Json?
-
-  program_id  String? @unique
-  program     Program @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  program_id  Int? @unique
+  program     Program? @relation(fields: [program_id], references: [id])
 }
