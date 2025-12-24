@@ -2,7 +2,6 @@ const { errorResponse, successResponse, validationErrorResponse } = require("../
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 
-
 exports.LeadsAdd = catchAsync(async (req, res) => {
     try {
         const { name, email, phone_number, course_id, state, city, content, university_id ,page_name } = req.body;

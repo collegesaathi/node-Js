@@ -1,6 +1,6 @@
-const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
+const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
 
 exports.ApprovalAdd = catchAsync(async (req, res) => {

@@ -45,7 +45,7 @@ app.use("/api", require("./routes/homeRoutes"));
 app.use("/api", require("./routes/userRoutes"));
 app.use("/api", require("./routes/universityRoutes"));
 // app.use("/api", require("./routes/ApprovalRoute"));
-app.use("/api", require("./routes/leadsRoute"));
+// app.use("/api", require("./routes/leadsRoute"));
 app.use("/api", require("./routes/courseRoutes"));
 app.use("/api", require("./routes/CommonRoute"));
 app.use("/api", require("./routes/specialisationRoute"));
