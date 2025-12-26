@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../utils/Uploader");
-const dynamicUpload = require("../utils/Uploader");
+const dynamicUpload = require("../utils/dynamicUpload");
 const { AddCourse, AllCourses, GetCourseById, CoursesDelete, UpdateCourse, GetCourseByName, GetUniversityCourseList } = require("../Controllers/CourseController");
 
 router.get("/all/course", AllCourses);

@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../utils/Uploader");
-const dynamicUpload = require("../utils/Uploader");
+const dynamicUpload = require("../utils/dynamicUpload");
 const { adminaddSpecialisation, updateSpecialisation, Allspecialisation, SpecialisationDelete, GetBySpecialisationId, GetSpecialisationCourseList } = require("../controllers/SpecialisationController");
 
 router.get("/specialisations/:slug", GetBySpecialisationId);

@@ -148,7 +148,7 @@ exports.PlacementEdit = catchAsync(async (req, res) => {
                 image
             }
         });
-return successResponse(res, "Placement updated successfully", 200, updatedPlacement);
+        return successResponse(res, "Placement updated successfully", 200, updatedPlacement);
 
 
     } catch (error) {
