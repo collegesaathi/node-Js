@@ -1,5 +1,5 @@
 const express = require("express");
-const { LeadsAdd, LeadsGet, AllLeadsUniversities } = require("../Controllers/EnqiuryController");
+const { LeadsAdd, LeadsGet, AllLeadsUniversities } = require("../controllers/EnqiuryController");
 const router = express.Router();
 
 router.post("/leads/add", LeadsAdd);
