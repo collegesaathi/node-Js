@@ -634,9 +634,6 @@ exports.addUniversity = catchAsync(async (req, res) => {
         }
       })
     }
-
- 
-
     return successResponse(res, "Universities Saved successfully", 201, {
       finalData,
     });
