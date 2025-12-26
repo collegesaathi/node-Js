@@ -1,5 +1,5 @@
 const express = require("express");
-const { List ,University, CompareUniversity, AllProgram, PopUniversityApi } = require("../Controllers/CommonController");
+const { List, University, CompareUniversity, AllProgram, PopUniversityApi } = require("../Controllers/CommonController");
 const router = express.Router();
 
 router.get("/all/catergoy/university", List);
