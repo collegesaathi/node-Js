@@ -58,7 +58,7 @@ exports.LeadsGet = catchAsync(async (req, res) => {
   }
 });
 
-exports.allLeadsUniversities = catchAsync(async (req, res) => {
+exports.AllLeadsUniversities = catchAsync(async (req, res) => {
 try {
     const universities = await prisma.university.findMany({
     select: {
