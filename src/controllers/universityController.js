@@ -745,7 +745,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords || "",
       name: req.body.name || existing.name || "",
       rank: req.body.rank || existing.rank || "",
-
       slug: req.body.slug || existing.slug || "",
       position: req.body.position || existing.position || "",
       icon_alt: req.body.icon_alt || existing.icon_alt || "",
