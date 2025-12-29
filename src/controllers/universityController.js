@@ -51,15 +51,6 @@ exports.allUniversities = catchAsync(async (req, res) => {
   // --- Fetch categories with courses ---
   const categories = await prisma.category.findMany({
     orderBy: { id: "asc" },
-    where:{search:  search && search.length >= 3
-          ? {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-            deleted_at: null
-          }
-          : {},},
     include: {
       courses: { orderBy: { created_at: "asc" } }
     }
@@ -74,15 +65,6 @@ exports.allUniversities = catchAsync(async (req, res) => {
     where: {
       deleted_at: null,
       position: { gte: 1, lte: 10 },
-       search:  search && search.length >= 3
-          ? {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-            deleted_at: null
-          }
-          : {},
     },
     orderBy: {
       position: 'asc'
