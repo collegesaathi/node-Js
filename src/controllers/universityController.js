@@ -51,6 +51,15 @@ exports.allUniversities = catchAsync(async (req, res) => {
   // --- Fetch categories with courses ---
   const categories = await prisma.category.findMany({
     orderBy: { id: "asc" },
+    where:{search:  search && search.length >= 3
+          ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+            deleted_at: null
+          }
+          : {},},
     include: {
       courses: { orderBy: { created_at: "asc" } }
     }
@@ -60,41 +69,53 @@ exports.allUniversities = catchAsync(async (req, res) => {
   if (!categories) {
     return errorResponse(res, "Failed to fetch categories", 500);
   }
-
-  // --- Fetch universities ---
-  const universities = await prisma.university.findMany({
-    where:
-      search && search.length >= 3
-        ? {
-          name: {
-            contains: search,
-            mode: "insensitive",
-          },
-          deleted_at: null
-        }
-        : {},
+  // 1️⃣ Position 1–10 wale
+  const topUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      position: { gte: 1, lte: 10 },
+       search:  search && search.length >= 3
+          ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+            deleted_at: null
+          }
+          : {},
+    },
+    orderBy: {
+      position: 'asc'
+    }
+  });
+  // 2️⃣ Baaki sab ( >10 or NULL )
+  const otherUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      OR: [
+        { position: 0 },        // jinki position set hi nahi hai
+        { position: { gt: 10 } }   // jinki position 10 se zyada hai
+      ]
+    },
     orderBy: [
-      { position: { sort: "asc", nulls: "last" } },
-      { created_at: "desc" }
-    ],
-    skip,
-    take: limit,
+      { position: 'asc' },
+      { created_at: 'desc' }
+    ]
   });
+  // 3️⃣ Merge
+  const finalList = [...topUniversities, ...otherUniversities];
 
-  if (!universities) {
-    return errorResponse(res, "Failed to fetch universities", 500);
-  }
+  // 4️⃣ Pagination manual
+  const paginated = finalList.slice(skip, skip + limit);
 
-  // --- Count total ---
-  const totalUniversities = await prisma.university.count({
-    where: { deleted_at: null }
-  });
-
+  // 5️⃣ Count
+  const totalUniversities = finalList.length;
   const totalPages = Math.ceil(totalUniversities / limit);
+  console.log("paginated", paginated)
 
   return successResponse(res, "Universities fetched successfully", 201, {
     categories,
-    universities,
+    universities: paginated,
     pagination: {
       page,
       limit,
