@@ -3,6 +3,7 @@ const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 
 
 const makeSlug = (text) => {
@@ -140,14 +141,13 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // --- Fetch Approvals ---
   let approvals = await prisma.approvals.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "asc" },
+    orderBy: { title: "asc" }, // alphabetically
   });
 
   if (!approvals) {
     return errorResponse(res, "Failed to fetch approvals", 500);
   }
 
-  // Convert image paths to full URLs
   approvals = approvals.map(item => ({
     ...item,
     image: item.image && !item.image.startsWith("http")
@@ -158,7 +158,7 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
   // --- Fetch Placements ---
   let placements = await prisma.placements.findMany({
     where: { deleted_at: null },
-    orderBy: { created_at: "asc" },
+    orderBy: { title: "asc" }, // alphabetically
   });
 
   if (!placements) {
@@ -433,6 +433,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     let patterns = parseArray(req.body.patterns);
     let advantages = parseArray(req.body.advantages);
     let campusList = parseArray(req.body.campusList);
+    let campusInternationList = parseArray(req.body.internationalcampus);
     let fees = parseArray(req.body.fees);
     let facts = parseArray(req.body.facts);
     let onlines = parseArray(req.body.onlines);
@@ -443,6 +444,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
+    const campusInterImages = mapUploadedArray(req, uploadedFiles, "campusinterimages");
+
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
 
     // attach images to corresponding items
@@ -451,8 +454,10 @@ exports.addUniversity = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image");
     campusList = attachImagesToItems(campusList, campusImages, "image");
     facts = attachImagesToItems(facts, factsImages, "image");
+    campusInternationList = attachImagesToItems(campusInterImages, campusInterImages, "image");
     const finalData = {
       meta_title: req.body.meta_title || "",
+        rank: req.body.rank || "",
       meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
@@ -499,7 +504,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       cover_image_alt: req.body.cover_image_alt || "",
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
-
+      campusInternationList: campusInternationList
       // add other fields as needed
     };
 
@@ -515,7 +520,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
         icon: finalData.icon,
         slug: finalData.slug ? finalData.slug : generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
-        icon_alt: finalData?.icon_alt
+        icon_alt: finalData?.icon_alt,
+        rank : finalData.rank
       }
     });
     if (Universitydata.id) {
@@ -538,6 +544,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         data: {
           university_id: Number(Universitydata.id),
           campus: finalData.campusList,
+          campusInternationList: finalData.campusInternationList
         }
       })
 
@@ -667,6 +674,9 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     if (!universityId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
+
+
+
     // Fetch existing university with all relations
     const existing = await prisma.University.findUnique({
       where: { id: universityId },
@@ -697,12 +707,13 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-
     // Parse arrays
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
     let advantages = parseArray(req.body.advantages);
     let campusList = parseArray(req.body.campusList);
+    let internationalcampus = parseArray(req.body.internationalcampus);
+
     let fees = parseArray(req.body.fees);
     let facts = parseArray(req.body.facts);
     let onlines = parseArray(req.body.onlines);
@@ -713,26 +724,28 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
+    const campusinterImages = mapUploadedArray(req, uploadedFiles, "campusinterimages");
+
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
     // Attach images to arrays
-    services = attachImagesToItems(services, servicesImages, "image", existing.services?.services);
-    services = attachImagesToItems(services, servicesIcons, "icon", existing.services?.services);
+    services = attachImagesToItems(services, servicesImages, "image", existing.services?.services || []);
+    services = attachImagesToItems(services, servicesIcons, "icon", existing.services?.services || []);
 
-    patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
+    patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns || []);
 
-    campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
+    campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus || []);
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
-
-
+    internationalcampus = attachImagesToItems(internationalcampus, campusinterImages, "image", existing.universityCampuses?.campusInternationList || []);
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
       meta_title: req.body.meta_title || existing.seo?.meta_title || "",
       meta_description: req.body.meta_description || existing.seo?.meta_description || "",
       canonical_url: req.body.canonical_url || existing.seo?.canonical_url || "",
       meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords || "",
-
       name: req.body.name || existing.name || "",
+      rank: req.body.rank || existing.rank || "",
+
       slug: req.body.slug || existing.slug || "",
       position: req.body.position || existing.position || "",
       icon_alt: req.body.icon_alt || existing.icon_alt || "",
@@ -778,7 +791,8 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
       advantages: advantages?.length ? advantages : existing.advantages?.advantages || "",
 
-      campusList: campusList?.length ? campusList : existing.universityCampuses || "",
+      campusList: campusList?.length ? campusList : existing.universityCampuses?.campus || "",
+      internationalcampus: internationalcampus?.length ? internationalcampus : existing.universityCampuses?.campusInternationList || "",
 
       fees: fees?.length ? fees : existing.financialAid?.aid || "",
 
@@ -821,6 +835,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         slug: finalData.slug || newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
+        rank : finalData.rank || ""
       }
     });
 
@@ -839,8 +854,8 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
     const recoss = await prisma.UniversityCampus.upsert({
       where: { university_id: universityId },
-      update: { campus: finalData.campusList },
-      create: { university_id: universityId, campus: finalData.campusList }
+      update: { campus: finalData.campusList, campusInternationList: finalData.internationalcampus },
+      create: { university_id: universityId, campus: finalData.campusList, campusInternationList: finalData.internationalcampus }
     });
     await prisma.Services.upsert({
       where: { university_id: universityId },
