@@ -790,8 +790,8 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 
       advantages: advantages?.length ? advantages : existing.advantages?.advantages || "",
 
-      campusList: campusList?.length ? campusList : existing.universityCampuses?.campus || "",
-      internationalcampus: internationalcampus?.length ? internationalcampus : existing.universityCampuses?.campusInternationList || "",
+      campusList: campusList?.length ? campusList : existing.universityCampuses || [],
+      internationalcampus: internationalcampus?.length ? internationalcampus : existing.universityCampuses || [],
 
       fees: fees?.length ? fees : existing.financialAid?.aid || "",
 

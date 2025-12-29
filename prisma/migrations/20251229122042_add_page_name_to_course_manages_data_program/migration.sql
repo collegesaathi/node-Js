@@ -29,6 +29,7 @@ CREATE TABLE "University" (
     "id" SERIAL NOT NULL,
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "rank" TEXT,
     "icon" TEXT,
     "cover_image" TEXT,
     "icon_alt" TEXT,
@@ -278,6 +279,7 @@ CREATE TABLE "UniversityCampus" (
     "id" SERIAL NOT NULL,
     "university_id" INTEGER NOT NULL,
     "campus" JSONB,
+    "campusInternationList" JSONB,
 
     CONSTRAINT "UniversityCampus_pkey" PRIMARY KEY ("id")
 );
