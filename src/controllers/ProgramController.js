@@ -94,6 +94,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
   });
 }
 
+// Program Add Controller Logic
 exports.AddProgram = catchAsync(async (req, res) => {
   const uploadedFiles = {};
   req.files?.forEach(file => {
@@ -290,6 +291,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
   }
 });
 
+// Program Get By ID Controller Logic
 exports.GetProgramById = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
@@ -301,6 +303,7 @@ exports.GetProgramById = catchAsync(async (req, res) => {
     const ProgramData = await prisma.Program.findFirst({
       where: {
         slug: slug,
+        // deleted_at: null,
       },
       include: {
         academic: true,
@@ -321,12 +324,38 @@ exports.GetProgramById = catchAsync(async (req, res) => {
     if (!ProgramData) {
       return errorResponse(res, "Program not found", 404);
     }
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+       // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
 
+    const placement = ProgramData.placement;
+
+    // ✅ placement is a single object, not array
+    if (placement?.placement_ids) {
+      placementPartnerIds = Array.isArray(placement.placement_ids)
+        ? placement.placement_ids
+        : [placement.placement_ids];
+
+      placementPartnerIds = [...new Set(placementPartnerIds)].filter(Boolean);
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: {
+          id: { in: placementPartnerIds },
+          deleted_at: null, // optional but recommended
+        },
+      });
+    }
     return successResponse(
       res,
       "Program fetched successfully",
       200,
-      { ProgramData }
+      { ProgramData, placementPartners }
     );
 
   } catch (error) {
@@ -344,21 +373,22 @@ exports.GetProgramById = catchAsync(async (req, res) => {
   }
 });
 
+// Program Update Controller Logic
 exports.UpdateProgram = catchAsync(async (req, res) => {
-  const uploadedFiles = {};
-  req.files?.forEach((file) => {
-    uploadedFiles[file.fieldname] = file.path;
-  });
-
   try {
     const programId = Number(req.body.id);
+
+    const uploadedFiles = {};
+    req.files?.forEach((file) => {
+      uploadedFiles[file.fieldname] = file.path;
+    });
 
     if (!programId) {
       return errorResponse(res, "Program ID is required", 400);
     }
 
     /* ------------------------------------------
-       Fetch existing program with relations
+       FETCH EXISTING PROGRAM WITH RELATIONS
     ------------------------------------------- */
     const existing = await prisma.Program.findUnique({
       where: { id: programId },
@@ -373,6 +403,8 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         curriculum: true,
         fees: true,
         experience: true,
+        seo: true,
+        faqs: true,
       },
     });
 
@@ -381,72 +413,80 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     }
 
     /* ------------------------------------------
-       Parse JSON fields
+       PARSE ARRAYS
     ------------------------------------------- */
-    const careerJson       = parseArray(req.body.career);
-    const highlightsJson   = parseArray(req.body.Highlights);
-    const entranceJson     = parseArray(req.body.Entrance);
-    const institutesJson   = parseArray(req.body.Institutes);
-    const placementIdsJson = parseArray(req.body.placement_ids);
-    const subPlacementJson = parseArray(req.body.subplacement);
-    const curriculumJson   = parseArray(req.body.curriculum);
-    const feesJson         = parseArray(req.body.fees);
+    const career = parseArray(req.body.career);
+    const highlights = parseArray(req.body.Highlights);
+    const entrance = parseArray(req.body.Entrance);
+    const institutes = parseArray(req.body.Institutes);
+    const placement_ids = parseArray(req.body.placement_ids);
+    const subplacement = parseArray(req.body.subplacement);
+    const curriculum = parseArray(req.body.curriculum);
+    const fees = parseArray(req.body.fees);
     const investmentCareer = parseArray(req.body.investment_career);
-    const experienceFees  = parseArray(req.body.experience_fees);
+    const experienceFees = parseArray(req.body.experience_fees);
+    const faqs = parseArray(req.body.faqs);
 
     /* ------------------------------------------
-       Handle slug change (only if title changed)
+       FINAL DATA (MERGED WITH EXISTING)
     ------------------------------------------- */
-    let newSlug = existing.slug;
-    if (req.body.title && req.body.title !== existing.title) {
-      newSlug = await generateUniqueSlug(prisma, req.body.title);
-    }
+    const finalData = {
+      title: req.body.title || existing.title,
+      description: req.body.description || existing.description,
+      career_growth: req.body.career_growth || existing.career_growth,
+      duration: req.body.duration || existing.duration,
+      specialization: req.body.specialization || existing.specialization,
+      subtitle: req.body.subtitle || existing.subtitle,
+      shortDescription: req.body.shortDescription || existing.shortDescription,
+      video: req.body.video || existing.video,
+      universitytitle: req.body.universitytitle || existing.universitytitle,
+      universitydesc: req.body.universitydesc || existing.universitydesc,
+      universitybtmdesc: req.body.universitybtmdesc || existing.universitybtmdesc,
+      university_id: parseArray(req.body.university_id) || existing.university_id,
+      conclusion: req.body.conclusion || existing.conclusion,
+      specialisationtitle: req.body.specialisationtitle || existing.specialisationtitle,
+      specialisationdesc: req.body.specialisationdesc || existing.specialisationdesc,
 
-    /* ------------------------------------------
-       Update Program
-    ------------------------------------------- */
-    const program = await prisma.Program.update({
-      where: { id: programId },
-      data: {
-        title: req.body.title || existing.title,
-        slug: req.body.slug || newSlug,
-        description: req.body.description || existing.description,
-        bannerImage: uploadedFiles["bannerImage"]
+      bannerImage:
+        uploadedFiles["bannerImage"]
           ? (deleteUploadedFiles([existing.bannerImage]),
             toPublicUrl(req, uploadedFiles["bannerImage"]))
           : existing.bannerImage,
-        bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
-        pdfdownlaod: uploadedFiles["pdfdownlaod"]
+
+      bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
+
+      pdfdownlaod:
+        uploadedFiles["pdfdownlaod"]
           ? toPublicUrl(req, uploadedFiles["pdfdownlaod"])
           : existing.pdfdownlaod,
-        career_growth: req.body.career_growth || existing.career_growth,
-        duration: req.body.duration || existing.duration,
-        specialization: req.body.specialization || existing.specialization,
-        audio: uploadedFiles["audio"]
+
+      audio:
+        uploadedFiles["audio"]
           ? toPublicUrl(req, uploadedFiles["audio"])
           : existing.audio,
-        subtitle: req.body.subtitle || existing.subtitle,
-        shortDescription:
-          req.body.shortDescription || existing.shortDescription,
-        video: req.body.video || existing.video,
-        universitytitle:
-          req.body.universitytitle || existing.universitytitle,
-        universitydesc:
-          req.body.universitydesc || existing.universitydesc,
-        universitybtmdesc:
-          req.body.universitybtmdesc || existing.universitybtmdesc,
-        university_id:
-          parseArray(req.body.university_id) || existing.university_id,
-        conclusion: req.body.conclusion || existing.conclusion,
-        specialisationtitle:
-          req.body.specialisationtitle || existing.specialisationtitle,
-        specialisationdesc:
-          req.body.specialisationdesc || existing.specialisationdesc,
+    };
+
+    /* ------------------------------------------
+       HANDLE SLUG CHANGE
+    ------------------------------------------- */
+    let newSlug = existing.slug;
+    if (finalData.title !== existing.title) {
+      newSlug = await generateUniqueSlug(prisma, finalData.title, programId);
+    }
+
+    /* ------------------------------------------
+       UPDATE PROGRAM
+    ------------------------------------------- */
+    const updatedProgram = await prisma.Program.update({
+      where: { id: programId },
+      data: {
+        ...finalData,
+        slug: req.body.slug || newSlug,
       },
     });
 
     /* ------------------------------------------
-       UPSERT child tables
+       UPSERT CHILD TABLES (LIKE UpdateCourse)
     ------------------------------------------- */
 
     await prisma.ProgramAcademic.upsert({
@@ -477,13 +517,13 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       update: {
         title: req.body.career_title,
         description: req.body.career_description,
-        career: careerJson,
+        career: career,
       },
       create: {
         program_id: programId,
         title: req.body.career_title || "",
         description: req.body.career_description || "",
-        career: careerJson,
+        career: career,
       },
     });
 
@@ -510,14 +550,14 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         title: req.body.highlights_title,
         description: req.body.highlights_description,
         subtitle: req.body.highlights_subtitle,
-        Highlights: highlightsJson,
+        Highlights: highlights,
       },
       create: {
         program_id: programId,
         title: req.body.highlights_title || "",
         description: req.body.highlights_description || "",
         subtitle: req.body.highlights_subtitle || "",
-        Highlights: highlightsJson,
+        Highlights: highlights,
       },
     });
 
@@ -529,13 +569,13 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
           : existing.entrance?.icon,
         title: req.body.entrance_title,
         description: req.body.entrance_description,
-        Entrance: entranceJson,
+        Entrance: entrance,
       },
       create: {
         program_id: programId,
         title: req.body.entrance_title || "",
         description: req.body.entrance_description || "",
-        Entrance: entranceJson,
+        Entrance: entrance,
       },
     });
 
@@ -547,13 +587,13 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
           : existing.institutes?.icon,
         title: req.body.institutes_title,
         description: req.body.institutes_description,
-        Institutes: institutesJson,
+        Institutes: institutes,
       },
       create: {
         program_id: programId,
         title: req.body.institutes_title || "",
         description: req.body.institutes_description || "",
-        Institutes: institutesJson,
+        Institutes: institutes,
       },
     });
 
@@ -562,19 +602,19 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       update: {
         title: req.body.placement_title,
         description: req.body.placement_description,
-        placement_ids: placementIdsJson,
+        placement_ids,
         subtitle: req.body.placement_subtitle,
         Subdec: req.body.Subdec,
-        subplacement: subPlacementJson,
+        subplacement,
       },
       create: {
         program_id: programId,
         title: req.body.placement_title || "",
         description: req.body.placement_description || "",
-        placement_ids: placementIdsJson,
+        placement_ids,
         subtitle: req.body.placement_subtitle || "",
         Subdec: req.body.Subdec || "",
-        subplacement: subPlacementJson,
+        subplacement,
       },
     });
 
@@ -584,14 +624,14 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         title: req.body.curriculum_title,
         description: req.body.curriculum_description,
         subtitle: req.body.curriculum_subtitle,
-        placement_ids: curriculumJson,
+        placement_ids: curriculum,
       },
       create: {
         program_id: programId,
         title: req.body.curriculum_title || "",
         description: req.body.curriculum_description || "",
         subtitle: req.body.curriculum_subtitle || "",
-        placement_ids: curriculumJson,
+        placement_ids: curriculum,
       },
     });
 
@@ -601,14 +641,14 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         title: req.body.fees_title,
         description: req.body.fees_description,
         descbtm: req.body.fees_descbtm,
-        fees: feesJson,
+        fees,
       },
       create: {
         program_id: programId,
         title: req.body.fees_title || "",
         description: req.body.fees_description || "",
         descbtm: req.body.fees_descbtm || "",
-        fees: feesJson,
+        fees,
       },
     });
 
@@ -629,12 +669,13 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       },
     });
 
-    return successResponse(
-      res,
-      "Program updated successfully",
-      200,
-      program
-    );
+    await prisma.Faq.upsert({
+      where: { program_id: programId },
+      update: { faqs },
+      create: { program_id: programId, faqs },
+    });
+
+    return successResponse(res, "Program updated successfully", 200, updatedProgram);
 
   } catch (error) {
     console.error("❌ UpdateProgram error:", error);
@@ -647,11 +688,71 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       );
     }
 
-    return errorResponse(
-      res,
-      error.message || "Something went wrong while updating program",
-      500
-    );
+    return errorResponse(res, "Something went wrong while updating program", 500);
   }
 });
+
+//  Program Delete Controller Logic
+exports.ProgramDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return validationErrorResponse(res, "Program ID is required", 400);
+    }
+
+    const programId = Number(id);
+
+    const existingProgram = await prisma.Program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return validationErrorResponse(res, "Program not found", 404);
+    }
+
+    let updatedRecord;
+
+    /* ------------------------------------------
+       RESTORE IF ALREADY DELETED
+    ------------------------------------------- */
+    if (existingProgram.deleted_at) {
+      updatedRecord = await prisma.Program.update({
+        where: { id: programId },
+        data: { deleted_at: null },
+      });
+
+      return successResponse(
+        res,
+        "Program restored successfully",
+        200,
+        updatedRecord
+      );
+    }
+
+    /* ------------------------------------------
+       SOFT DELETE
+    ------------------------------------------- */
+    updatedRecord = await prisma.Program.update({
+      where: { id: programId },
+      data: { deleted_at: new Date() },
+    });
+
+    return successResponse(
+      res,
+      "Program deleted successfully",
+      200,
+      updatedRecord
+    );
+
+  } catch (error) {
+
+    if (error.code === "P2025") {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    return errorResponse(res, error.message, 500);
+  }
+});
+
 
