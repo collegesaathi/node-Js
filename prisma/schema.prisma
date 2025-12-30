@@ -351,6 +351,7 @@ model Category {
   updated_at  DateTime  @updatedAt
   deleted_at  DateTime?
   courses     Course[]
+  programs    Program[] 
 }
 
 model BlogTag {
@@ -517,6 +518,10 @@ model Program {
   conclusion          String?
   specialisationtitle String?
   specialisationdesc  String?
+  // ✅ CATEGORY RELATION
+  category_id         Int        @default(1)
+  category            Category   @relation(fields: [category_id], references: [id])
+
   careers             ProgramCareer?
   placement           ProgramPlacement?
   fees                ProgramFee?
