@@ -498,41 +498,41 @@ model  EligibilityCriteria{
 }
 
 model Program {
-  id            Int        @id @default(autoincrement())
-  title            String
-  description      String
-  bannerImage      String?
-  slug             String   @unique
-  bannerImageAlt   String?
-  pdfdownlaod      String?
-  career_growth    String?
-  duration         String?
-  specialization   String?
-  audio            String?
-  subtitle         String?
-  shortDescription String?
-  video            String?
-  universitytitle  String?
-  universitydesc   String?
-  universitybtmdesc String?
-  university_id    Json?
-  conclusion       String?
+  id                  Int        @id @default(autoincrement())
+  title               String
+  description         String
+  bannerImage         String?
+  slug                String    @unique
+  bannerImageAlt      String?
+  pdfdownlaod         String?
+  career_growth       String?
+  duration            String?
+  specialization      String?
+  audio               String?
+  subtitle            String?
+  shortDescription    String?
+  video               String?
+  universitytitle     String?
+  universitydesc      String?
+  universitybtmdesc   String?
+  university_id       Json?
+  conclusion          String?
   specialisationtitle String?
-  specialisationdesc String?
-  careers      ProgramCareer?
-  placement    ProgramPlacement?
-  fees         ProgramFee?
-  academic     ProgramAcademic?
-  investment   ProgramInvestment?
-  highlights   ProgramHighlights?
-  entrance     ProgramEntrance?
-  faqs         Faq?
-  seo          Seo?
-  institutes   ProgramInstitutes?
-  curriculum   ProgramCurriculum?
-  experience   ProgramExperience?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  specialisationdesc  String?
+  careers             ProgramCareer?
+  placement           ProgramPlacement?
+  fees                ProgramFee?
+  academic            ProgramAcademic?
+  investment          ProgramInvestment?
+  highlights          ProgramHighlights?
+  entrance            ProgramEntrance?
+  faqs                Faq?
+  seo                 Seo?
+  institutes          ProgramInstitutes?
+  curriculum          ProgramCurriculum?
+  experience          ProgramExperience?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model ProgramAcademic {
@@ -619,7 +619,6 @@ model ProgramCurriculum {
   program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
-
 
 model ProgramFee {
  id            Int        @id @default(autoincrement())
