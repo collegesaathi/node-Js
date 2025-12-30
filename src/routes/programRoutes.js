@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const dynamicUpload = require("../utils/dynamicUpload");
-const {  AddProgram, GetProgramById, UpdateProgram } = require("../controllers/ProgramController");
+const {  AddProgram, GetProgramById, UpdateProgram, ProgramDelete } = require("../controllers/ProgramController");
 // const { upload } = require("../utils/s3");
 
 // router.get("/all/programs", AllPrograms);
@@ -9,5 +9,6 @@ const {  AddProgram, GetProgramById, UpdateProgram } = require("../controllers/P
 router.post("/admin/program/add", dynamicUpload("program").any(), AddProgram);
 router.get("/admin/program/:slug", GetProgramById);
 router.post("/admin/program/update", dynamicUpload("program").any(), UpdateProgram);
+router.delete("/program/:id", ProgramDelete);
 module.exports = router;
 

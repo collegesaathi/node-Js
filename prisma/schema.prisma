@@ -531,6 +531,7 @@ model Program {
   experience          ProgramExperience?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+  deleted_at          DateTime?  // ✅ ADDED THIS
 }
 
 model ProgramAcademic {

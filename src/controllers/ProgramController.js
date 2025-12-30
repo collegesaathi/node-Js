@@ -94,6 +94,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
   });
 }
 
+// Program Add Controller Logic
 exports.AddProgram = catchAsync(async (req, res) => {
   const uploadedFiles = {};
   req.files?.forEach(file => {
@@ -290,6 +291,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
   }
 });
 
+// Program Get By ID Controller Logic
 exports.GetProgramById = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
@@ -371,6 +373,7 @@ exports.GetProgramById = catchAsync(async (req, res) => {
   }
 });
 
+// Program Update Controller Logic
 exports.UpdateProgram = catchAsync(async (req, res) => {
   try {
     const programId = Number(req.body.id);
@@ -686,6 +689,69 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     }
 
     return errorResponse(res, "Something went wrong while updating program", 500);
+  }
+});
+
+//  Program Delete Controller Logic
+exports.ProgramDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return validationErrorResponse(res, "Program ID is required", 400);
+    }
+
+    const programId = Number(id);
+
+    const existingProgram = await prisma.Program.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return validationErrorResponse(res, "Program not found", 404);
+    }
+
+    let updatedRecord;
+
+    /* ------------------------------------------
+       RESTORE IF ALREADY DELETED
+    ------------------------------------------- */
+    if (existingProgram.deleted_at) {
+      updatedRecord = await prisma.Program.update({
+        where: { id: programId },
+        data: { deleted_at: null },
+      });
+
+      return successResponse(
+        res,
+        "Program restored successfully",
+        200,
+        updatedRecord
+      );
+    }
+
+    /* ------------------------------------------
+       SOFT DELETE
+    ------------------------------------------- */
+    updatedRecord = await prisma.Program.update({
+      where: { id: programId },
+      data: { deleted_at: new Date() },
+    });
+
+    return successResponse(
+      res,
+      "Program deleted successfully",
+      200,
+      updatedRecord
+    );
+
+  } catch (error) {
+
+    if (error.code === "P2025") {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    return errorResponse(res, error.message, 500);
   }
 });
 
