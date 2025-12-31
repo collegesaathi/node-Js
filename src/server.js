@@ -7,26 +7,25 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const path = require("path");
-// const serverless = require('serverless-http');
-// const corsOptions = {
-//   origin: "*", // Allowed origins
-//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//   allowedHeaders: "*", // Allow all headers
-//   credentials: true,
-//   optionsSuccessStatus: 200, // for legacy browsers
-// };
-// app.use(cors(corsOptions));
+const corsOptions = {
+  origin: "*", // Allowed origins
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "*", // Allow all headers
+  credentials: true,
+  optionsSuccessStatus: 200, // for legacy browsers
+};
+app.use(cors(corsOptions));
 
-app.use(
-  cors({
-    origin: [
-      "https://indiaprograms.com",
-      "https://www.indiaprograms.com"
-    ],
-    credentials: true,
-    methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
-  })
-);
+// app.use(
+//   cors({
+//     origin: [
+//       "https://indiaprograms.com",
+//       "https://www.indiaprograms.com"
+//     ],
+//     credentials: true,
+//     methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+//   })
+// );
 
 app.use(express.json({ limit: "2000mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
@@ -60,7 +59,7 @@ app.use("/api", require("./routes/CommonRoute"));
 app.use("/api", require("./routes/specialisationRoute"));
 app.use("/api", require("./routes/EnqiuryRoute"));
 app.use("/api", require("./routes/PlaceAndApprovalRoute"));
-app.use("/api", require("./routes/programRoutes.js"));
+app.use("/api", require("./routes/programRoutes"));
 
 
 // const { PrismaClient } = require('@prisma/client');

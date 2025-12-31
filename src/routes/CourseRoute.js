@@ -5,18 +5,11 @@ const { AllCourses, AddCourse, CoursesDelete, GetCourseById, GetUniversityCourse
 // const { upload } = require("../utils/s3");
 
 router.get("/all/course", AllCourses);
-
 router.post("/admin/course/add", dynamicUpload("course").any(), AddCourse);
-
-// router.post("/admin/course/add", upload.any(), AddCourse);   
-
 router.get("/course/delete/:id", CoursesDelete)
-
 router.get("/course/:slug", GetCourseById)
 router.get("/course/university/:id", GetUniversityCourseList)
-
 router.get("/course_name/:id", GetCourseByName)
-
 router.post("/admin/course/update", dynamicUpload("universities").any(), UpdateCourse)
 
 
