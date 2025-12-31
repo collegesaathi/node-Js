@@ -152,10 +152,11 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 exports.GetBySpecialisationId = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
+    console.log("slug" ,slug)
     if (!slug) {
       return errorResponse(res, "Specialisation slug is required", 400);
     }
-    const SpecialisationData = await prisma.specialisation.findFirst({
+    const SpecialisationData = await prisma.Specialisation.findFirst({
       where: {
         slug: slug,
         deleted_at: null,
@@ -180,7 +181,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
         advantages: true,
       },
     });
-
+console.log("SpecialisationData" ,SpecialisationData)
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
@@ -245,7 +246,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
       });
     }
 
-
+console.log(SpecialisationData, approvalsData, placementPartners)
     return successResponse(
       res,
       "Specialisation fetched successfully",
@@ -1043,32 +1044,20 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
 exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
   try {
-    const { university_id } = req.params;
     const { course_id } = req.params;
-
-    if (!university_id) {
-      return errorResponse(res, "university_id id is required", 400);
-    }
-
+    console.log("course_id" ,course_id)
     if (!course_id) {
       return errorResponse(res, "course_id id is required", 400);
     }
     const SpecialisationList = await prisma.Specialisation.findMany({
       where: {
-        university_id: Number(university_id),
         course_id: Number(course_id)
       }
     })
+
+    console.log("SpecialisationList" ,SpecialisationList)
     if (!SpecialisationList) {
       return validationErrorResponse(res, "Specialisation not found", 404);
     }
@@ -1119,31 +1108,3 @@ exports.SpecialisationDelete = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
-
-
-exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return errorResponse(res, "univeristy id is required", 400);
-    }
-    const courseList = await prisma.Specialisation.findMany({
-      where: {
-        course_id: Number(id)
-      },
-      include:{
-    fees :true
-      }
-    })
-    if (!courseList) {
-      return validationErrorResponse(res, "Specialisation not found", 404);
-    }
-    return successResponse(res, "Specialisation list successfully", 200, courseList);
-
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return errorResponse(res, "Specialisation not found", 404);
-    }
-    return errorResponse(res, error.message, 500);
-  }
-})
