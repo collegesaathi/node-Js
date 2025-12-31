@@ -12,5 +12,4 @@ router.get("/course/university/:id", GetUniversityCourseList)
 router.get("/course_name/:id", GetCourseByName)
 router.post("/admin/course/update", dynamicUpload("universities").any(), UpdateCourse)
 
-
 module.exports = router;

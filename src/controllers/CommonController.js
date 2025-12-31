@@ -53,38 +53,121 @@ exports.List = catchAsync(async (req, res) => {
 });
 
 
+// exports.CompareUniversity = catchAsync(async (req, res) => {
+//   try {
+
+//     const { firstslug, secondslug, thirdslug } = req.params;
+
+
+//     const [UniversityFirst, UniversitySecond, UniversityThird] =
+//       await Promise.all([
+//         prisma.university.findUnique({
+//           where: { slug: firstslug },
+//           include: {
+//             approvals: true,
+
+//           },
+//         }),
+//         prisma.university.findUnique({
+//           where: { slug: secondslug },
+//           include: {
+//             approvals: true,
+//           },
+//         }),
+//         prisma.university.findUnique({
+//           where: { slug: thirdslug },
+//           include: {
+//             approvals: true,
+//           },
+//         }),
+//       ]);
+
+//     return successResponse(
+//       res,
+//       "Compare University List fetched successfully",
+//       200,
+//       { UniversityFirst, UniversitySecond, UniversityThird }
+//     );
+//   } catch (error) {
+//     return errorResponse(res, error.message, 500);
+//   }
+// });
+
+
+// exports.CompareUniversity = catchAsync(async (req, res) => {
+//   try {
+
+//     const {slug } = req.params;
+//     const result = slug.replace("-vs-", ", "); 
+//     console.log("result",result)
+    
+
+//     const [UniversityFirst, UniversitySecond, UniversityThird] =
+//       await Promise.all([
+//         prisma.university.findUnique({
+//           where: { slug: firstslug },
+//           include: {
+//             approvals: true,
+
+//           },
+//         }),
+//         prisma.university.findUnique({
+//           where: { slug: secondslug },
+//           include: {
+//             approvals: true,
+//           },
+//         }),
+//         prisma.university.findUnique({
+//           where: { slug: thirdslug },
+//           include: {
+//             approvals: true,
+//           },
+//         }),
+//       ]);
+
+//     return successResponse(
+//       res,
+//       "Compare University List fetched successfully",
+//       200,
+//       { UniversityFirst, UniversitySecond, UniversityThird }
+//     );
+//   } catch (error) {
+//     return errorResponse(res, error.message, 500);
+//   }
+// });
+
 exports.CompareUniversity = catchAsync(async (req, res) => {
   try {
-    const { firstslug, secondslug, thirdslug } = req.params;
+    const { slug } = req.params;
 
-    const [UniversityFirst, UniversitySecond, UniversityThird] =
-      await Promise.all([
-        prisma.university.findUnique({
-          where: { slug: firstslug },
-          include: {
-            approvals: true,
 
-          },
-        }),
+    const slugs = slug.split("-vs-");
+
+
+    const universities = await Promise.all(
+      slugs.map((s) =>
         prisma.university.findUnique({
-          where: { slug: secondslug },
+          where: { slug: s },
           include: {
             approvals: true,
+            rankings: true,
+            financialAid: true,
+            examPatterns: true, 
           },
-        }),
-        prisma.university.findUnique({
-          where: { slug: thirdslug },
-          include: {
-            approvals: true,
-          },
-        }),
-      ]);
+        })
+      )
+    );
+
+    const validUniversities = universities.filter(u => u !== null);
 
     return successResponse(
       res,
       "Compare University List fetched successfully",
       200,
-      { UniversityFirst, UniversitySecond, UniversityThird }
+      { 
+        universities: validUniversities, 
+        count: validUniversities.length 
+      }
     );
   } catch (error) {
     return errorResponse(res, error.message, 500);

@@ -7,6 +7,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const path = require("path");
+// const serverless = require('serverless-http');
 const corsOptions = {
   origin: "*", // Allowed origins
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -19,6 +20,8 @@ app.use(cors(corsOptions));
 // app.use(
 //   cors({
 //     origin: [
+//       "https://amityonlines.com",
+//       "https://www.amityonlines.com"
 //       "https://indiaprograms.com",
 //       "https://www.indiaprograms.com"
 //     ],

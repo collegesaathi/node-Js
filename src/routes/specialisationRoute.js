@@ -12,13 +12,9 @@ router.get("/all/specialisation", Allspecialisation);
 router.post("/admin/specialisation/update", dynamicUpload("specialisation").any(), updateSpecialisation)
 
 
-router.get("/course/specialisation/:university_id/:course_id", GetSpecialisationCourseList)
+router.get("/course/specialisation/:course_id", GetSpecialisationCourseList)
 
 
 router.get("/specialisation/delete/:id", SpecialisationDelete)
-
-router.get("/specialisation/course/:id", GetSpecialisationCourseList)
-
-
 
 module.exports = router;
