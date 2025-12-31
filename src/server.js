@@ -22,6 +22,8 @@ app.use(cors(corsOptions));
 //     origin: [
 //       "https://amityonlines.com",
 //       "https://www.amityonlines.com"
+//       "https://indiaprograms.com",
+//       "https://www.indiaprograms.com"
 //     ],
 //     credentials: true,
 //     methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
@@ -60,7 +62,7 @@ app.use("/api", require("./routes/CommonRoute"));
 app.use("/api", require("./routes/specialisationRoute"));
 app.use("/api", require("./routes/EnqiuryRoute"));
 app.use("/api", require("./routes/PlaceAndApprovalRoute"));
-app.use("/api", require("./routes/programRoutes.js"));
+app.use("/api", require("./routes/programRoutes"));
 
 
 // const { PrismaClient } = require('@prisma/client');

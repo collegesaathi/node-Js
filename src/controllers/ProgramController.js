@@ -143,6 +143,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           conclusion: req.body.conclusion || "",
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
+          category_id: req.body.category_id || 1,
         },
       });
 
@@ -446,7 +447,8 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       conclusion: req.body.conclusion || existing.conclusion,
       specialisationtitle: req.body.specialisationtitle || existing.specialisationtitle,
       specialisationdesc: req.body.specialisationdesc || existing.specialisationdesc,
-
+      // ✅ ADD THIS
+      category_id: req.body.category_id ? Number(req.body.category_id) : existing.category_id,
       bannerImage:
         uploadedFiles["bannerImage"]
           ? (deleteUploadedFiles([existing.bannerImage]),
@@ -755,4 +757,30 @@ exports.ProgramDelete = catchAsync(async (req, res) => {
   }
 });
 
+// All Programs Controller Logic
+exports.AllPrograms = catchAsync(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = 9;
+  const skip = (page - 1) * limit;
 
+
+  const programs = await prisma.Program.findMany({
+    orderBy: { createdAt: "desc" },
+    skip,
+    take: limit,
+  });
+
+  const totalPrograms = await prisma.Program.count();
+
+  const totalPages = Math.ceil(totalPrograms / limit);
+
+  return successResponse(res, "Program fetched successfully", 200, {
+    programs,
+    pagination: {
+      page,
+      limit,
+      totalPages,
+      totalPrograms,
+    },
+  });
+});
