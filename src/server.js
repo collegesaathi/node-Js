@@ -8,27 +8,25 @@ const app = express();
 const cors = require("cors");
 const path = require("path");
 // const serverless = require('serverless-http');
-const corsOptions = {
-  origin: "*", // Allowed origins
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  allowedHeaders: "*", // Allow all headers
-  credentials: true,
-  optionsSuccessStatus: 200, // for legacy browsers
-};
-app.use(cors(corsOptions));
+// const corsOptions = {
+//   origin: "*", // Allowed origins
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   allowedHeaders: "*", // Allow all headers
+//   credentials: true,
+//   optionsSuccessStatus: 200, // for legacy browsers
+// };
+// app.use(cors(corsOptions));
 
-// app.use(
-//   cors({
-//     origin: [
-//       "https://amityonlines.com",
-//       "https://www.amityonlines.com"
-//       "https://indiaprograms.com",
-//       "https://www.indiaprograms.com"
-//     ],
-//     credentials: true,
-//     methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
-//   })
-// );
+app.use(
+  cors({
+    origin: [
+      "https://indiaprograms.com",
+      "https://www.indiaprograms.com"
+    ],
+    credentials: true,
+    methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+  })
+);
 
 app.use(express.json({ limit: "2000mb" }));
 app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
