@@ -3,6 +3,7 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 
 
 const makeSlug = (text) => {
@@ -100,7 +101,10 @@ exports.AddProgram = catchAsync(async (req, res) => {
   req.files?.forEach(file => {
     uploadedFiles[file.fieldname] = file.path;
   });
+  Loggers.silly(req.body)
+  Loggers.silly(uploadedFiles)
 
+return false ;
   try {
     const careerJson       = parseArray(req.body.career);
     const highlightsJson   = parseArray(req.body.Highlights);

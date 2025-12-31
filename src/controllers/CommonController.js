@@ -220,33 +220,30 @@ exports.PopUniversityApi = catchAsync(async (req, res) => {
 
 
 exports.GetUniversityCategroyList = catchAsync(async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return errorResponse(res, "univeristy id is required", 400);
-    }
-    const UniversityData = await prisma.University.findMany({
-      where: {
-        university_id: Number(id)
-      },
-    })
-    const CategoryLists = await prisma.Category.findMany({});
-
-    if (!courseList) {
-      return validationErrorResponse(res, "Course not found", 404);
-    }
-    return successResponse(res, "Course list successfully", 200, {
-      CategoryLists
-      , UniversityData
-    });
-
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return errorResponse(res, "Course not found", 404);
-    }
-    return errorResponse(res, error.message, 500);
+  const { id } = req.params;
+  console.log("id" ,id)
+  if (!id) {
+    return errorResponse(res, "University id is required", 400);
   }
-})
+
+  const UniversityData = await prisma.University.findUnique({
+    where: {
+      id: Number(id), // ✅ primary key
+    },
+  });
+
+  if (!UniversityData) {
+    return validationErrorResponse(res, "University not found", 404);
+  }
+
+  const CategoryLists = await prisma.Category.findMany();
+
+  return successResponse(res, "Category list fetched successfully", 200, {
+    CategoryLists,
+    UniversityData,
+  });
+});
+
 
 
 exports.GetCategroyList = catchAsync(async (req, res) => {
