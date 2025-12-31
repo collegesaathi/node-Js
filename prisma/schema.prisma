@@ -523,12 +523,11 @@ model Program {
   // ✅ CATEGORY RELATION
   category_id         Int        @default(1)
   category            Category   @relation(fields: [category_id], references: [id])
-
   careers             ProgramCareer?
   placement           ProgramPlacement?
-  fees                ProgramFee?
+  choose                ProgramChoose?
   academic            ProgramAcademic?
-  investment          ProgramInvestment?
+  investment          ProgramGraph?
   highlights          ProgramHighlights?
   entrance            ProgramEntrance?
   faqs                Faq?
@@ -536,6 +535,8 @@ model Program {
   institutes          ProgramInstitutes?
   curriculum          ProgramCurriculum?
   experience          ProgramExperience?
+  financial           ProgramFinancialScholarship?
+  durationfees            ProgramDurationFees?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   deleted_at          DateTime?  
@@ -564,12 +565,31 @@ model ProgramCareer {
   program     Program? @relation(fields: [program_id], references: [id])
 }
 
-model ProgramInvestment {
+
+model ProgramFinancialScholarship {
+  id            Int        @id @default(autoincrement())
+  title       String
+  description String?
+  financial      Json?
+  program_id  Int?  @unique
+  program     Program? @relation(fields: [program_id], references: [id])
+}
+
+model ProgramDurationFees {
+  id            Int        @id @default(autoincrement())
+  title       String
+  description String?
+  duration      Json?
+  program_id  Int?  @unique
+  program     Program? @relation(fields: [program_id], references: [id])
+}
+
+model ProgramGraph {
  id            Int        @id @default(autoincrement())
   title       String
   description String?
-  subtitle    String?
-  career      Json?
+  subdesc    String?
+  monthly      Json?
   program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
@@ -626,12 +646,13 @@ model ProgramCurriculum {
   program     Program? @relation(fields: [program_id], references: [id])
 }
 
-model ProgramFee {
+model ProgramChoose {
  id            Int        @id @default(autoincrement())
   title       String
   description String?
   descbtm     String?
-  fees        Json?
+  choose        Json?
+  purpuse        Json?
   program_id  Int? @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }

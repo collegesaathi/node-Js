@@ -445,7 +445,6 @@ exports.addUniversity = catchAsync(async (req, res) => {
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
     const campusInterImages = mapUploadedArray(req, uploadedFiles, "campusinterimages");
-
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
 
     // attach images to corresponding items

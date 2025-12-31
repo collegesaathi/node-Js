@@ -55,7 +55,7 @@ function toPublicUrl(req, filePath) {
 function parseArray(jsonString) {
   if (!jsonString) return [];
   try {
-    return typeof jsonString === "string" ? JSON.parse(jsonString) : jsonString;
+    return typeof jsonString === "string" ? JSON.parse(jsonString) : jsonString || [];
   } catch (err) {
     return [];
   }
@@ -104,34 +104,40 @@ exports.AddProgram = catchAsync(async (req, res) => {
   Loggers.silly(req.body)
   Loggers.silly(uploadedFiles)
 
-return false ;
   try {
-    const careerJson       = parseArray(req.body.career);
-    const highlightsJson   = parseArray(req.body.Highlights);
-    const entranceJson     = parseArray(req.body.Entrance);
-    const institutesJson   = parseArray(req.body.Institutes);
-    const placementIdsJson = parseArray(req.body.placement_ids);
-    const subPlacementJson = parseArray(req.body.subplacement);
-    const curriculumJson   = parseArray(req.body.curriculum);
-    const feesJson         = parseArray(req.body.fees);
-
-    if (!req.body.title) {
+    let faqs = parseArray(req.body.faqs);
+    const highlightsJson = parseArray(req.body.keyhight);
+    const institutesJson = parseArray(req.body.institutes);
+    let placementIdsJson = parseArray(req.body.selectedPartners);
+    let subPlacementJson = parseArray(req.body.PlacementAdds);
+    const curriculumJson = parseArray(req.body.curriculm);
+    let fincalceAdds = parseArray(req.body.fincalceAdds)
+    let choose =  parseArray(req.body.choose);
+    let purpuse =  parseArray(req.body.purpuse)
+    const factsImages = mapUploadedArray(req, uploadedFiles, "fincalceAddsimages");
+    const chooseimages = mapUploadedArray(req, uploadedFiles, "chooseimages");
+    const purpuseimages = mapUploadedArray(req, uploadedFiles, "purpuseimages");
+    const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
+    fincalceAdds = attachImagesToItems(fincalceAdds, factsImages, "image");
+    choose = attachImagesToItems(choose, chooseimages, "image");
+    purpuse = attachImagesToItems(purpuse, purpuseimages, "image");
+    subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image");
+    if (!req.body.name) {
       return errorResponse(res, "Program title is required", 400);
     }
 
     const generatedSlug = await generateUniqueSlug(
       prisma,
-      req.body.title
+      req.body.name
     );
-
     const result = await prisma.$transaction(async (tx) => {
       const program = await tx.Program.create({
         data: {
-          title: req.body.title,
-          slug: req.body.slug || generatedSlug,
-          description: req.body.description || "",
-          bannerImage: toPublicUrl(req, uploadedFiles["bannerImage"]) || "",
-          bannerImageAlt: req.body.bannerImageAlt || "",
+          title: req.body.name || "",
+          slug: req.body.slug || generatedSlug || "",
+          description: req.body.descriptions || "",
+          bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]) || "",
+          bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
           pdfdownlaod: toPublicUrl(req, uploadedFiles["pdfdownlaod"]) || "",
           career_growth: req.body.career_growth || "",
           duration: req.body.duration || "",
@@ -155,37 +161,52 @@ return false ;
 
       await tx.ProgramAcademic.create({
         data: {
-          title: req.body.academic_title || "",
-          description: req.body.academic_description || "",
-          Image: toPublicUrl(req, uploadedFiles["academic_image"]) || "",
+          title: req.body.academictitle || "",
+          description: req.body.academicdesc || "",
+          Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]) || "",
           image_alt: req.body.academic_image_alt || "",
-          entra_title: req.body.entra_title || "",
-          entra_dsec: req.body.entra_dsec || "",
-          entra_image: toPublicUrl(req, uploadedFiles["entra_image"]) || "",
-          entra_image_alt: req.body.entra_image_alt || "",
+          entra_title: req.body.entracetitle || "",
+          entra_dsec: req.body.entracedesc || "",
+          entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]) || "",
+          entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
           program_id: programId,
         },
       });
 
       await tx.ProgramCareer.create({
         data: {
-          title: req.body.career_title || "",
-          description: req.body.career_description || "",
-          career: careerJson,
+          title: req.body.careername || "",
+          description: req.body.careerdesc || "",
+          career: parseArray(req.body.Careers),
           program_id: programId,
         },
       });
 
-      await tx.ProgramInvestment.create({
+      await tx.ProgramExperience.create({
         data: {
-          title: req.body.investment_title || "",
-          description: req.body.investment_description || "",
-          subtitle: req.body.investment_subtitle || "",
-          career: parseArray(req.body.investment_career),
+          title: req.body.experincename || "",
+          description: req.body.experincedesc || "",
+          descbtm: req.body.experincenotes || "",
+          fees: parseArray(req.body.Experinces),
           program_id: programId,
         },
       });
 
+      await tx.Faq.create({
+        data: {
+          program_id: programId,
+          faqs: faqs || [],
+        }
+      })
+      await tx.Seo.create({
+        data: {
+          program_id: programId,
+          meta_title: req.body.meta_title || "",
+          meta_description: req.body.meta_description || "",
+          meta_keywords: req.body.meta_keywords || "",
+          canonical_url: req.body.canonical_url || "",
+        }
+      })
       await tx.ProgramHighlights.create({
         data: {
           title: req.body.highlights_title || "",
@@ -196,34 +217,71 @@ return false ;
         },
       });
 
-      await tx.ProgramEntrance.create({
+      await tx.ProgramChoose.create({
         data: {
-          icon: toPublicUrl(req, uploadedFiles["entrance_icon"]) || "",
-          title: req.body.entrance_title || "",
-          description: req.body.entrance_description || "",
-          Entrance: entranceJson,
+          title: req.body.purpusename || "",
+          description: req.body.purpsedesc || "",
+          choose: parseArray(req.body.choose),
+          purpuse: parseArray(req.body.purpuse),
           program_id: programId,
         },
       });
 
-      await tx.ProgramInstitutes.create({
+      await tx.ProgramGraph.create({
         data: {
-          icon: toPublicUrl(req, uploadedFiles["institutes_icon"]) || "",
-          title: req.body.institutes_title || "",
-          description: req.body.institutes_description || "",
-          Institutes: institutesJson,
+          title: req.body.futuretitle || "",
+          description: req.body.futuredesc || "",
+          subdesc: req.body.futurebtmdesc || "",
+          monthly: parseArray(req.body.monthlyData),
+          program_id: programId,
+        },
+      });
+      await tx.ProgramEntrance.create({
+        data: {
+          icon: toPublicUrl(req, uploadedFiles["entrance_icon"]) || "",
+          title: req.body.onlinetitle || "",
+          description: req.body.onlinedesc || "",
+          Entrance: parseArray(req.body.onlines),
           program_id: programId,
         },
       });
 
       await tx.ProgramPlacement.create({
         data: {
-          title: req.body.placement_title || "",
-          description: req.body.placement_description || "",
+          title: req.body.placementname || "",
+          description: req.body.placementdescription || "",
           placement_ids: placementIdsJson,
-          subtitle: req.body.placement_subtitle || "",
-          Subdec: req.body.Subdec || "",
+          subtitle: req.body.partnersname || "",
+          Subdec: req.body.partnersdesc || "",
           subplacement: subPlacementJson,
+          program_id: programId,
+        },
+      });
+
+
+      await tx.ProgramInstitutes.create({
+        data: {
+          title: req.body.instututitle || "",
+          description: req.body.instutudesc || "",
+          Institutes: institutesJson,
+          program_id: programId,
+        },
+      });
+
+      await tx.ProgramFinancialScholarship.create({
+        data: {
+          title: req.body.financialname || "",
+          description: req.body.financialdescription || "",
+          financial: fincalceAdds,
+          program_id: programId,
+        },
+      });
+
+      await tx.ProgramDurationFees.create({
+        data: {
+          title: req.body.durationname || "",
+          description: req.body.durationdesc || "",
+          duration: parseArray(req.body.DurationData),
           program_id: programId,
         },
       });
@@ -238,25 +296,8 @@ return false ;
         },
       });
 
-      await tx.ProgramFee.create({
-        data: {
-          title: req.body.fees_title || "",
-          description: req.body.fees_description || "",
-          descbtm: req.body.fees_descbtm || "",
-          fees: feesJson,
-          program_id: programId,
-        },
-      });
 
-      await tx.ProgramExperience.create({
-        data: {
-          title: req.body.experience_title || "",
-          description: req.body.experience_description || "",
-          descbtm: req.body.experience_descbtm || "",
-          fees: parseArray(req.body.experience_fees),
-          program_id: programId,
-        },
-      });
+
 
       return program;
     });
@@ -276,22 +317,22 @@ return false ;
 
     // Prisma unique constraint
     if (error.code === "P2002") {
-        return errorResponse(
+      return errorResponse(
         res,
         `Duplicate field value: ${error.meta?.target?.join(", ")}`,
         400
-        );
+      );
     }
 
     // Prisma validation errors
     if (error.code === "P2009" || error.code === "P2010") {
-        return errorResponse(res, error.message, 400);
+      return errorResponse(res, error.message, 400);
     }
 
     return errorResponse(
-        res,
-        error.message || "Internal Server Error",
-        500
+      res,
+      error.message || "Internal Server Error",
+      500
     );
   }
 });
@@ -333,7 +374,7 @@ exports.GetProgramById = catchAsync(async (req, res) => {
       if (!val && val !== 0) return [];
       return Array.isArray(val) ? val : [val];
     };
-       // ----------- Extract partner IDs (defensively) -----------
+    // ----------- Extract partner IDs (defensively) -----------
     let placementPartnerIds = [];
 
     const placement = ProgramData.placement;
