@@ -28,8 +28,8 @@ app.use(cors(corsOptions));
 //   })
 // );
 
-app.use(express.json({ limit: "2000mb" }));
-app.use(express.urlencoded({ extended: true, limit: "2000mb" }));
+app.use(express.json({ limit: "500000mb" }));
+app.use(express.urlencoded({ extended: true, limit: "500000mb" }));
 
 // -----------------------------------------------------
 // ✅ STATIC IMAGE FOLDERS (VERY IMPORTANT)

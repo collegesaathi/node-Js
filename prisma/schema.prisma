@@ -527,7 +527,7 @@ model Program {
   placement           ProgramPlacement?
   choose                ProgramChoose?
   academic            ProgramAcademic?
-  investment          ProgramGraph?
+  graph          ProgramGraph?
   highlights          ProgramHighlights?
   entrance            ProgramEntrance?
   faqs                Faq?
@@ -549,7 +549,7 @@ model ProgramAcademic {
  Image        String?
  image_alt    String?
  entra_title String?
- entra_dsec  String?
+ entra_desc  String?
  entra_image String?
  entra_image_alt String?
  program_id  Int?  @unique
@@ -641,7 +641,7 @@ model ProgramCurriculum {
   title       String
   description String?
   subtitle   String?
-  placement_ids  Json?
+  curriculum_id  Json?
   program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
@@ -661,8 +661,8 @@ model ProgramExperience {
  id            Int        @id @default(autoincrement())
   title       String
   description String?
-  descbtm     String?
-  fees        Json?
+  notes     String?
+  experiences        Json?
   program_id  Int? @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
