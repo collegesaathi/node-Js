@@ -841,7 +841,7 @@ Loggers.silly(req.body)
         slug: finalData.slug || newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
-        // rank : finalData.rank || ""
+       rank : finalData.rank || ""
       }
     });
 
