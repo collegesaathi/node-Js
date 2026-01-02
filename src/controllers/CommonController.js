@@ -7,8 +7,7 @@ exports.University = catchAsync(async (req, res) => {
     const { search } = req.query;
 
     const universities = await prisma.university.findMany({
-      where:
-        search && search.length >= 3
+      where: search && search.length >= 3
           ? {
             name: {
               contains: search,

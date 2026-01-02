@@ -180,16 +180,24 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 
 exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
+    const { search } = req.query;
+    console.log("search", search) 
   const page = parseInt(req.query.page) || 1;
   const limit = 9;
   const skip = (page - 1) * limit;
   const universities = await prisma.university.findMany({
     skip,
     take: limit,
-    orderBy: [
-      // { position: { sort: "asc", nulls: "last" } },
-      { created_at: "desc" }
-    ],
+    orderBy: [ { created_at: "asc" }],
+    where: search && search.length >= 3
+          ? {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+            deleted_at: null
+          }
+          : {},
   });
 
   if (!universities) {

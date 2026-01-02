@@ -35,6 +35,7 @@ model University {
   name               String
   rank               String?
   icon               String?
+  video              String?
   cover_image        String?
   icon_alt               String?
   cover_image_alt         String?
@@ -70,6 +71,7 @@ model Course {
   slug         String              @unique
   name         String
   icon         String?
+  video         String?
   cover_image        String?
   position           Int?                         @default(0)
   cover_image_alt         String?
@@ -111,6 +113,7 @@ model Specialisation {
   slug          String    @unique
   name          String
   icon          String?
+  video          String?
   cover_image   String?
   icon_alt      String?
   cover_image_alt String?
