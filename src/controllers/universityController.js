@@ -5,7 +5,6 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
 const deleteUploadedFiles = require("../utils/fileDeleter");
 const Loggers = require("../utils/Logger");
 
-
 const makeSlug = (text) => {
   return text
     .toString()
@@ -714,6 +713,9 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
+
+    Loggers.silly(req.body)
+
     // Parse arrays
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -834,10 +836,10 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       where: { id: universityId },
       data: {
         name: finalData.name,
-        cover_image: finalData.cover_image,
+        cover_image: finalData.cover_image || "",
         position: Number(finalData.position),
         description: finalData.descriptions,
-        icon: finalData.icon,
+        icon: finalData.icon || "",
         slug: finalData.slug || newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",

@@ -3,6 +3,7 @@ const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 const makeSlug = (text) => {
   return text
     .toString()
@@ -152,7 +153,6 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 exports.GetBySpecialisationId = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
-    console.log("slug" ,slug)
     if (!slug) {
       return errorResponse(res, "Specialisation slug is required", 400);
     }
@@ -273,6 +273,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       // file.fieldname might be "servicesimages[0]" or "icon" etc.
       uploadedFiles[file.fieldname] = file.path;
     });
+    Loggers.silly(req.body)
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
     let campusList = parseArray(req.body.campusList);

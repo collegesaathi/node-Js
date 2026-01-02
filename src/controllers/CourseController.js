@@ -3,6 +3,7 @@ const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
+const Loggers = require("../utils/Logger");
 
 const makeSlug = (text) => {
   return text
@@ -403,6 +404,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     req.files?.forEach(file => {
       uploadedFiles[file.fieldname] = file.path;
     });
+    Loggers.silly(req.body)
 
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -999,7 +1001,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-
+Loggers.silly(req.body)
     if (!CourseId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
@@ -1259,7 +1261,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     semesters: finalData.semesters,
   },
   create: {
-    course_id: Number(CoursesData.id),
+    course_id: Number(CourseId),
     title: finalData.semesters_title,
     semesters: finalData.semesters,
   }
