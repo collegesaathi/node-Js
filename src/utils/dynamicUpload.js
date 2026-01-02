@@ -11,7 +11,6 @@ const dynamicUpload = (folderName) => {
     storage: multer.diskStorage({
       destination: (req, file, cb) => {
         const finalFolder = path.join(process.cwd(), BASE_UPLOAD_PATH, folderName);
-
         // Create folder if not exist
         if (!fs.existsSync(finalFolder)) {
           fs.mkdirSync(finalFolder, { recursive: true });
