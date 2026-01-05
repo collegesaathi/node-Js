@@ -464,6 +464,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     const finalData = {
       meta_title: req.body.meta_title || "",
         rank: req.body.rank || "",
+        video:req.body.video || "",
       meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
@@ -527,9 +528,11 @@ exports.addUniversity = catchAsync(async (req, res) => {
         slug: finalData.slug ? finalData.slug : generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
-        rank : finalData.rank
+        rank : finalData.rank,
+        video  :  finalData.video
       }
     });
+    
     if (Universitydata.id) {
       await prisma.About.create({
         data: {
@@ -841,7 +844,8 @@ Loggers.silly(req.body)
         slug: finalData.slug || newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
-       rank : finalData.rank || ""
+       rank : finalData.rank || "",
+       video :  req.body.video || ""
       }
     });
 
@@ -863,6 +867,7 @@ Loggers.silly(req.body)
       update: { campus: finalData.campusList, campusInternationList: finalData.internationalcampus },
       create: { university_id: universityId, campus: finalData.campusList, campusInternationList: finalData.internationalcampus }
     });
+
     await prisma.Services.upsert({
       where: { university_id: universityId },
       update: {

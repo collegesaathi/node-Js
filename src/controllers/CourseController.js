@@ -503,35 +503,21 @@ exports.AddCourse = catchAsync(async (req, res) => {
 
     const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
 
-    // Upsert Course
-    const CoursesData = await prisma.Course.upsert({
-      where: { slug: finalData.slug || generatedSlug },
-      update: {
+
+    const CoursesData = await prisma.Course.create({
+      data: {
         name: finalData.name || "Untitled",
         cover_image: finalData.cover_image,
         position: Number(finalData.position || 0),
-        description: finalData.descriptions,
+        description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        cover_image_alt: finalData.cover_image_alt,
-        icon_alt: finalData.icon_alt,
-        category_id: Number(finalData.category_id || 0),
-        university_id: Number(finalData.university_id || 0),
-        slug: finalData.slug || generatedSlug
-      },
-      create: {
-        name: finalData.name || "Untitled",
-        cover_image: finalData.cover_image,
-        position: Number(finalData.position || 0),
-        description: finalData.descriptions,
-        icon: finalData.icon,
-        cover_image_alt: finalData.cover_image_alt,
-        icon_alt: finalData.icon_alt,
-        category_id: Number(finalData.category_id || 0),
-        university_id: Number(finalData.university_id || 0),
-        slug: finalData.slug || generatedSlug
+        slug: finalData.slug ? finalData.slug : generatedSlug,
+        cover_image_alt: finalData?.cover_image_alt,
+        icon_alt: finalData?.icon_alt,
+        rank: finalData.rank,
+        video: finalData.video
       }
     });
-
     // Upsert related tables
     await prisma.Fees.upsert({
       where: { course_id: CoursesData.id },
@@ -946,8 +932,8 @@ exports.GetUniversityCourseList = catchAsync(async (req, res) => {
       where: {
         university_id: Number(id)
       },
-      include:{
-    fees :true
+      include: {
+        fees: true
       }
     })
     if (!courseList) {
@@ -1001,7 +987,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-Loggers.silly(req.body)
+    Loggers.silly(req.body)
     if (!CourseId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
@@ -1185,7 +1171,8 @@ Loggers.silly(req.body)
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
-        category_id: Number(finalData.category_id) || ""
+        category_id: Number(finalData.category_id) || "",
+        video: req.body.video || ""
       }
     });
 
@@ -1255,17 +1242,17 @@ Loggers.silly(req.body)
       // })
 
       await prisma.Curriculum.upsert({
-  where: { course_id: Number(CourseId) }, // ya unique id field
-  update: {
-    title: finalData.semesters_title,
-    semesters: finalData.semesters,
-  },
-  create: {
-    course_id: Number(CourseId),
-    title: finalData.semesters_title,
-    semesters: finalData.semesters,
-  }
-});
+        where: { course_id: Number(CourseId) }, // ya unique id field
+        update: {
+          title: finalData.semesters_title,
+          semesters: finalData.semesters,
+        },
+        create: {
+          course_id: Number(CourseId),
+          title: finalData.semesters_title,
+          semesters: finalData.semesters,
+        }
+      });
 
       await prisma.Certificates.upsert({
         where: { course_id: CourseId },
