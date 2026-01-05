@@ -14,12 +14,11 @@ const makeSlug = (text) => {
     .replace(/--+/g, "-");
 };
 
-const generateUniqueSlug = async (prisma, title) => {
-  let baseSlug = makeSlug(title);
+const generateUniqueSlug = async (prisma, rawSlugOrTitle) => {
+  let baseSlug = makeSlug(rawSlugOrTitle);
   let slug = baseSlug;
   let counter = 1;
 
-  // Already existing slugs load
   const existingSlugs = await prisma.Specialisation.findMany({
     where: {
       slug: {
@@ -29,14 +28,14 @@ const generateUniqueSlug = async (prisma, title) => {
     select: { slug: true },
   });
 
-  // Unique slug find karna
-  while (existingSlugs.some((item) => item.slug === slug)) {
+  while (existingSlugs.some(item => item.slug === slug)) {
     slug = `${baseSlug}-${counter}`;
     counter++;
   }
 
   return slug;
 };
+
 
 
 // Convert Windows Path to Public URL
@@ -299,10 +298,11 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     facts = attachImagesToItems(facts, factsImages, "image");
     indian = attachImagesToItems(indian, indianimages, "images");
     nri = attachImagesToItems(nri, nriimages, "images");
+
+  
     const finalData = {
       name: req.body.name || "",
       course_id: req.body.course_id || "",
-      slug: req.body.slug || "",
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
       category_id: req.body.category_id || "",
@@ -367,25 +367,26 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       careerdesc: req.body.careerdesc || "",
       desccreteria: req.body.desccreteria || ""
     };
+
+      const rawSlug = req.body.slug?.trim() || finalData.name;
+const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
     }
 
-    const generatedSlug = await generateUniqueSlug(prisma, finalData.name);
     // Save with Prisma (example)
     const SpecialisationData = await prisma.Specialisation.create({
         data: {
             name: finalData.name || "Untitled",
             cover_image: finalData.cover_image,
             position: Number(finalData.position || 0),
-            description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
+            description: finalData.descriptions,
             icon: finalData.icon,
-            slug: finalData.slug ? finalData.slug : generatedSlug,
+            slug: uniqueSlug,
             cover_image_alt: finalData?.cover_image_alt,
             icon_alt: finalData?.icon_alt,
             course_id: Number(finalData.course_id || 0),
             university_id: Number(finalData.university_id || 0),
-
         }
     });
     if (SpecialisationData.id) {
