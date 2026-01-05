@@ -182,7 +182,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
         advantages: true,
       },
     });
-console.log("SpecialisationData" ,SpecialisationData)
+    console.log("SpecialisationData", SpecialisationData)
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
@@ -247,7 +247,7 @@ console.log("SpecialisationData" ,SpecialisationData)
       });
     }
 
-console.log(SpecialisationData, approvalsData, placementPartners)
+    console.log(SpecialisationData, approvalsData, placementPartners)
     return successResponse(
       res,
       "Specialisation fetched successfully",
@@ -288,7 +288,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     const servicesIcons = mapUploadedArray(req, uploadedFiles, "servicesicon");
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
-   const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
+    const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
     const indianimages = mapUploadedArray(req, uploadedFiles, "Indianimages");
     // attach images to corresponding items
     services = attachImagesToItems(services, servicesImages, "image");
@@ -299,7 +299,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     indian = attachImagesToItems(indian, indianimages, "images");
     nri = attachImagesToItems(nri, nriimages, "images");
 
-  
+
     const finalData = {
       name: req.body.name || "",
       course_id: req.body.course_id || "",
@@ -368,26 +368,26 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       desccreteria: req.body.desccreteria || ""
     };
 
-      const rawSlug = finalData.name;
-const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
+    const rawSlug = finalData.name;
+    const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
     }
 
     // Save with Prisma (example)
     const SpecialisationData = await prisma.Specialisation.create({
-        data: {
-            name: finalData.name || "Untitled",
-            cover_image: finalData.cover_image,
-            position: Number(finalData.position || 0),
-            description: finalData.descriptions,
-            icon: finalData.icon,
-            slug: uniqueSlug,
-            cover_image_alt: finalData?.cover_image_alt,
-            icon_alt: finalData?.icon_alt,
-            course_id: Number(finalData.course_id || 0),
-            university_id: Number(finalData.university_id || 0),
-        }
+      data: {
+        name: finalData.name || "Untitled",
+        cover_image: finalData.cover_image,
+        position: Number(finalData.position || 0),
+        description: finalData.descriptions,
+        icon: finalData.icon,
+        slug: uniqueSlug,
+        cover_image_alt: finalData?.cover_image_alt,
+        icon_alt: finalData?.icon_alt,
+        course_id: Number(finalData.course_id || 0),
+        university_id: Number(finalData.university_id || 0),
+      }
     });
     if (SpecialisationData.id) {
       await prisma.About.create({
@@ -438,7 +438,7 @@ const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
       data: {
         specialisation_id: Number(SpecialisationData.id),
         title: finalData.creteria || "",
-        description : finalData.desccreteria || "",
+        description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
         IndianCriteria: finalData.IndianCriteria || ""
       }
@@ -539,7 +539,7 @@ const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
         canonical_url: finalData.canonical_url,
       }
     })
-    return successResponse(res, "Course Saved successfully", 201, {
+    return successResponse(res, "Specialisation Saved successfully", 201, {
       SpecialisationData,
     });
 
@@ -673,61 +673,61 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
     patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
 
     campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
-    indian = attachImagesToItems(indian,  Indianimages, "image", existing.EligibilityCriteria?.IndianCriteria);
+    indian = attachImagesToItems(indian, Indianimages, "image", existing.EligibilityCriteria?.IndianCriteria);
     nri = attachImagesToItems(nri, nriimages, "image", existing.EligibilityCriteria?.NRICriteria);
 
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
 
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
-      name: req.body.name || existing.name || "",
-      slug: req.body.slug || existing.slug || "",
-      university_id: req.body.university_id || existing.university_id || "",
-      position: req.body.position || existing.position || "",
-      icon_alt: req.body.icon_alt || existing.icon_alt || "",
-      meta_title: req.body.meta_title || existing.seo?.meta_title || "",
-      category_id: req.body.category_id || existing?.category_id || "",
-      descriptions: descriptions?.length ? descriptions : existing.description || "",
-      cover_image_alt: req.body.cover_image_alt || existing.cover_image_alt || "",
-      about_title: req.body.about_title || existing.about?.title || "",
-      about_desc: req.body.about_desc || existing.about?.description || "",
-      tuition_fees: req.body.tuition_fees || existing.fees.tuition_fees || "",
-      anuual_fees: req.body.anuual_fees || existing.fees.anuual_fees || "",
-      semester_fees: req.body.semester_fees || existing.fees.semester_wise_fees || "",
-      approvals_name: req.body.approvals_name || existing.approvals?.title || "",
-      approvals_desc: req.body.approvals_desc || existing.approvals?.description || "",
-      approvals: parseArray(req.body.approvals) || existing.approvals?.approval_ids || "",
-      rankings_name: req.body.rankings_name || existing.rankings?.title || "",
-      rankings_description: req.body.rankings_description || existing.rankings?.description || "",
-      creteria: req.body.creteria || existing.eligibilitycriteria.creteria || "",
-      NRICriteria: nri?.length ? nri : existing.eligibilitycriteria?.NRICriteria || "",
-      IndianCriteria: indian?.length ? indian : existing.eligibilitycriteria?.IndianCriteria || "",
-      semesters_title: req.body.semesters_title || existing.curriculum.semesters_title || "",
-      semesters: parseArray(req.body.semesters) || existing.curriculum.semesters || "",
-      certificatename: req.body.certificatename || existing.certificates?.title || "",
-      certificatedescription: req.body.certificatedescription || existing.certificates?.description || "",
-      image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
-      fees_title: req.body.fees_title || existing.fees.fees_title || "",
+      name: req.body.name || "",
+      slug: req.body.slug || "",
+      university_id: req.body.university_id || "",
+      position: req.body.position || "",
+      icon_alt: req.body.icon_alt || "",
+      meta_title: req.body.meta_title || "",
+      category_id: req.body.category_id || "",
+      descriptions: descriptions?.length && descriptions || "",
+      cover_image_alt: req.body.cover_image_alt || "",
+      about_title: req.body.about_title || "",
+      about_desc: req.body.about_desc || "",
+      tuition_fees: req.body.tuition_fees || "",
+      anuual_fees: req.body.anuual_fees || "",
+      semester_fees: req.body.semester_fees || "",
+      approvals_name: req.body.approvals_name || "",
+      approvals_desc: req.body.approvals_desc || "",
+      approvals: parseArray(req.body.approvals) || "",
+      rankings_name: req.body.rankings_name || "",
+      rankings_description: req.body.rankings_description || "",
+      creteria: req.body.creteria || "",
+      NRICriteria: nri?.length && nri || "",
+      IndianCriteria: indian?.length && indian || "",
+      semesters_title: req.body.semesters_title || "",
+      semesters: parseArray(req.body.semesters) || "",
+      certificatename: req.body.certificatename || "",
+      certificatedescription: req.body.certificatedescription || "",
+      image_alt: req.body.image_alt || "",
+      fees_title: req.body.fees_title || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
           : existing?.certificatemage,
-      careername: req.body.careername || existing.career.title || "",
-      careermanages: parseArray(req.body.careermanages) || existing.career.Career || "",
-      careerdesc: req.body.careerdesc || existing.career.description || "",
-      meta_description: req.body.meta_description || existing.seo?.meta_description || "",
-      canonical_url: req.body.canonical_url || existing.seo?.canonical_url || "",
-      meta_keywords: req.body.meta_keywords || existing.seo?.meta_keywords || "",
+      careername: req.body.careername || "",
+      careermanages: parseArray(req.body.careermanages) || "",
+      careerdesc: req.body.careerdesc || "",
+      meta_description: req.body.meta_description || "",
+      canonical_url: req.body.canonical_url || "",
+      meta_keywords: req.body.meta_keywords || "",
 
-      partnersdesc: req.body.partnersdesc || existing.partners?.description || "",
-      partnersname: req.body.partnersname || existing.partners?.title || "",
-      advantagesname: req.body.advantagesname || existing.advantages?.title || "",
-      advantagesdescription: req.body.advantagesdescription || existing.advantages?.description || "",
-      skills: parseArray(req.body.skills) || existing.skills.skills || "",
-      skillsname: req.body.skillsname || existing.skills.title || "",
-      skilldesc: req.body.skilldesc || existing.skills.description || "",
-      course_id : req.body.course_id  || existing.course_id || "",
+      partnersdesc: req.body.partnersdesc || "",
+      partnersname: req.body.partnersname || "",
+      advantagesname: req.body.advantagesname || "",
+      advantagesdescription: req.body.advantagesdescription || "",
+      skills: parseArray(req.body.skills) || "",
+      skillsname: req.body.skillsname || "",
+      skilldesc: req.body.skilldesc || "",
+      course_id: req.body.course_id || "",
 
       icon:
         uploadedFiles["icon"]
@@ -741,35 +741,35 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
 
-      servicedesc: req.body.servicedesc || existing.services?.description || "",
-      servicetitle: req.body.servicetitle || existing.services?.title || "",
-      services: services?.length ? services : existing.services?.services || "",
-      patterns: patterns?.length ? patterns : existing.examPatterns?.patterns || "",
+      servicedesc: req.body.servicedesc || "",
+      servicetitle: req.body.servicetitle || "",
+      services: services?.length && services || "",
+      patterns: patterns?.length && patterns || "",
 
-      patterndescription: req.body.patterndescription || existing.examPatterns?.description || "",
-      patternname: req.body.patternname || existing.examPatterns?.title || "",
-      bottompatterndesc: req.body.bottompatterndesc || existing.examPatterns?.bottompatterndesc || "",
+      patterndescription: req.body.patterndescription || "",
+      patternname: req.body.patternname || "",
+      bottompatterndesc: req.body.bottompatterndesc || "",
 
-      advantages: advantages?.length ? advantages : existing.advantages?.advantages || "",
+      advantages: advantages?.length && advantages || "",
 
-      campusList: campusList?.length ? campusList : existing.universityCampuses || "",
+      campusList: campusList?.length && campusList || "",
 
-      fees: fees?.length ? fees : existing.financialAid?.aid || "",
+      fees: fees?.length && fees || "",
 
-      facts: facts?.length ? facts : existing.facts?.facts || "",
-      factsname: req.body.factsname || existing.facts?.title || "",
-      onlines: onlines?.length ? onlines : existing.admissionProcess?.process || "",
-      onlinetitle: req.body.onlinetitle || existing.admissionProcess?.title || "",
-      onlinedesc: req.body.onlinedesc || existing.admissionProcess?.description || "",
+      facts: facts?.length && facts || "",
+      factsname: req.body.factsname || "",
+      onlines: onlines?.length && onlines || "",
+      onlinetitle: req.body.onlinetitle || "",
+      onlinedesc: req.body.onlinedesc || "",
 
       financialdescription:
-        req.body.financialdescription || existing.financialAid?.description || "",
-      financialname: req.body.financialname || existing.financialAid?.title || "",
+        req.body.financialdescription || "",
+      financialname: req.body.financialname || "",
 
-      faqs: faqs?.length ? faqs : existing.faq?.faqs || "",
+      faqs: faqs?.length && faqs || "",
 
-      desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
-      partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id || "",
+      desccreteria: req.body.desccreteria || "",
+      partners: parseArray(req.body.partners) || "",
 
 
     };
@@ -841,14 +841,14 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
-          description : finalData.desccreteria || ""
+          description: finalData.desccreteria || ""
         },
         create: {
           specialisation_id: Number(SpecialisationId),
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
-           description : finalData.desccreteria || ""
+          description: finalData.desccreteria || ""
         }
       })
 
@@ -1051,7 +1051,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
   try {
     const { course_id } = req.params;
-    console.log("course_id" ,course_id)
+    console.log("course_id", course_id)
     if (!course_id) {
       return errorResponse(res, "course_id id is required", 400);
     }
@@ -1061,7 +1061,7 @@ exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
       }
     })
 
-    console.log("SpecialisationList" ,SpecialisationList)
+    console.log("SpecialisationList", SpecialisationList)
     if (!SpecialisationList) {
       return validationErrorResponse(res, "Specialisation not found", 404);
     }
