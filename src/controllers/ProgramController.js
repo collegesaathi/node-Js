@@ -122,8 +122,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
     uploadedFiles[file.fieldname].push(file.path);
   });
 
-  // Loggers.silly(req.body)
-  // Loggers.silly(uploadedFiles)
+
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -155,7 +154,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       const program = await tx.Program.create({
         data: {
           title: req.body.name || "",
-          slug: req.body.slug || generatedSlug || "",
+          slug: generatedSlug || "",
           description: req.body.descriptions || "",
           bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]) || "",
           bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
@@ -418,6 +417,9 @@ exports.GetProgramById = catchAsync(async (req, res) => {
 // ✅ UPSERT BASED UPDATE PROGRAM CONTROLLER
 exports.UpdateProgram = catchAsync(async (req, res) => {
   try {
+
+  
+
     const programId = Number(req.body.id);
     if (!programId) return errorResponse(res, "Program ID is required", 400);
     // Loggers.silly(req.body)
@@ -427,6 +429,10 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     });
 
     // Loggers.silly(uploadedFiles)
+        Loggers.silly(req.body)
+  Loggers.silly(uploadedFiles)
+
+
 
     /* ---------------- FETCH ---------------- */
     const existing = await prisma.Program.findUnique({
