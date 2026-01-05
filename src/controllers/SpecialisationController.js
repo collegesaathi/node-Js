@@ -20,7 +20,7 @@ const generateUniqueSlug = async (prisma, title) => {
   let counter = 1;
 
   // Already existing slugs load
-  const existingSlugs = await prisma.Course.findMany({
+  const existingSlugs = await prisma.Specialisation.findMany({
     where: {
       slug: {
         startsWith: baseSlug,
