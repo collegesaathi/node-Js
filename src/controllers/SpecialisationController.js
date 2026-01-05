@@ -368,7 +368,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       desccreteria: req.body.desccreteria || ""
     };
 
-      const rawSlug = req.body.slug?.trim() || finalData.name;
+      const rawSlug = finalData.name;
 const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
