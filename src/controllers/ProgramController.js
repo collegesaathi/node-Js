@@ -122,8 +122,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
     uploadedFiles[file.fieldname].push(file.path);
   });
 
-  // Loggers.silly(req.body)
-  // Loggers.silly(uploadedFiles)
+  Loggers.silly(req.body)
+  Loggers.silly(uploadedFiles)
+  return  false;
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -159,8 +160,8 @@ exports.AddProgram = catchAsync(async (req, res) => {
           description: req.body.descriptions || "",
           bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]) || "",
           bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
-          pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]?.path),
-          audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]?.path),
+          pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
+          audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]),
           career_growth: req.body.career_growth || "",
           duration: req.body.duration || "",
           specialization: req.body.specialization || "",
@@ -239,16 +240,16 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
-      await tx.ProgramChoose.create({
+      const programChoose = await tx.ProgramChoose.create({
         data: {
           title: req.body.purpusename || "",
           description: req.body.purpsedesc || "",
-          choose: parseArray(req.body.choose),
-          purpuse: parseArray(req.body.purpuse),
+          choose: choose,     
+          purpuse: purpuse,   
           program_id: programId,
         },
       });
-
+      
       await tx.ProgramGraph.create({
         data: {
           title: req.body.futuretitle || "",
