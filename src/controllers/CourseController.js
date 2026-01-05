@@ -439,12 +439,12 @@ exports.AddCourse = catchAsync(async (req, res) => {
       cover_image_alt: req.body.cover_image_alt || "",
           category: {
       connect: {
-        id: Number(finalData.categoryId), // 👈 REQUIRED
+        id: Number(req.body.categoryId), // 👈 REQUIRED
       },
     },
     university: {
       connect: {
-        id: Number(finalData.universityId), // 👈 REQUIRED
+        id: Number(req.body.universityId), // 👈 REQUIRED
       },
     },
       icon_alt: req.body.icon_alt || "",
