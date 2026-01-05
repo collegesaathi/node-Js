@@ -55,7 +55,10 @@ function toPublicUrl(req, filePath) {
   if (index === -1) return null;
 
   const cleanPath = normalized.substring(index);
-  return `${req.protocol}://${req.get("host")}${cleanPath}`;
+
+  const protocol =
+    req.headers["x-forwarded-proto"] === "https" ? "https" : "https";
+  return `${protocol}://${req.get("host")}${cleanPath}`;
 }
 
 

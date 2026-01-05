@@ -375,7 +375,9 @@ function toPublicUrl(req, filePath) {
   const index = normalized.indexOf("/uploads/");
   if (index === -1) return null;
   const cleanPath = normalized.substring(index);
-  const BASE_URL = `${req.protocol}://${req.get("host")}`;
+  const protocol =
+    req.headers["x-forwarded-proto"] === "https" ? "https" : "https";
+  const BASE_URL = `${protocol}://${req.get("host")}`;
   return BASE_URL + cleanPath;
 }
 
@@ -532,7 +534,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         video  :  finalData.video
       }
     });
-    
+
     if (Universitydata.id) {
       await prisma.About.create({
         data: {
