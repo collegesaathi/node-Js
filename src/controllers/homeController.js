@@ -40,16 +40,23 @@ exports.home = catchAsync(async (req, res) => {
         { created_at: "desc" }
       ]
     });
+    // Extract only required fields from universities
+    const universities_logo = universities.map(university => ({
+      name: university.name,
+      slug: university.slug,
+      icon: university.icon,
+      icon_alt: university.icon_alt
+    }));
 
-    const blogs = await prisma.blog.findMany({
-      where: {
-        deleted_at: null
-      },
-      orderBy: {
-        created_at: "desc"
-      },
-      take: 15
-    });
+    // const blogs = await prisma.blog.findMany({
+    //   where: {
+    //     deleted_at: null
+    //   },
+    //   orderBy: {
+    //     created_at: "desc"
+    //   },
+    //   take: 15
+    // });
 
     // ✅ HOME PAGE VIDEOS
     const videos = await prisma.homePageVideo.findMany({
@@ -63,7 +70,8 @@ exports.home = catchAsync(async (req, res) => {
     return successResponse(res, "Home Page data fetched successfully", 201, {
       categories,
       universities,
-      blogs,
+      universities_logo,
+      // blogs,
       videos
     });
 
