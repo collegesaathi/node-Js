@@ -436,9 +436,17 @@ exports.AddCourse = catchAsync(async (req, res) => {
       slug: req.body.slug || "",
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
-      category_id: req.body.category_id || "",
       cover_image_alt: req.body.cover_image_alt || "",
-      university_id: req.body.university_id || "",
+          category: {
+      connect: {
+        id: Number(finalData.categoryId), // 👈 REQUIRED
+      },
+    },
+    university: {
+      connect: {
+        id: Number(finalData.universityId), // 👈 REQUIRED
+      },
+    },
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",

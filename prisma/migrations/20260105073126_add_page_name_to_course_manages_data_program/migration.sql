@@ -31,6 +31,7 @@ CREATE TABLE "University" (
     "name" TEXT NOT NULL,
     "rank" TEXT,
     "icon" TEXT,
+    "video" TEXT,
     "cover_image" TEXT,
     "icon_alt" TEXT,
     "cover_image_alt" TEXT,
@@ -50,6 +51,7 @@ CREATE TABLE "Course" (
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "icon" TEXT,
+    "video" TEXT,
     "cover_image" TEXT,
     "position" INTEGER DEFAULT 0,
     "cover_image_alt" TEXT,
@@ -71,6 +73,7 @@ CREATE TABLE "Specialisation" (
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "icon" TEXT,
+    "video" TEXT,
     "cover_image" TEXT,
     "icon_alt" TEXT,
     "cover_image_alt" TEXT,
@@ -465,6 +468,7 @@ CREATE TABLE "Program" (
     "conclusion" TEXT,
     "specialisationtitle" TEXT,
     "specialisationdesc" TEXT,
+    "category_id" INTEGER NOT NULL DEFAULT 1,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -480,7 +484,7 @@ CREATE TABLE "ProgramAcademic" (
     "Image" TEXT,
     "image_alt" TEXT,
     "entra_title" TEXT,
-    "entra_dsec" TEXT,
+    "entra_desc" TEXT,
     "entra_image" TEXT,
     "entra_image_alt" TEXT,
     "program_id" INTEGER,
@@ -500,15 +504,37 @@ CREATE TABLE "ProgramCareer" (
 );
 
 -- CreateTable
-CREATE TABLE "ProgramInvestment" (
+CREATE TABLE "ProgramFinancialScholarship" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "subtitle" TEXT,
-    "career" JSONB,
+    "financial" JSONB,
     "program_id" INTEGER,
 
-    CONSTRAINT "ProgramInvestment_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ProgramFinancialScholarship_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProgramDurationFees" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "duration" JSONB,
+    "program_id" INTEGER,
+
+    CONSTRAINT "ProgramDurationFees_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProgramGraph" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "subdesc" TEXT,
+    "monthly" JSONB,
+    "program_id" INTEGER,
+
+    CONSTRAINT "ProgramGraph_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -567,22 +593,23 @@ CREATE TABLE "ProgramCurriculum" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "subtitle" TEXT,
-    "placement_ids" JSONB,
+    "curriculum_id" JSONB,
     "program_id" INTEGER,
 
     CONSTRAINT "ProgramCurriculum_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ProgramFee" (
+CREATE TABLE "ProgramChoose" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
     "descbtm" TEXT,
-    "fees" JSONB,
+    "choose" JSONB,
+    "purpuse" JSONB,
     "program_id" INTEGER,
 
-    CONSTRAINT "ProgramFee_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "ProgramChoose_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -590,8 +617,8 @@ CREATE TABLE "ProgramExperience" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT,
-    "descbtm" TEXT,
-    "fees" JSONB,
+    "notes" TEXT,
+    "experiences" JSONB,
     "program_id" INTEGER,
 
     CONSTRAINT "ProgramExperience_pkey" PRIMARY KEY ("id")
@@ -787,7 +814,13 @@ CREATE UNIQUE INDEX "ProgramAcademic_program_id_key" ON "ProgramAcademic"("progr
 CREATE UNIQUE INDEX "ProgramCareer_program_id_key" ON "ProgramCareer"("program_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgramInvestment_program_id_key" ON "ProgramInvestment"("program_id");
+CREATE UNIQUE INDEX "ProgramFinancialScholarship_program_id_key" ON "ProgramFinancialScholarship"("program_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProgramDurationFees_program_id_key" ON "ProgramDurationFees"("program_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProgramGraph_program_id_key" ON "ProgramGraph"("program_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProgramHighlights_program_id_key" ON "ProgramHighlights"("program_id");
@@ -805,7 +838,7 @@ CREATE UNIQUE INDEX "ProgramPlacement_program_id_key" ON "ProgramPlacement"("pro
 CREATE UNIQUE INDEX "ProgramCurriculum_program_id_key" ON "ProgramCurriculum"("program_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProgramFee_program_id_key" ON "ProgramFee"("program_id");
+CREATE UNIQUE INDEX "ProgramChoose_program_id_key" ON "ProgramChoose"("program_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProgramExperience_program_id_key" ON "ProgramExperience"("program_id");
@@ -1006,13 +1039,22 @@ ALTER TABLE "EligibilityCriteria" ADD CONSTRAINT "EligibilityCriteria_course_id_
 ALTER TABLE "EligibilityCriteria" ADD CONSTRAINT "EligibilityCriteria_specialisation_id_fkey" FOREIGN KEY ("specialisation_id") REFERENCES "Specialisation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Program" ADD CONSTRAINT "Program_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ProgramAcademic" ADD CONSTRAINT "ProgramAcademic_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProgramCareer" ADD CONSTRAINT "ProgramCareer_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProgramInvestment" ADD CONSTRAINT "ProgramInvestment_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ProgramFinancialScholarship" ADD CONSTRAINT "ProgramFinancialScholarship_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProgramDurationFees" ADD CONSTRAINT "ProgramDurationFees_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProgramGraph" ADD CONSTRAINT "ProgramGraph_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProgramHighlights" ADD CONSTRAINT "ProgramHighlights_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1030,7 +1072,7 @@ ALTER TABLE "ProgramPlacement" ADD CONSTRAINT "ProgramPlacement_program_id_fkey"
 ALTER TABLE "ProgramCurriculum" ADD CONSTRAINT "ProgramCurriculum_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProgramFee" ADD CONSTRAINT "ProgramFee_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "ProgramChoose" ADD CONSTRAINT "ProgramChoose_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProgramExperience" ADD CONSTRAINT "ProgramExperience_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
