@@ -437,16 +437,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
       cover_image_alt: req.body.cover_image_alt || "",
-          category_id: {
-      connect: {
-        id: Number(req.body.category_id), // 👈 REQUIRED
-      },
-    },
-    university_id: {
-      connect: {
-        id: Number(req.body.university_id), // 👈 REQUIRED
-      },
-    },
+    category_id : req.body.category_id|| "",
+    university_id : req.body.university_id || "",
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
@@ -524,8 +516,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
-        university_id :finalData.university_id,
-        category_id :  finalData.category_id,
+        university_id :Number(finalData.university_id),
+        category_id : Number(finalData.category_id) ,
         video: finalData.video
       }
     });
