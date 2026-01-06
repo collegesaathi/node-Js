@@ -432,6 +432,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
     nri = attachImagesToItems(nri, nriimages, "images");
 
     const finalData = {
+      fees_desc :  req.body.fees_desc || "",
       name: req.body.name || "",
       slug: req.body.slug || "",
       position: req.body.position || 0,
@@ -528,14 +529,16 @@ exports.AddCourse = catchAsync(async (req, res) => {
         annual_fees: finalData.anuual_fees,
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
-        fees_title: finalData.fees_title || ""
+        fees_title: finalData.fees_title || "",
+        fees_desc : finalData.fees_desc || ""
       },
       create: {
         course_id: CoursesData.id,
         annual_fees: finalData.anuual_fees,
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
-        fees_title: finalData.fees_title || ""
+        fees_title: finalData.fees_title || "",
+        fees_desc : finalData.fees_desc || ""
       }
     });
 
@@ -1074,6 +1077,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc  || "",
       tuition_fees: req.body.tuition_fees  || "",
       anuual_fees: req.body.anuual_fees  || "",
+      fees_desc : req.body.fees_desc || "",
       semester_fees: req.body.semester_fees || "",
       approvals_name: req.body.approvals_name || "",
       approvals_desc: req.body.approvals_desc  || "",
@@ -1192,7 +1196,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           annual_fees: finalData?.anuual_fees,
           semester_wise_fees: finalData?.semester_fees,
           tuition_fees: finalData?.tuition_fees,
-          fees_title: finalData?.fees_title
+          fees_title: finalData?.fees_title ,
+          fees_desc :   finalData?.fees_desc ,
         }
       });
 
