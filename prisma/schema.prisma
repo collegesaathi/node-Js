@@ -101,8 +101,8 @@ model Course {
    advantages        Advantages?
   seo                Seo?
   facts              Facts?  
-  university_id Int        // ❗ NOT UNIQUE
-   university    University @relation(fields: [university_id], references: [id])
+  university_id       Int?        // ❗ NOT UNIQUE
+   university    University? @relation(fields: [university_id], references: [id])
 }
 
 
@@ -668,4 +668,15 @@ model ProgramExperience {
   experiences        Json?
   program_id  Int? @unique
   program     Program? @relation(fields: [program_id], references: [id])
+}
+
+model homePageVideo {
+  id                  Int      @id @default(autoincrement())
+  title               String?
+  coverimage          String?
+  videoUrl            String?
+  description         String?
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+  deleted_at          DateTime?
 }
