@@ -403,6 +403,8 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       data: {
         specialisation_id: Number(SpecialisationData.id),
         fees_title: (finalData?.fees_title),
+        fees_desc: (req.body.fees_desc),
+
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
         tuition_fees: (finalData?.tuition_fees)
@@ -682,6 +684,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
     const finalData = {
       name: req.body.name || "",
       slug: req.body.slug || "",
+      fees_desc : req.body.fees_desc || "",
       university_id: req.body.university_id || "",
       position: req.body.position || "",
       icon_alt: req.body.icon_alt || "",
@@ -810,7 +813,8 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           annual_fees: finalData?.anuual_fees,
           semester_wise_fees: finalData?.semester_fees,
           tuition_fees: finalData?.tuition_fees,
-          fees_title: finalData?.fees_title
+          fees_title: finalData?.fees_title,
+          fees_desc: finalData?.fees_desc,
         }
       });
 

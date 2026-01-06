@@ -432,8 +432,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
     nri = attachImagesToItems(nri, nriimages, "images");
 
     const finalData = {
+      fees_desc :  req.body.fees_desc || "",
       name: req.body.name || "",
-      slug: req.body.slug || "",
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
       cover_image_alt: req.body.cover_image_alt || "",
@@ -512,7 +512,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug: finalData.slug ? finalData.slug : generatedSlug,
+        slug:  generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
@@ -528,14 +528,16 @@ exports.AddCourse = catchAsync(async (req, res) => {
         annual_fees: finalData.anuual_fees,
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
-        fees_title: finalData.fees_title || ""
+        fees_title: finalData.fees_title || "",
+        fees_desc : finalData.fees_desc || ""
       },
       create: {
         course_id: CoursesData.id,
         annual_fees: finalData.anuual_fees,
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
-        fees_title: finalData.fees_title || ""
+        fees_title: finalData.fees_title || "",
+        fees_desc : finalData.fees_desc || ""
       }
     });
 
@@ -986,6 +988,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
   try {
     const CourseId = Number(req.body.id);
     // Collect uploaded files
+    Loggers.silly(req.body)
     const uploadedFiles = {};
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
@@ -1062,7 +1065,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
       name: req.body.name  || "",
-      slug: req.body.slug  || "",
       university_id: req.body.university_id  || "",
       position: req.body.position|| "",
       icon_alt: req.body.icon_alt  || "",
@@ -1074,6 +1076,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc  || "",
       tuition_fees: req.body.tuition_fees  || "",
       anuual_fees: req.body.anuual_fees  || "",
+      fees_desc : req.body.fees_desc || "",
       semester_fees: req.body.semester_fees || "",
       approvals_name: req.body.approvals_name || "",
       approvals_desc: req.body.approvals_desc  || "",
@@ -1153,14 +1156,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 
 
     };
-
-
-    // HANDLE SLUG
-    let newSlug = existing.slug;
-    if (finalData.name !== existing.name) {
-      newSlug = await generateUniqueSlug(prisma, finalData.name, CourseId);
-    }
-
+      let newSlug = await generateUniqueSlug(prisma, finalData.name, CourseId);
     // UPDATE MAIN UNIVERSITY
     const UpdateCourse = await prisma.Course.update({
       where: { id: CourseId },
@@ -1170,7 +1166,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: finalData.slug || newSlug,
+        slug:  newSlug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
@@ -1178,6 +1174,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         video: req.body.video || ""
       }
     });
+    console.log("UpdateCourse" ,UpdateCourse)
 
     if (UpdateCourse.id) {
       await prisma.About.upsert({
@@ -1192,7 +1189,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           annual_fees: finalData?.anuual_fees,
           semester_wise_fees: finalData?.semester_fees,
           tuition_fees: finalData?.tuition_fees,
-          fees_title: finalData?.fees_title
+          fees_title: finalData?.fees_title ,
+          fees_desc :   finalData?.fees_desc ,
         }
       });
 

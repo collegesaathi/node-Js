@@ -60,7 +60,7 @@ CREATE TABLE "Course" (
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
     "description" JSONB,
-    "university_id" INTEGER NOT NULL,
+    "university_id" INTEGER,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
 );
@@ -624,6 +624,20 @@ CREATE TABLE "ProgramExperience" (
     CONSTRAINT "ProgramExperience_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "homePageVideo" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT,
+    "coverimage" TEXT,
+    "videoUrl" TEXT,
+    "description" TEXT,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "homePageVideo_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
@@ -850,7 +864,7 @@ ALTER TABLE "User" ADD CONSTRAINT "User_role_id_fkey" FOREIGN KEY ("role_id") RE
 ALTER TABLE "Course" ADD CONSTRAINT "Course_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Course" ADD CONSTRAINT "Course_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Course" ADD CONSTRAINT "Course_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Specialisation" ADD CONSTRAINT "Specialisation_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
