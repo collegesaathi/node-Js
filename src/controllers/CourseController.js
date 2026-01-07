@@ -619,7 +619,6 @@ const record =       await prisma.Services.upsert({
       }
     });
 
-    console.log("record" ,record)
 
     await prisma.Certificates.upsert({
       where: { course_id: CoursesData.id },
@@ -827,6 +826,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       },
       include: {
         about: true,
+        university: true,
         fees: true,
         approvals: true,
         rankings: true,
@@ -1168,7 +1168,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         video: req.body.video || ""
       }
     });
-    console.log("UpdateCourse" ,UpdateCourse)
 
     if (UpdateCourse.id) {
       await prisma.About.upsert({
@@ -1378,7 +1377,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         }
       });
 
-      console.log(finalData.services)
 
   const servcies =     await prisma.Services.upsert({
         where: { course_id: Number(CourseId) },
@@ -1394,7 +1392,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           services: finalData.services,
         }
       });
-console.log("servcies" ,servcies)
       await prisma.AdmissionProcess.upsert({
         where: { course_id: Number(CourseId) },
         update: {

@@ -35,6 +35,7 @@ model University {
   name               String
   rank               String?
   icon               String?
+  fees_desc          String?
   video              String?
   cover_image        String?
   icon_alt               String?

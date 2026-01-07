@@ -93,7 +93,6 @@ exports.allUniversities = catchAsync(async (req, res) => {
   // 5️⃣ Count
   const totalUniversities = finalList.length;
   const totalPages = Math.ceil(totalUniversities / limit);
-  console.log("paginated", paginated)
 
   return successResponse(res, "Universities fetched successfully", 201, {
     categories,
@@ -180,7 +179,6 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
     const { search } = req.query;
-    console.log("search", search) 
   const page = parseInt(req.query.page) || 1;
   const limit = 9;
   const skip = (page - 1) * limit;
@@ -471,6 +469,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
       slug: req.body.slug || "",
+      fees_desc: req.body.fees_desc || "",
       name: req.body.name || "",
       position: req.body.position || 0,
       about_title: req.body.about_title || "",
@@ -522,6 +521,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     // Save with Prisma (example)
     const Universitydata = await prisma.University.create({
       data: {
+        fees_desc : finalData?.fees_desc || "",
         name: finalData.name || "Untitled",
         cover_image: finalData.cover_image,
         position: Number(finalData.position || 0),
@@ -827,6 +827,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       where: { id: universityId },
       data: {
         name: finalData.name,
+        fees_desc  :req.body.fees_desc || "",
         cover_image: finalData.cover_image || "",
         position: Number(finalData.position),
         description: finalData.descriptions,

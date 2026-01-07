@@ -282,7 +282,6 @@ exports.PopUniversityApi = catchAsync(async (req, res) => {
     });
 
 
-    console.log("coursedata", coursedata)
     return successResponse(
       res,
       "Popular University fetched successfully",
