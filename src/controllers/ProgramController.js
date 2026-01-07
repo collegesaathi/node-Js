@@ -124,7 +124,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
     }
     uploadedFiles[file.fieldname].push(file.path);
   });
-
+        // Loggers.http(req.body)
+        // Loggers.http(uploadedFiles)
+        // return false;
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -430,10 +432,9 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
 
-    // Loggers.silly(uploadedFiles)
-        Loggers.silly(req.body)
-  Loggers.silly(uploadedFiles)
-
+        // Loggers.silly(req.body)
+        // Loggers.silly(uploadedFiles)
+        // return false;
 
 
     /* ---------------- FETCH ---------------- */
@@ -477,16 +478,22 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
     // Attach images to arrays
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image", existing.placement?.subplacement);
-
+    /* ---------------- SLUG GENERATION ---------------- */
+      const generatedSlug = await generateUniqueSlug(
+        prisma,
+        req.body.name
+      );
     /* ---------------- FINAL DATA ---------------- */
     const finalData = {
-      title: req.body.title || existing.title,
-      description: req.body.description || existing.description,
+      title: req.body.name || existing.title,
+      slug: generatedSlug || existing.slug,
+      description: req.body.descriptions || existing.description,
       subtitle: req.body.subtitle || existing.subtitle,
       shortDescription: req.body.shortDescription || existing.shortDescription,
       category_id: req.body.category_id ? Number(req.body.category_id) : existing.category_id,
       // bannerImage: uploaded.bannerImage || existing.bannerImage,
       bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
+      video: req.body.video || existing.video,
       // pdfdownlaod: uploaded.pdf_download || existing.pdfdownlaod,
       // audio: uploaded.audio || existing.audio,
       bannerImage:
