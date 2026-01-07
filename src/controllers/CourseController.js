@@ -406,7 +406,6 @@ exports.AddCourse = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
     Loggers.silly(req.body)
-
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
     let campusList = parseArray(req.body.campusList);
@@ -605,7 +604,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
       }
     });
 
-    await prisma.Services.upsert({
+const record =       await prisma.Services.upsert({
       where: { course_id: CoursesData.id },
       update: {
         title: finalData.servicetitle,
@@ -619,6 +618,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         services: finalData.services || ""
       }
     });
+
+    console.log("record" ,record)
 
     await prisma.Certificates.upsert({
       where: { course_id: CoursesData.id },
@@ -993,7 +994,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-    Loggers.silly(req.body)
     if (!CourseId) {
       return validationErrorResponse(res, "Univesirty ID is required", 400);
     }
@@ -1090,7 +1090,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       semesters: parseArray(req.body.semesters)  || "",
       certificatename: req.body.certificatename  || "",
       certificatedescription: req.body.certificatedescription  || "",
-      image_alt: req.body.image_alt || existing.certificates?.image_alt || "",
+      image_alt: req.body.image_alt  || "",
       fees_title: req.body.fees_title  || "",
       certificatemage:
         uploadedFiles["certificatemage"]
@@ -1104,14 +1104,14 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       canonical_url: req.body.canonical_url  || "",
       meta_keywords: req.body.meta_keywords  || "",
 
-      partnersdesc: req.body.partnersdesc || existing.partners?.description || "",
-      partnersname: req.body.partnersname || existing.partners?.title || "",
-      advantagesname: req.body.advantagesname || existing.advantages?.title || "",
-      advantagesdescription: req.body.advantagesdescription || existing.advantages?.description || "",
-      skills: parseArray(req.body.skills) || existing.skills.skills || "",
-      skillsname: req.body.skillsname || existing.skills.title || "",
-      skilldesc: req.body.skilldesc || existing.skills.description || "",
-      desccreteria: req.body.desccreteria || existing.eligibilitycriteria.description || "",
+      partnersdesc: req.body.partnersdesc  || "",
+      partnersname: req.body.partnersname  || "",
+      advantagesname: req.body.advantagesname || "",
+      advantagesdescription: req.body.advantagesdescription || "",
+      skills: parseArray(req.body.skills)  || "",
+      skillsname: req.body.skillsname  || "",
+      skilldesc: req.body.skilldesc || "",
+      desccreteria: req.body.desccreteria  || "",
       icon:
         uploadedFiles["icon"]
           ? (deleteUploadedFiles([existing?.icon]),
@@ -1124,35 +1124,29 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
 
-      servicedesc: req.body.servicedesc || existing.services?.description || "",
-      servicetitle: req.body.servicetitle || existing.services?.title || "",
-      services: services?.length ? services : existing.services?.services || "",
-      patterns: patterns?.length ? patterns : existing.examPatterns?.patterns || "",
+      servicedesc: req.body.servicedesc || "",
+      servicetitle: req.body.servicetitle   ||"",
+      services: services?.length && services  ||  [],
+      patterns: patterns?.length && patterns  || [],
+      patterndescription: req.body.patterndescription|| "",
+      patternname: req.body.patternname  || "",
+      bottompatterndesc: req.body.bottompatterndesc || "",
+      advantages: advantages?.length && advantages  || [],
 
-      patterndescription: req.body.patterndescription || existing.examPatterns?.description || "",
-      patternname: req.body.patternname || existing.examPatterns?.title || "",
-      bottompatterndesc: req.body.bottompatterndesc || existing.examPatterns?.bottompatterndesc || "",
-
-      advantages: advantages?.length ? advantages : existing.advantages?.advantages || "",
-
-      campusList: campusList?.length ? campusList : existing.universityCampuses || "",
+      campusList: campusList?.length && campusList  || [],
 
       fees: fees?.length ? fees : existing.financialAid?.aid || "",
 
-      facts: facts?.length ? facts : existing.facts?.facts || "",
-      factsname: req.body.factsname || existing.facts?.title || "",
-      onlines: onlines?.length ? onlines : existing.admissionProcess?.process || "",
-      onlinetitle: req.body.onlinetitle || existing.admissionProcess?.title || "",
-      onlinedesc: req.body.onlinedesc || existing.admissionProcess?.description || "",
-
+      facts: facts?.length && facts  || [],
+      factsname: req.body.factsname  || "",
+      onlines: onlines?.length && onlines  || [],
+      onlinetitle: req.body.onlinetitle || "",
+      onlinedesc: req.body.onlinedesc  || "",
       financialdescription:
-        req.body.financialdescription || existing.financialAid?.description || "",
-      financialname: req.body.financialname || existing.financialAid?.title || "",
-
+        req.body.financialdescription  || "",
+      financialname: req.body.financialname  || "",
       faqs: faqs?.length ? faqs : existing.faq?.faqs || "",
-
-
-      partners: parseArray(req.body.partners) || existing.partners?.placement_partner_id || "",
+      partners: parseArray(req.body.partners) || [],
 
 
     };
@@ -1384,7 +1378,9 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         }
       });
 
-      await prisma.Services.upsert({
+      console.log(finalData.services)
+
+  const servcies =     await prisma.Services.upsert({
         where: { course_id: Number(CourseId) },
         update: {
           title: finalData.servicetitle,
@@ -1398,7 +1394,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           services: finalData.services,
         }
       });
-
+console.log("servcies" ,servcies)
       await prisma.AdmissionProcess.upsert({
         where: { course_id: Number(CourseId) },
         update: {
