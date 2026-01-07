@@ -1012,7 +1012,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         examPatterns: true,
         financialAid: true,
         career: true,
-        partners: true,
+        partners: true, 
         services: true,
         admissionprocess: true,
         faq: true,

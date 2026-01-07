@@ -173,8 +173,6 @@ exports.CompareUniversity = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.AllProgram = catchAsync(async (req, res) => {
   try {
     const course = req.query.course
@@ -300,7 +298,6 @@ exports.PopUniversityApi = catchAsync(async (req, res) => {
   }
 });
 
-
 exports.GetUniversityCategroyList = catchAsync(async (req, res) => {
   const { id } = req.params;
   console.log("id" ,id)
@@ -326,8 +323,6 @@ exports.GetUniversityCategroyList = catchAsync(async (req, res) => {
   });
 });
 
-
-
 exports.GetCategroyList = catchAsync(async (req, res) => {
   try {
     const CategoryLists = await prisma.Category.findMany({});
@@ -339,3 +334,101 @@ exports.GetCategroyList = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 })
+
+exports.GetApprovalUniversity = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+    const university = await prisma.University.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
+      include: {
+        approvals: true,
+        partners: true,
+      },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+
+    // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
+
+    const partnersRaw = university.partners;
+    if (partnersRaw) {
+      const partnersArr = toArray(partnersRaw);
+      placementPartnerIds = partnersArr.flatMap((p) => {
+        if (!p) return [];
+        if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
+        if (p.placement_partner_id) return [p.placement_partner_id];
+        if (Array.isArray(p.partner_id)) return p.partner_id;
+        if (p.partner_id) return [p.partner_id];
+        if (p.id) return [p.id];
+        return [];
+      });
+      placementPartnerIds = Array.from(new Set(placementPartnerIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: { id: { in: placementPartnerIds } },
+      });
+    }
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = university.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
+
+    return successResponse(
+      res,
+      "University fetched successfully",
+      200,
+      {approvalsData, placementPartners }
+    );
+  } catch (error) {
+    console.error("getUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching university",
+      500,
+      error
+    );
+  }
+});
