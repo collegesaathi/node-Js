@@ -27,6 +27,7 @@ exports.GetCoursesList = catchAsync(async (req, res) => {
         university_id: Number(university_id),
         deleted_at: null
       },
+      include:{university:true},
       select: {
         id: true,
         name: true,

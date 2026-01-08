@@ -3,6 +3,6 @@ const { GetCoursesList, GetUniversityList } = require("../controllers/CompareCon
 const router = express.Router();
 
 router.get("/compare/courses/:university_id", GetCoursesList);
-router.post('/compare/fetch-universities', GetUniversityList); 
+router.post('/compare/universities', GetUniversityList); 
 
-module.exports = router;
+module.exports = router; 
