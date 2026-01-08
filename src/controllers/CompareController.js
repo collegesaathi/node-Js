@@ -24,7 +24,7 @@ exports.GetCoursesList = catchAsync(async (req, res) => {
     // 3️⃣ Fetch courses for that university
     const courses = await prisma.course.findMany({
       where: {
-        university_id: 1,
+        university_id: Number(university_id),
         deleted_at: null
       },
       include: {
