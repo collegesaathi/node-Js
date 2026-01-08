@@ -1055,17 +1055,31 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
   try {
     const { course_id } = req.params;
-    console.log("course_id", course_id)
     if (!course_id) {
       return errorResponse(res, "course_id id is required", 400);
     }
     const SpecialisationList = await prisma.Specialisation.findMany({
       where: {
         course_id: Number(course_id)
-      }
+      },
+       include: {
+        university: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,   // ✅ university slug
+          },
+        },
+         course: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,   // ✅ university slug
+          },
+        },
+      },
     })
 
-    console.log("SpecialisationList", SpecialisationList)
     if (!SpecialisationList) {
       return validationErrorResponse(res, "Specialisation not found", 404);
     }
