@@ -16,7 +16,5 @@ router.get("/categroy/university/:id", GetUniversityCategroyList);
 
 router.get("/common/categroy", GetCategroyList);
 
-router.post("/courses", GetCoursesList);
-
 
 module.exports = router;
