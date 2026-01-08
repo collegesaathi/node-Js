@@ -4,7 +4,7 @@ const catchAsync = require("../utils/catchAsync");
 
 exports.GetCoursesList = catchAsync(async (req, res) => {
   try {
-    const { university_id } = req.body;
+    const { university_id } = req.params;
 
     // 1️⃣ Validate input
     if (!university_id) {
