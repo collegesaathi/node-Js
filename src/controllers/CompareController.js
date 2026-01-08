@@ -52,3 +52,67 @@ exports.GetCoursesList = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
+
+exports.GetUniversityList = catchAsync(async (req, res) => {
+  try {
+    const { category_id, course_name } = req.body;
+
+    // 1️⃣ Validate input
+    if (!category_id || !course_name) {
+      return errorResponse(
+        res,
+        "category_id and course_name are required",
+        400
+      );
+    }
+
+    // 2️⃣ Fetch universities based on course + category
+    const universities = await prisma.university.findMany({
+      where: {
+        deleted_at: null,
+        courses: {
+          some: {
+            deleted_at: null,
+            category_id: Number(category_id),
+            name: {
+              equals: course_name,
+              mode: "insensitive" // ✅ case-insensitive match
+            }
+          }
+        }
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+        position: true
+      },
+      orderBy: {
+        position: "asc"
+      }
+    });
+
+    // 3️⃣ No universities found
+    if (!universities.length) {
+      return errorResponse(
+        res,
+        "No universities found for the selected course and category",
+        404
+      );
+    }
+
+    // 4️⃣ Success
+    return successResponse(
+      res,
+      "Universities fetched successfully",
+      200,
+      universities
+    );
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
