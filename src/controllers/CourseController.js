@@ -517,7 +517,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         rank: finalData.rank,
         university_id :Number(finalData.university_id),
         category_id : Number(finalData.category_id) ,
-        video: finalData.video
+        video: finalData.video,
       }
     });
     // Upsert related tables
@@ -528,7 +528,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
         fees_title: finalData.fees_title || "",
-        fees_desc : finalData.fees_desc || ""
+        fees_desc : finalData.fees_desc || "",
+        fees_notes: req.body?.fees_notes || "",
       },
       create: {
         course_id: CoursesData.id,
@@ -536,7 +537,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
         fees_title: finalData.fees_title || "",
-        fees_desc : finalData.fees_desc || ""
+        fees_desc : finalData.fees_desc || "",
+        fees_notes: req.body?.fees_notes || "",
       }
     });
 
@@ -580,14 +582,16 @@ exports.AddCourse = catchAsync(async (req, res) => {
         title: finalData.creteria,
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
-        IndianCriteria: finalData.IndianCriteria || ""
+        IndianCriteria: finalData.IndianCriteria || "",
+          notes: req.body.notescreteria || "",
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.creteria,
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
-        IndianCriteria: finalData.IndianCriteria || ""
+        IndianCriteria: finalData.IndianCriteria || "",
+        notes: req.body.notescreteria || "",
       }
     });
 
@@ -595,12 +599,15 @@ exports.AddCourse = catchAsync(async (req, res) => {
       where: { course_id: CoursesData.id },
       update: {
         title: finalData.semesters_title,
-        semesters: finalData.semesters
+        semesters: finalData.semesters,
+           notes: req.body.semesters_notes,
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.semesters_title,
-        semesters: finalData.semesters
+        semesters: finalData.semesters,
+           notes: req.body.semesters_notes,
+
       }
     });
 
@@ -689,13 +696,16 @@ const record =       await prisma.Services.upsert({
       update: {
         title: finalData.financialname,
         description: finalData.financialdescription || null,
-        aid: finalData.fees
+        aid: finalData.fees,
+         notes : req.body.finacial_notes,
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.financialname,
         description: finalData.financialdescription || null,
-        aid: finalData.fees
+        aid: finalData.fees ,
+         notes : req.body.finacial_notes,
+
       }
     });
 
@@ -1194,6 +1204,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           tuition_fees: finalData?.tuition_fees,
           fees_title: finalData?.fees_title ,
           fees_desc :   finalData?.fees_desc ,
+          fees_notes :   req.body?.fees_notes ,
         }
       });
 
@@ -1224,6 +1235,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           title: finalData.creteria,
           description: finalData.desccreteria,
           NRICriteria: finalData.NRICriteria,
+          notes: req.body.notescreteria || "",
           IndianCriteria: finalData.IndianCriteria || ""
         },
         create: {
@@ -1232,6 +1244,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           NRICriteria: finalData.NRICriteria,
           IndianCriteria: finalData.IndianCriteria || "",
           description: finalData.desccreteria,
+          notes: req.body.notescreteria || "",
+
         }
       })
 
@@ -1250,11 +1264,14 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         update: {
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+            notes: req.body.semesters_notes,
         },
         create: {
           course_id: Number(CourseId),
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+            notes: req.body.semesters_notes,
+
         }
       });
 
@@ -1325,12 +1342,16 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           title: finalData.financialname,
           description: finalData.financialdescription,
           aid: finalData.fees,
+                   notes : req.body.finacial_notes,
+
         },
         create: {
           course_id: CourseId,
           title: finalData.financialname,
           description: finalData.financialdescription,
           aid: finalData.fees,
+                   notes : req.body.finacial_notes,
+
         }
       });
 

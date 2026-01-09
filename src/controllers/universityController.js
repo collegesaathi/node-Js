@@ -471,11 +471,13 @@ exports.addUniversity = catchAsync(async (req, res) => {
       meta_keywords: req.body.meta_keywords || "",
       slug: req.body.slug || "",
       fees_desc: req.body.fees_desc || "",
+      fees_notes: req.body.fees_notes || "",
       name: req.body.name || "",
       position: req.body.position || 0,
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       partnersdesc: req.body.partnersdesc || "",
+      fees_notes: req.body.fees_notes || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
       descriptions: descriptions || "",
@@ -524,6 +526,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     const Universitydata = await prisma.University.create({
       data: {
         fees_desc: finalData?.fees_desc || "",
+        fees_notes: req.body?.fees_notes || "",
         name: finalData.name || "Untitled",
         cover_image: finalData.cover_image,
         position: Number(finalData.position || 0),
@@ -533,6 +536,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
+        fees_notes: req.body?.fees_notes || "",
         video: finalData.video
       }
     });
@@ -619,6 +623,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
           description: finalData.financialdescription || null,
           aid: finalData.fees,
           university_id: Number(Universitydata.id),
+          notes: req.body.finacial_notes,
         }
       })
 
@@ -761,6 +766,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       slug: req.body.slug || "",
       position: req.body.position || "",
       icon_alt: req.body.icon_alt || "",
+      fees_notes: req.body.fees_notes || "",
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       partnersdesc: req.body.partnersdesc || "",
@@ -833,6 +839,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon || "",
+        fees_notes: req.body.fees_notes || "",
         slug: finalData.slug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
@@ -950,12 +957,14 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         title: finalData.financialname,
         description: finalData.financialdescription,
         aid: finalData.fees,
+        notes: req.body.finacial_notes,
       },
       create: {
         university_id: universityId,
         title: finalData.financialname,
         description: finalData.financialdescription,
         aid: finalData.fees,
+        notes: req.body.finacial_notes,
       }
     });
 

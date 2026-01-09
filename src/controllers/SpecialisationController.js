@@ -404,7 +404,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         specialisation_id: Number(SpecialisationData.id),
         fees_title: (finalData?.fees_title),
         fees_desc: (req.body.fees_desc),
-
+        fees_notes: req.body?.fees_notes || "",
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
         tuition_fees: (finalData?.tuition_fees)
@@ -442,7 +442,9 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         title: finalData.creteria || "",
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
+        notes: req.body.notescreteria || "",
         IndianCriteria: finalData.IndianCriteria || ""
+
       }
     })
     await prisma.Curriculum.create({
@@ -450,6 +452,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         specialisation_id: Number(SpecialisationData.id),
         title: finalData.semesters_title,
         semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
       }
     })
 
@@ -502,6 +505,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         title: finalData.financialname,
         description: finalData.financialdescription || null,
         aid: finalData.fees,
+       notes : req.body.finacial_notes,
         specialisation_id: Number(SpecialisationData.id),
       }
     })
@@ -809,6 +813,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           tuition_fees: finalData?.tuition_fees,
           fees_title: finalData?.fees_title,
           fees_desc: finalData?.fees_desc,
+        fees_notes: req.body?.fees_notes || "",
         }
       });
 
@@ -839,6 +844,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
+            notes: req.body.notescreteria || "",
           description: finalData.desccreteria || ""
         },
         create: {
@@ -846,17 +852,19 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
+            notes: req.body.notescreteria || "",
           description: finalData.desccreteria || ""
         }
       })
 
       await prisma.Curriculum.upsert({
         where: { specialisation_id: SpecialisationId },
-        update: { title: finalData.semesters_title, semesters: finalData.semesters, },
+        update: { title: finalData.semesters_title, semesters: finalData.semesters,    notes: req.body.semesters_notes,},
         create: {
           specialisation_id: Number(SpecialisationId),
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
         }
       })
 
@@ -926,11 +934,13 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         update: {
           title: finalData.financialname,
           description: finalData.financialdescription,
+           notes : req.body.finacial_notes,
           aid: finalData.fees,
         },
         create: {
           specialisation_id: SpecialisationId,
           title: finalData.financialname,
+           notes : req.body.finacial_notes,
           description: finalData.financialdescription,
           aid: finalData.fees,
         }
