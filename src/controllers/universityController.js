@@ -178,23 +178,23 @@ exports.adminapprovalsplacements = catchAsync(async (req, res) => {
 
 exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
-    const { search } = req.query;
+  const { search } = req.query;
   const page = parseInt(req.query.page) || 1;
   const limit = 9;
   const skip = (page - 1) * limit;
   const universities = await prisma.university.findMany({
     skip,
     take: limit,
-    orderBy: [ { created_at: "asc" }],
+    orderBy: [{ created_at: "asc" }],
     where: search && search.length >= 3
-          ? {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-            deleted_at: null
-          }
-          : {},
+      ? {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        },
+        deleted_at: null
+      }
+      : {},
   });
 
   if (!universities) {
@@ -367,6 +367,7 @@ exports.getUniversityById = catchAsync(async (req, res) => {
 });
 
 
+
 function toPublicUrl(req, filePath) {
   if (!filePath) return null;
   const normalized = filePath.replace(/\\/g, "/");
@@ -463,8 +464,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
     campusInternationList = attachImagesToItems(campusInterImages, campusInterImages, "image");
     const finalData = {
       meta_title: req.body.meta_title || "",
-        rank: req.body.rank || "",
-        video:req.body.video || "",
+      rank: req.body.rank || "",
+      video: req.body.video || "",
       meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
       meta_keywords: req.body.meta_keywords || "",
@@ -485,6 +486,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
       certificatemage: toPublicUrl(req, uploadedFiles["certificatemage"]) || req.body.certificatemage || null,
       icon: toPublicUrl(req, uploadedFiles["icon"]) || req.body.icon || null,
       cover_image: toPublicUrl(req, uploadedFiles["cover_image"]) || req.body.cover_image || null,
+      pdf_download: toPublicUrl(req, uploadedFiles["pdf_download"]) || req.body.pdf_download || null,
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
       services: services || "",
@@ -521,7 +523,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
     // Save with Prisma (example)
     const Universitydata = await prisma.University.create({
       data: {
-        fees_desc : finalData?.fees_desc || "",
+        fees_desc: finalData?.fees_desc || "",
         name: finalData.name || "Untitled",
         cover_image: finalData.cover_image,
         position: Number(finalData.position || 0),
@@ -530,8 +532,8 @@ exports.addUniversity = catchAsync(async (req, res) => {
         slug: finalData.slug ? finalData.slug : generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
-        rank : finalData.rank,
-        video  :  finalData.video
+        rank: finalData.rank,
+        video: finalData.video
       }
     });
 
@@ -750,27 +752,27 @@ exports.updateUniversity = catchAsync(async (req, res) => {
     internationalcampus = attachImagesToItems(internationalcampus, campusinterImages, "image", existing.universityCampuses?.campusInternationList || []);
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
-      meta_title: req.body.meta_title  || "",
-      meta_description: req.body.meta_description  || "",
+      meta_title: req.body.meta_title || "",
+      meta_description: req.body.meta_description || "",
       canonical_url: req.body.canonical_url || "",
-      meta_keywords: req.body.meta_keywords  || "",
+      meta_keywords: req.body.meta_keywords || "",
       name: req.body.name || "",
-      rank: req.body.rank  || "",
+      rank: req.body.rank || "",
       slug: req.body.slug || "",
-      position: req.body.position  || "",
-      icon_alt: req.body.icon_alt  || "",
-      about_title: req.body.about_title  || "",
+      position: req.body.position || "",
+      icon_alt: req.body.icon_alt || "",
+      about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       partnersdesc: req.body.partnersdesc || "",
-      partnersname: req.body.partnersname  || "",
-      advantagesname: req.body.advantagesname  || "",
-      advantagesdescription: req.body.advantagesdescription  || "",
+      partnersname: req.body.partnersname || "",
+      advantagesname: req.body.advantagesname || "",
+      advantagesdescription: req.body.advantagesdescription || "",
       descriptions: descriptions?.length ? descriptions : existing.description || "",
-      approvals_name: req.body.approvals_name  || "",
-      approvals_desc: req.body.approvals_desc  || "",
+      approvals_name: req.body.approvals_name || "",
+      approvals_desc: req.body.approvals_desc || "",
       certificatename: req.body.certificatename || "",
-      certificatedescription: req.body.certificatedescription  || "",
-      image_alt: req.body.image_alt  || "",
+      certificatedescription: req.body.certificatedescription || "",
+      image_alt: req.body.image_alt || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
@@ -789,54 +791,53 @@ exports.updateUniversity = catchAsync(async (req, res) => {
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
 
-      servicedesc: req.body.servicedesc  || "",
+      pdf_download:
+        uploadedFiles["pdf_download"]
+          ? (deleteUploadedFiles([existing?.cover_image]),
+            toPublicUrl(req, uploadedFiles["pdf_download"]))
+          : existing?.pdf_download || null,
+
+      servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
       cover_image_alt: req.body.cover_image_alt || "",
-      services: services?.length && services|| "",
+      services: services?.length && services || "",
       patterns: patterns?.length && patterns || "",
 
-      patterndescription: req.body.patterndescription  || "",
-      patternname: req.body.patternname  || "",
+      patterndescription: req.body.patterndescription || "",
+      patternname: req.body.patternname || "",
       bottompatterndesc: req.body.bottompatterndesc || "",
-      advantages: advantages?.length && advantages  || "",
+      advantages: advantages?.length && advantages || "",
       campusList: campusList?.length && campusList || [],
       internationalcampus: internationalcampus?.length && internationalcampus || [],
       fees: fees || [],
-      facts: facts?.length && facts  || "",
+      facts: facts?.length && facts || "",
       factsname: req.body.factsname || "",
       onlines: onlines?.length && onlines || "",
       onlinetitle: req.body.onlinetitle || "",
       onlinedesc: req.body.onlinedesc || "",
-      financialdescription:req.body.financialdescription  || "",
+      financialdescription: req.body.financialdescription || "",
       financialname: req.body.financialname || "",
-      faqs: faqs?.length && faqs  || "",
-      approvals: parseArray(req.body.approvals)  || [],
-      partners: parseArray(req.body.partners)  || [],
-      rankings_name: req.body.rankings_name  || "",
-      rankings_description: req.body.rankings_description  || "",
+      faqs: faqs?.length && faqs || "",
+      approvals: parseArray(req.body.approvals) || [],
+      partners: parseArray(req.body.partners) || [],
+      rankings_name: req.body.rankings_name || "",
+      rankings_description: req.body.rankings_description || "",
     };
 
-    // HANDLE SLUG
-    let newSlug = existing.slug;
-    if (finalData.name !== existing.name) {
-      newSlug = await generateUniqueSlug(prisma, finalData.name, universityId);
-    }
-
-    // UPDATE MAIN UNIVERSITY
     const updatedUniversity = await prisma.University.update({
       where: { id: universityId },
       data: {
         name: finalData.name,
-        fees_desc  :req.body.fees_desc || "",
+        fees_desc: req.body.fees_desc || "",
         cover_image: finalData.cover_image || "",
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon || "",
-        slug: finalData.slug || newSlug,
+        slug: finalData.slug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
-       rank : finalData.rank || "",
-       video :  req.body.video || ""
+        rank: finalData.rank || "",
+        video: req.body.video || ""
       }
     });
 
@@ -1040,3 +1041,43 @@ exports.updateUniversity = catchAsync(async (req, res) => {
 });
 
 
+
+
+exports.GetServicesUniversityById = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+
+    const university = await prisma.University.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
+      select: {
+        services: true, // ✅ ONLY SERVICES
+      },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "University services fetched successfully",
+      200,
+      university.services
+    );
+  } catch (error) {
+    console.error("GetServicesUniversityById error:", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching services",
+      500,
+      error
+    );
+  }
+});

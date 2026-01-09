@@ -33,6 +33,7 @@ model University {
   id                 Int                          @id @default(autoincrement())
   slug               String                       @unique
   name               String
+  pdf_download       String?
   rank               String?
   icon               String?
   fees_desc          String?

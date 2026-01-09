@@ -436,8 +436,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
       cover_image_alt: req.body.cover_image_alt || "",
-    category_id : req.body.category_id|| "",
-    university_id : req.body.university_id || "",
+      category_id : req.body.category_id|| "",
+      university_id : req.body.university_id || "",
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
@@ -511,7 +511,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug:  generatedSlug,
+        slug:  req.body.slug || generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
@@ -1162,8 +1162,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
 
 
     };
-      let newSlug = await generateUniqueSlug(prisma, finalData.name, CourseId);
-    // UPDATE MAIN UNIVERSITY
     const UpdateCourse = await prisma.Course.update({
       where: { id: CourseId },
       data: {
@@ -1172,7 +1170,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug:  newSlug,
+        slug: req.body.slug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",

@@ -382,7 +382,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: uniqueSlug,
+        slug: req.body.slug|| uniqueSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
@@ -777,12 +777,6 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 
     };
 
-    // HANDLE SLUG
-    let newSlug = existing.slug;
-    if (finalData.name !== existing.name) {
-      newSlug = await generateUniqueSlug(prisma, finalData.name, SpecialisationId);
-    }
-
     // UPDATE MAIN UNIVERSITY
     const UpdateSpecialisation = await prisma.Specialisation.update({
       where: { id: SpecialisationId },
@@ -792,7 +786,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: finalData.slug || newSlug,
+        slug:req.body.slug ,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",

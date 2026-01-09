@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { allUniversities, adminapprovalsplacements, adminUniversitylisting, addUniversity, allAdminUniversities, universitiesDelete, getUniversityById, updateUniversity } = require("../controllers/universityController");
+const { allUniversities, adminapprovalsplacements, adminUniversitylisting, addUniversity, allAdminUniversities, universitiesDelete, getUniversityById, updateUniversity, GetServicesUniversityById } = require("../controllers/universityController");
 const dynamicUpload = require("../utils/dynamicUpload");
 
 router.get("/universities", allUniversities);
@@ -10,5 +10,8 @@ router.post("/admin/universities/add", dynamicUpload("universities").any(), addU
 router.get("/admin/university", allAdminUniversities);
 router.get("/university/delete/:id", universitiesDelete)
 router.get("/university/:slug", getUniversityById)
+
+router.get("/university/services/:slug", GetServicesUniversityById)
+
 router.post("/admin/universities/update", dynamicUpload("universities").any(), updateUniversity)
 module.exports = router;
