@@ -59,8 +59,6 @@ async function getGeoFromIP(ip) {
   }
 }
 
-
-
 exports.LeadsAdd = catchAsync(async (req, res) => {
   try {
     let {
@@ -94,7 +92,7 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
       city = city || geo.city;
       state = state || geo.state;
     }
-
+    const pro =  JSON.parse(proInsights)
     const data = {
       name,
       email,
@@ -123,6 +121,8 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
     }
 
     const record = await prisma.leads.create({ data });
+
+
 
     return successResponse(res, "Leads added successfully", 201, record);
   } catch (error) {
