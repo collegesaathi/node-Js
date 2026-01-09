@@ -31,6 +31,7 @@ CREATE TABLE "University" (
     "name" TEXT NOT NULL,
     "rank" TEXT,
     "icon" TEXT,
+    "fees_desc" TEXT,
     "video" TEXT,
     "cover_image" TEXT,
     "icon_alt" TEXT,
@@ -95,6 +96,7 @@ CREATE TABLE "Fees" (
     "course_id" INTEGER,
     "specialisation_id" INTEGER,
     "fees_title" TEXT,
+    "fees_desc" TEXT,
 
     CONSTRAINT "Fees_pkey" PRIMARY KEY ("id")
 );
@@ -381,6 +383,15 @@ CREATE TABLE "leads" (
     "city" TEXT,
     "content" TEXT,
     "page_name" TEXT,
+    "proInsights" JSONB,
+    "utm_source" TEXT,
+    "utm_medium" TEXT,
+    "utm_campaign" TEXT,
+    "utm_content" TEXT,
+    "utm_term" TEXT,
+    "type" TEXT,
+    "device_type" TEXT,
+    "ip_address" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
