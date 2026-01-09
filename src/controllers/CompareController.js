@@ -24,7 +24,7 @@ exports.GetCoursesList = catchAsync(async (req, res) => {
     // 3️⃣ Fetch courses for that university
     const courses = await prisma.course.findMany({
       where: {
-        university_id: 1,
+        university_id:  Number(university_id),
         deleted_at: null
       },
       include: {
@@ -32,7 +32,8 @@ exports.GetCoursesList = catchAsync(async (req, res) => {
           select: {
             id: true,
             name: true,
-            slug: true
+            slug: true,
+            icon:true
           }
         }
       },
@@ -72,33 +73,30 @@ exports.GetUniversityList = catchAsync(async (req, res) => {
     }
 
     // 2️⃣ Fetch universities based on course + category
-    const universities = await prisma.university.findMany({
-      where: {
+const universities = await prisma.university.findMany({
+  where: {
+    deleted_at: null,
+    courses: {
+      some: {
         deleted_at: null,
-        courses: {
-          some: {
-            deleted_at: null,
-            category_id: Number(category_id),
-            name: {
-              equals: course_name,
-              mode: "insensitive" // ✅ case-insensitive match
-            }
-          }
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        icon: true,
-        cover_image: true,
-        rank: true,
-        position: true
-      },
-      orderBy: {
-        position: "asc"
+        category_id: Number(category_id),
       }
-    });
+    }
+  },
+  select: {
+    id: true,
+    name: true,
+    slug: true,
+    icon: true,
+    cover_image: true,
+    rank: true,
+    position: true
+  },
+  orderBy: {
+    position: "asc"
+  }
+});
+
 
     // 3️⃣ No universities found
     if (!universities.length) {
