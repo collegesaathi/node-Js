@@ -436,6 +436,15 @@ model leads {
   city          String?
   content       String?
   page_name     String?     
+  proInsights   Json?   
+  utm_source   String?
+  utm_medium   String?
+  utm_campaign   String?
+  utm_content   String?
+  utm_term   String?
+  type         String?
+  device_type String?
+  ip_address   String?
   created_at    DateTime    @default(now())
   updated_at    DateTime    @updatedAt
   deleted_at    DateTime?
