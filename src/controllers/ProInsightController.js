@@ -34,11 +34,38 @@ exports.GetproinsightList = catchAsync(async (req, res) => {
       );
     }
 
-    /**
-     * 2️⃣ course_id → FETCH SPECIALISATIONS
-     */
+    if (category_id) {
+      const courses = await prisma.Program.findMany({
+        where: {
+          category_id: Number(category_id),
+          deleted_at: null
+        },
+         select: {
+          id: true,
+          title: true,
+          bannerImage: true,
+          slug: true
+        },
+      });
+
+      if (!courses.length) {
+        return errorResponse(
+          res,
+          "No courses found for this category",
+          404
+        );
+      }
+
+      return successResponse(
+        res,
+        "Programs fetched successfully",
+        200,
+        courses
+      );
+    }
+
     if (course_id) {
-      const specialisations = await prisma.specialisation.findMany({
+      const specialisations = await prisma.ProgramSpecialisation.findMany({
         where: {
           course_id: Number(course_id),
           deleted_at: null
@@ -59,56 +86,19 @@ exports.GetproinsightList = catchAsync(async (req, res) => {
       if (!specialisations.length) {
         return errorResponse(
           res,
-          "No specialisations found for this course",
+          "No Program found for this course",
           404
         );
       }
 
       return successResponse(
         res,
-        "Specialisations fetched successfully",
+        "Program Specialisations fetched successfully",
         200,
         specialisations
       );
     }
 
-    /**
-     * 3️⃣ category_id → FETCH COURSES
-     */
-    if (category_id) {
-      const courses = await prisma.course.findMany({
-        where: {
-          category_id: Number(category_id),
-          deleted_at: null
-        },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          icon: true,
-          cover_image: true,
-          position: true
-        },
-        orderBy: {
-          position: "asc"
-        }
-      });
-
-      if (!courses.length) {
-        return errorResponse(
-          res,
-          "No courses found for this category",
-          404
-        );
-      }
-
-      return successResponse(
-        res,
-        "Courses fetched successfully",
-        200,
-        courses
-      );
-    }
 
   } catch (error) {
     return errorResponse(res, error.message, 500);
