@@ -381,7 +381,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: uniqueSlug,
+        slug:  req.body.slug ? req.body.slug : uniqueSlug || req.body.slug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),

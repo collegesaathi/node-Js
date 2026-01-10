@@ -511,7 +511,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug: generatedSlug || req.body.slug ,
+        slug: req.body.slug ? req.body.slug : generatedSlug || req.body.slug ,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
