@@ -742,6 +742,24 @@ CREATE TABLE "homePageVideo" (
     CONSTRAINT "homePageVideo_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Job" (
+    "id" SERIAL NOT NULL,
+    "job_title" TEXT,
+    "description" TEXT,
+    "skill" TEXT,
+    "education" TEXT,
+    "work_experience" TEXT,
+    "work_location" TEXT,
+    "job_type" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "Job_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 

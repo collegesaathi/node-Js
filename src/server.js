@@ -64,6 +64,8 @@ app.use("/api", require("./routes/programRoutes"));
 app.use("/api", require("./routes/OtpRoutes"));
 app.use("/api", require("./routes/CompareRoute"));
 app.use("/api", require("./routes/proinsightRoutes"));
+app.use("/api", require("./routes/JobRoute"));
+
 
 
 

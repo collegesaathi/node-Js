@@ -825,3 +825,19 @@ model homePageVideo {
   updated_at          DateTime @updatedAt
   deleted_at          DateTime?
 }
+
+
+model Job {
+  id               Int      @id @default(autoincrement())
+  job_title        String?
+  description      String?
+  skill            String?
+  education        String?
+  work_experience  String?
+  work_location    String?
+  job_type         String?
+  is_active        Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  deleted_at          DateTime?
+}
