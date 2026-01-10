@@ -368,12 +368,11 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       desccreteria: req.body.desccreteria || ""
     };
 
-    const rawSlug = finalData.name;
+    const rawSlug = req.body.name;
     const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
     }
-
     // Save with Prisma (example)
     const SpecialisationData = await prisma.Specialisation.create({
       data: {
@@ -382,7 +381,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: req.body.slug|| uniqueSlug,
+        slug: uniqueSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
