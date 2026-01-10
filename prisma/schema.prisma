@@ -240,16 +240,18 @@ model ExamPatterns {
 }
 
 model FinancialAid {
-  id            Int        @id @default(autoincrement())
-  university_id Int?  @unique
-  course_id     Int?       @unique
-  specialisation_id Int?      @unique
-  title         String
-  description   String?
-  aid           Json?
-  university University? @relation(fields: [university_id], references: [id])
-  course        Course?  @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  id                  Int             @id @default(autoincrement())
+  university_id       Int?            @unique
+  course_id           Int?            @unique
+  specialisation_id   Int?            @unique
+  program_id          Int?            @unique
+  title               String
+  description         String?
+  aid                 Json?
+  university          University?     @relation(fields: [university_id], references: [id])
+  course              Course?         @relation(fields: [course_id], references: [id])
+  specialisation      Specialisation? @relation(fields: [specialisation_id], references: [id])
+  program             Program?        @relation(fields: [program_id], references: [id])
 }
 
 model Partners {
@@ -534,23 +536,71 @@ model Program {
   conclusion          String?
   specialisationtitle String?
   specialisationdesc  String?
+  summary             Json?
   // ✅ CATEGORY RELATION
-  category_id         Int        @default(1)
-  category            Category   @relation(fields: [category_id], references: [id])
-  careers             ProgramCareer?
-  placement           ProgramPlacement?
-  choose                ProgramChoose?
-  academic            ProgramAcademic?
-  graph          ProgramGraph?
-  highlights          ProgramHighlights?
-  entrance            ProgramEntrance?
-  faqs                Faq?
-  seo                 Seo?
-  institutes          ProgramInstitutes?
-  curriculum          ProgramCurriculum?
-  experience          ProgramExperience?
-  financial           ProgramFinancialScholarship?
+  category_id         Int             @default(1)
+  category                Category    @relation(fields: [category_id], references: [id])
+  careers                 ProgramCareer?
+  placement               ProgramPlacement?
+  choose                  ProgramChoose?
+  academic                ProgramAcademic?
+  graph                   ProgramGraph?
+  highlights              ProgramHighlights?
+  entrance                ProgramEntrance?
+  faqs                    Faq?
+  seo                     Seo?
+  institutes              ProgramInstitutes?
+  curriculum              ProgramCurriculum?
+  experience              ProgramExperience?
+  financial               ProgramFinancialScholarship?
   durationfees            ProgramDurationFees?
+  financialaid            FinancialAid ?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  deleted_at          DateTime?  
+}
+
+model SpecialisationProgram {
+  id                  Int        @id @default(autoincrement())
+  title               String
+  description         String
+  bannerImage         String?
+  slug                String    @unique
+  bannerImageAlt      String?
+  pdfdownlaod         String?
+  career_growth       String?
+  duration            String?
+  specialization      String?
+  audio               String?
+  subtitle            String?
+  shortDescription    String?
+  video               String?
+  universitytitle     String?
+  universitydesc      String?
+  universitybtmdesc   String?
+  university_id       Json?
+  conclusion          String?
+  specialisationtitle String?
+  specialisationdesc  String?
+  summary             Json?
+  // ✅ CATEGORY RELATION
+  category_id         Int             @default(1)
+  category                Category    @relation(fields: [category_id], references: [id])
+  careers                 ProgramCareer?
+  placement               ProgramPlacement?
+  choose                  ProgramChoose?
+  academic                ProgramAcademic?
+  graph                   ProgramGraph?
+  highlights              ProgramHighlights?
+  entrance                ProgramEntrance?
+  faqs                    Faq?
+  seo                     Seo?
+  institutes              ProgramInstitutes?
+  curriculum              ProgramCurriculum?
+  experience              ProgramExperience?
+  financial               ProgramFinancialScholarship?
+  durationfees            ProgramDurationFees?
+  financialaid            FinancialAid ?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   deleted_at          DateTime?  
@@ -560,14 +610,16 @@ model ProgramAcademic {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
- Image        String?
- image_alt    String?
- entra_title String?
- entra_desc  String?
- entra_image String?
- entra_image_alt String?
- program_id  Int?  @unique
+  Image        String?
+  image_alt    String?
+  entra_title String?
+  entra_desc  String?
+  entra_image String?
+  entra_image_alt String?
+  program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramCareer {
@@ -576,7 +628,9 @@ model ProgramCareer {
   description String?
   career      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 
@@ -586,7 +640,9 @@ model ProgramFinancialScholarship {
   description String?
   financial      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramDurationFees {
@@ -595,7 +651,9 @@ model ProgramDurationFees {
   description String?
   duration      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramGraph {
@@ -605,7 +663,9 @@ model ProgramGraph {
   subdesc    String?
   monthly      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramHighlights {
@@ -615,7 +675,9 @@ model ProgramHighlights {
   subtitle    String?
   Highlights      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramEntrance{
@@ -625,7 +687,9 @@ model ProgramEntrance{
   description String?
   Entrance      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramInstitutes{
@@ -635,7 +699,9 @@ model ProgramInstitutes{
   description String?
   Institutes      Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramPlacement {
@@ -647,7 +713,9 @@ model ProgramPlacement {
   Subdec   String?
   subplacement  Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramCurriculum {
@@ -657,7 +725,9 @@ model ProgramCurriculum {
   subtitle   String?
   curriculum_id  Json?
   program_id  Int?  @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramChoose {
@@ -668,7 +738,9 @@ model ProgramChoose {
   choose        Json?
   purpuse        Json?
   program_id  Int? @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramExperience {
@@ -678,7 +750,9 @@ model ProgramExperience {
   notes     String?
   experiences        Json?
   program_id  Int? @unique
+  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model homePageVideo {

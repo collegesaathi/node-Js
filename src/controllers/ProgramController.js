@@ -136,16 +136,19 @@ exports.AddProgram = catchAsync(async (req, res) => {
     let subPlacementJson = parseArray(req.body.PlacementAdds);
     const curriculumJson = parseArray(req.body.curriculm);
     let fincalceAdds = parseArray(req.body.fincalceAdds)
+    const summaryJson = parseArray(req.body.summary);
     let choose = parseArray(req.body.choose);
     let purpuse = parseArray(req.body.purpuse)
     const factsImages = mapUploadedArray(req, uploadedFiles, "fincalceAddsimages");
     const chooseimages = mapUploadedArray(req, uploadedFiles, "chooseimages");
     const purpuseimages = mapUploadedArray(req, uploadedFiles, "purpuseimages");
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
+    const summaryAudio = mapUploadedArray(req, uploadedFiles, "summaryaudio");
     fincalceAdds = attachImagesToItems(fincalceAdds, factsImages, "image");
     choose = attachImagesToItems(choose, chooseimages, "image");
     purpuse = attachImagesToItems(purpuse, purpuseimages, "image");
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image");
+    const summary = attachImagesToItems( summaryJson, summaryAudio, "audio");
     if (!req.body.name) {
       return errorResponse(res, "Program title is required", 400);
     }
@@ -178,6 +181,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
           category_id: req.body.category_id || 1,
+          summary: summary,
         },
       });
 
@@ -203,6 +207,14 @@ exports.AddProgram = catchAsync(async (req, res) => {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
           career: parseArray(req.body.Careers),
+          program_id: programId,
+        },
+      });
+      await tx.FinancialAid.create({
+        data: {
+          title: req.body.financialname || "",
+          description: req.body.financialdesc || "",
+          aid: parseArray(req.body.FinancialAid),
           program_id: programId,
         },
       });
@@ -457,11 +469,13 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     let choose = parse(req.body.choose);
     let purpuse = parse(req.body.purpuse);
     const careers = parse(req.body.Careers);
+    const FinancialAid = parse(req.body.FinancialAid);
     const experienceFees = parse(req.body.Experinces);
     let finacels = parse(req.body.fincalceAdds);
     const onlineEntrance = parse(req.body.onlines);
     const durationData = parse(req.body.DurationData);
     let curriculumData = parse(req.body.curriculm);
+    let summary = parse(req.body.summary);
 
     const chooseimages = mapUploadedArray(req, uploadedFiles, "chooseimages");
     const purpuseimages = mapUploadedArray(req, uploadedFiles, "purpuseimages");
@@ -470,10 +484,12 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     choose = attachImagesToItems(choose, chooseimages, "image", existing.choose?.choose);
     const curriculumsimages = mapUploadedArray(req, uploadedFiles, "curriculumsimages");
     const fincalceAddsimages = mapUploadedArray(req, uploadedFiles, "fincalceAddsimages");
+    const summaryAudios = mapUploadedArray(req, uploadedFiles, "summaryaudio");
 
     finacels = attachImagesToItems(finacels, fincalceAddsimages, "image", existing.financial?.financial);
 
     curriculumData = attachImagesToItems(curriculumData, curriculumsimages, "image", existing.curriculum?.curriculum_id);
+    summary = attachImagesToItems(summary, summaryAudios, "audio", existing.summary);
 
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
     // Attach images to arrays
@@ -494,6 +510,7 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       // bannerImage: uploaded.bannerImage || existing.bannerImage,
       bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
       video: req.body.video || existing.video,
+      summary, 
       // pdfdownlaod: uploaded.pdf_download || existing.pdfdownlaod,
       // audio: uploaded.audio || existing.audio,
       bannerImage:
@@ -582,6 +599,21 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
           career: careers
+        }
+      });
+
+      await tx.FinancialAid.upsert({
+        where: { program_id: programId },
+        create: {
+          program_id: programId,
+          title: req.body.financialname || "",
+          description: req.body.financialdescription || "",
+          aid: FinancialAid
+        },
+        update: {
+          title: req.body.financialname || "",
+          description: req.body.financialdescription || "",
+          aid: FinancialAid
         }
       });
 
