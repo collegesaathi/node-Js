@@ -29,6 +29,8 @@ CREATE TABLE "University" (
     "id" SERIAL NOT NULL,
     "slug" TEXT NOT NULL,
     "name" TEXT NOT NULL,
+    "pdf_download" TEXT,
+    "fees_notes" TEXT,
     "rank" TEXT,
     "icon" TEXT,
     "fees_desc" TEXT,
@@ -97,6 +99,7 @@ CREATE TABLE "Fees" (
     "specialisation_id" INTEGER,
     "fees_title" TEXT,
     "fees_desc" TEXT,
+    "fees_notes" TEXT,
 
     CONSTRAINT "Fees_pkey" PRIMARY KEY ("id")
 );
@@ -187,6 +190,7 @@ CREATE TABLE "FinancialAid" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "aid" JSONB,
+    "notes" TEXT,
 
     CONSTRAINT "FinancialAid_pkey" PRIMARY KEY ("id")
 );
@@ -439,6 +443,7 @@ CREATE TABLE "Curriculum" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "semesters" JSONB,
+    "notes" TEXT,
 
     CONSTRAINT "Curriculum_pkey" PRIMARY KEY ("id")
 );
@@ -452,6 +457,7 @@ CREATE TABLE "EligibilityCriteria" (
     "description" TEXT,
     "IndianCriteria" JSONB,
     "NRICriteria" JSONB,
+    "notes" TEXT,
 
     CONSTRAINT "EligibilityCriteria_pkey" PRIMARY KEY ("id")
 );
