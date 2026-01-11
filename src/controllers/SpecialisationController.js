@@ -180,9 +180,9 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
         faq: true,
         seo: true,
         advantages: true,
+        university : true
       },
     });
-    console.log("SpecialisationData", SpecialisationData)
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
@@ -247,7 +247,6 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
       });
     }
 
-    console.log(SpecialisationData, approvalsData, placementPartners)
     return successResponse(
       res,
       "Specialisation fetched successfully",
