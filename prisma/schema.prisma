@@ -843,31 +843,32 @@ model Job {
 }
 
 
-model Chat {
-  id             Int      @id @default(autoincrement())
-  // Guest user info
-  visitor_id     String   // unique guest id (localStorage / cookie)
-  ip_address     String?  // user IP
-  user_agent     String?  // browser / device info
+  model Chat {
+    id             Int      @id @default(autoincrement())
+    // Guest user info
+    visitor_id     String   // unique guest id (localStorage / cookie)
+    ip_address     String?  // user IP
+    user_agent     String?  // browser / device info
 
-  // Location (optional)
-  country        String?
-  state          String?
-  city           String?
+    // Location (optional)
+    country        String?
+    state          String?
+    city           String?
+    device_type    String?
 
-  // Context
-  page_url       String?  // kis page se chat start hui
-  job_id         Int?     // kis job ke context me chat hui
+    // Context
+    page_url       String?  // kis page se chat start hui
+    job_id         Int?     // kis job ke context me chat hui
 
-  // Chat content
-  sender         String   // "user" | "admin"
-  message        String
+    // Chat content
+    sender         String   // "user" | "bot"
+    message        String
 
-  // Chat management
-  is_read        Boolean  @default(false)
-  is_resolved    Boolean  @default(false)
+    // Chat management
+    is_read        Boolean  @default(false)
+    is_resolved    Boolean  @default(false)
 
-  created_at     DateTime @default(now())
-  updated_at       DateTime @updatedAt
-  deleted_at          DateTime?
-}
+    created_at     DateTime @default(now())
+    updated_at       DateTime @updatedAt
+    deleted_at          DateTime?
+  }
