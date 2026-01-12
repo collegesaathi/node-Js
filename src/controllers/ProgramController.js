@@ -116,6 +116,8 @@ exports.AddProgram = catchAsync(async (req, res) => {
   //   uploadedFiles[file.fieldname] = file.path;
   // });
 
+
+
   const uploadedFiles = {};
 
   req.files?.forEach(file => {
@@ -124,9 +126,8 @@ exports.AddProgram = catchAsync(async (req, res) => {
     }
     uploadedFiles[file.fieldname].push(file.path);
   });
-  // Loggers.http(req.body)
-  // Loggers.http(uploadedFiles)
-  // return false;
+  Loggers.silly(req.body)
+  Loggers.silly(uploadedFiles)
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -157,6 +158,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       prisma,
       req.body.name
     );
+
     const result = await prisma.$transaction(async (tx) => {
       const program = await tx.Program.create({
         data: {
@@ -205,9 +207,8 @@ exports.AddProgram = catchAsync(async (req, res) => {
           title: req.body.summarytitle || "",
           description: req.body.summarydesc || "",
           button: req.body.summarybutton || "",
-          summary: summary,
+          summary_audio: req.body.summary_audio,
           program_id: programId
-
         },
       });
 
@@ -215,7 +216,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
         data: {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
-          career:  parseArray(req.body.Careers),
+          career: parseArray(req.body.Careers),
           program_id: programId,
         },
       });
@@ -233,7 +234,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
-      console.log("✅ Program Exp. OK");
 
 
       await tx.Faq.create({
@@ -241,7 +241,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           program_id: programId,
           faqs: parseArray(req.body.faqs) || [],
         },
-      })  
+      })
       console.log("✅ Faq OK");
 
       await tx.Seo.upsert({
@@ -353,13 +353,17 @@ exports.AddProgram = catchAsync(async (req, res) => {
           program_id: programId,
         },
       });
-
-
-
-
+      await tx.ProgramVs.create({
+        data: {
+          title: req.body.addvstitle || "",
+          description: req.body.addvsdesc || "",
+          summary: parseArray(addvs),
+          program_id: programId,
+        },
+      });
       return program;
     },
-     { timeout: 30000 });
+      { timeout: 50000 });
 
 
     return successResponse(res, "Program added successfully", 201, result);
@@ -456,9 +460,6 @@ exports.GetProgramById = catchAsync(async (req, res) => {
 // ✅ UPSERT BASED UPDATE PROGRAM CONTROLLER
 exports.UpdateProgram = catchAsync(async (req, res) => {
   try {
-
-
-
     const programId = Number(req.body.id);
     if (!programId) return errorResponse(res, "Program ID is required", 400);
     // Loggers.silly(req.body)
@@ -466,10 +467,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     req.files?.forEach((file) => {
       uploadedFiles[file.fieldname] = file.path;
     });
-
-    // Loggers.silly(req.body)
-    // Loggers.silly(uploadedFiles)
-    // return false;
 
 
     /* ---------------- FETCH ---------------- */
@@ -515,8 +512,8 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
     // Attach images to arrays
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image", existing.placement?.subplacement);
-    const existingSummary = await prisma.ProgramSummary.findUnique({ where: { program_id: programId },});
-    summary = attachImagesToItems( summary, summaryAudios, "audio", existingSummary?.summary);
+    const existingSummary = await prisma.ProgramSummary.findUnique({ where: { program_id: programId }, });
+    summary = attachImagesToItems(summary, summaryAudios, "audio", existingSummary?.summary);
     /* ---------------- SLUG GENERATION ---------------- */
     const generatedSlug = await generateUniqueSlug(
       prisma,

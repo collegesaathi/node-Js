@@ -614,7 +614,7 @@ model ProgramSummary {
   title       String
   description String?
   button        String?
-  summary    Json?
+  summary_audio String?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
@@ -653,7 +653,7 @@ model ProgramVs {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
-  notes String?
+  notes       String?
   summary    Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
