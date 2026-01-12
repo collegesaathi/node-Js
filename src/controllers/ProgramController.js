@@ -124,9 +124,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
     }
     uploadedFiles[file.fieldname].push(file.path);
   });
-        // Loggers.http(req.body)
-        // Loggers.http(uploadedFiles)
-        // return false;
+  // Loggers.http(req.body)
+  // Loggers.http(uploadedFiles)
+  // return false;
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -148,7 +148,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
     choose = attachImagesToItems(choose, chooseimages, "image");
     purpuse = attachImagesToItems(purpuse, purpuseimages, "image");
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image");
-    const summary = attachImagesToItems( summaryJson, summaryAudio, "audio");
+    const summary = attachImagesToItems(summaryJson, summaryAudio, "audio");
     if (!req.body.name) {
       return errorResponse(res, "Program title is required", 400);
     }
@@ -181,7 +181,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
           category_id: req.body.category_id || 1,
-          summary: summary,
         },
       });
 
@@ -201,20 +200,22 @@ exports.AddProgram = catchAsync(async (req, res) => {
           program_id: programId,
         },
       });
+      await tx.ProgramSummary.create({
+        data: {
+          title: req.body.summarytitle || "",
+          description: req.body.summarydesc || "",
+          button: req.body.summarybutton || "",
+          summary: summary,
+          program_id: programId
+
+        },
+      });
 
       await tx.ProgramCareer.create({
         data: {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
-          career: parseArray(req.body.Careers),
-          program_id: programId,
-        },
-      });
-      await tx.FinancialAid.create({
-        data: {
-          title: req.body.financialname || "",
-          description: req.body.financialdesc || "",
-          aid: parseArray(req.body.FinancialAid),
+          career:  parseArray(req.body.Careers),
           program_id: programId,
         },
       });
@@ -232,8 +233,8 @@ exports.AddProgram = catchAsync(async (req, res) => {
       await tx.Faq.create({
         data: {
           program_id: programId,
-          faqs: faqs || [],
-        }
+          faqs: parseArray(req.body.faqs) || [],
+        },
       })
       await tx.Seo.create({
         data: {
@@ -254,16 +255,16 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
-      const programChoose = await tx.ProgramChoose.create({
+      await tx.ProgramChoose.create({
         data: {
           title: req.body.purpusename || "",
           description: req.body.purpsedesc || "",
-          choose: choose,     
-          purpuse: purpuse,   
+          choose: choose,
+          // purpuse: purpuse,
           program_id: programId,
         },
       });
-      
+
       await tx.ProgramGraph.create({
         data: {
           title: req.body.futuretitle || "",
@@ -434,7 +435,7 @@ exports.GetProgramById = catchAsync(async (req, res) => {
 exports.UpdateProgram = catchAsync(async (req, res) => {
   try {
 
-  
+
 
     const programId = Number(req.body.id);
     if (!programId) return errorResponse(res, "Program ID is required", 400);
@@ -444,9 +445,9 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
 
-        // Loggers.silly(req.body)
-        // Loggers.silly(uploadedFiles)
-        // return false;
+    // Loggers.silly(req.body)
+    // Loggers.silly(uploadedFiles)
+    // return false;
 
 
     /* ---------------- FETCH ---------------- */
@@ -475,7 +476,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     const onlineEntrance = parse(req.body.onlines);
     const durationData = parse(req.body.DurationData);
     let curriculumData = parse(req.body.curriculm);
-    let summary = parse(req.body.summary);
 
     const chooseimages = mapUploadedArray(req, uploadedFiles, "chooseimages");
     const purpuseimages = mapUploadedArray(req, uploadedFiles, "purpuseimages");
@@ -489,16 +489,17 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     finacels = attachImagesToItems(finacels, fincalceAddsimages, "image", existing.financial?.financial);
 
     curriculumData = attachImagesToItems(curriculumData, curriculumsimages, "image", existing.curriculum?.curriculum_id);
-    summary = attachImagesToItems(summary, summaryAudios, "audio", existing.summary);
 
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
     // Attach images to arrays
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image", existing.placement?.subplacement);
+    const existingSummary = await prisma.ProgramSummary.findUnique({ where: { program_id: programId },});
+    summary = attachImagesToItems( summary, summaryAudios, "audio", existingSummary?.summary);
     /* ---------------- SLUG GENERATION ---------------- */
-      const generatedSlug = await generateUniqueSlug(
-        prisma,
-        req.body.name
-      );
+    const generatedSlug = await generateUniqueSlug(
+      prisma,
+      req.body.name
+    );
     /* ---------------- FINAL DATA ---------------- */
     const finalData = {
       title: req.body.name || existing.title,
@@ -510,7 +511,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       // bannerImage: uploaded.bannerImage || existing.bannerImage,
       bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
       video: req.body.video || existing.video,
-      summary, 
       // pdfdownlaod: uploaded.pdf_download || existing.pdfdownlaod,
       // audio: uploaded.audio || existing.audio,
       bannerImage:
@@ -795,6 +795,22 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
           entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
           program_id: programId,
         }
+      });
+      await tx.ProgramSummary.upsert({
+        where: { program_id: programId },
+        create: {
+          program_id: programId,
+          title: req.body.summary_title || "",
+          description: req.body.summary_description || "",
+          button: req.body.summary_button || "",
+          summary: summary,
+        },
+        update: {
+          title: req.body.summary_title || "",
+          description: req.body.summary_description || "",
+          button: req.body.summary_button || "",
+          summary: summary,
+        },
       });
 
     });

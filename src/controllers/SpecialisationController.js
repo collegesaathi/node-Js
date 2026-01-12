@@ -180,9 +180,9 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
         faq: true,
         seo: true,
         advantages: true,
+        university : true
       },
     });
-    console.log("SpecialisationData", SpecialisationData)
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
@@ -247,7 +247,6 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
       });
     }
 
-    console.log(SpecialisationData, approvalsData, placementPartners)
     return successResponse(
       res,
       "Specialisation fetched successfully",
@@ -368,12 +367,11 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       desccreteria: req.body.desccreteria || ""
     };
 
-    const rawSlug = finalData.name;
+    const rawSlug = req.body.name;
     const uniqueSlug = await generateUniqueSlug(prisma, rawSlug);
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
     }
-
     // Save with Prisma (example)
     const SpecialisationData = await prisma.Specialisation.create({
       data: {
@@ -382,7 +380,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: uniqueSlug,
+        slug:  req.body.slug ? req.body.slug : uniqueSlug || req.body.slug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
@@ -404,7 +402,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         specialisation_id: Number(SpecialisationData.id),
         fees_title: (finalData?.fees_title),
         fees_desc: (req.body.fees_desc),
-
+        fees_notes: req.body?.fees_notes || "",
         annual_fees: (finalData?.anuual_fees),
         semester_wise_fees: (finalData?.semester_fees),
         tuition_fees: (finalData?.tuition_fees)
@@ -442,7 +440,9 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         title: finalData.creteria || "",
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
+        notes: req.body.notescreteria || "",
         IndianCriteria: finalData.IndianCriteria || ""
+
       }
     })
     await prisma.Curriculum.create({
@@ -450,6 +450,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         specialisation_id: Number(SpecialisationData.id),
         title: finalData.semesters_title,
         semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
       }
     })
 
@@ -502,6 +503,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         title: finalData.financialname,
         description: finalData.financialdescription || null,
         aid: finalData.fees,
+       notes : req.body.finacial_notes,
         specialisation_id: Number(SpecialisationData.id),
       }
     })
@@ -777,12 +779,6 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 
     };
 
-    // HANDLE SLUG
-    let newSlug = existing.slug;
-    if (finalData.name !== existing.name) {
-      newSlug = await generateUniqueSlug(prisma, finalData.name, SpecialisationId);
-    }
-
     // UPDATE MAIN UNIVERSITY
     const UpdateSpecialisation = await prisma.Specialisation.update({
       where: { id: SpecialisationId },
@@ -792,7 +788,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug: finalData.slug || newSlug,
+        slug:req.body.slug ,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
@@ -815,6 +811,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           tuition_fees: finalData?.tuition_fees,
           fees_title: finalData?.fees_title,
           fees_desc: finalData?.fees_desc,
+        fees_notes: req.body?.fees_notes || "",
         }
       });
 
@@ -845,6 +842,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
+            notes: req.body.notescreteria || "",
           description: finalData.desccreteria || ""
         },
         create: {
@@ -852,17 +850,19 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
           title: finalData.creteria || "",
           NRICriteria: finalData.NRICriteria || "",
           IndianCriteria: finalData.IndianCriteria || "",
+            notes: req.body.notescreteria || "",
           description: finalData.desccreteria || ""
         }
       })
 
       await prisma.Curriculum.upsert({
         where: { specialisation_id: SpecialisationId },
-        update: { title: finalData.semesters_title, semesters: finalData.semesters, },
+        update: { title: finalData.semesters_title, semesters: finalData.semesters,    notes: req.body.semesters_notes,},
         create: {
           specialisation_id: Number(SpecialisationId),
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
         }
       })
 
@@ -932,11 +932,13 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         update: {
           title: finalData.financialname,
           description: finalData.financialdescription,
+           notes : req.body.finacial_notes,
           aid: finalData.fees,
         },
         create: {
           specialisation_id: SpecialisationId,
           title: finalData.financialname,
+           notes : req.body.finacial_notes,
           description: finalData.financialdescription,
           aid: finalData.fees,
         }

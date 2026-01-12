@@ -2,33 +2,47 @@ const { errorResponse, successResponse, validationErrorResponse } = require("../
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 
-
 function getDeviceType(req) {
   const ua = req.headers["user-agent"] || "";
 
-  if (/mobile/i.test(ua)) return "Mobile";
-  if (/tablet/i.test(ua)) return "Tablet";
+  if (/tablet|ipad/i.test(ua)) return "Tablet";
+  if (/mobile|android|iphone/i.test(ua)) return "Mobile";
   return "Desktop";
 }
 
+
 function getClientIP(req) {
-  return (
-    req.headers["x-forwarded-for"]?.split(",")[0] ||
-    req.socket.remoteAddress ||
-    null
-  );
+  let ip =
+    req.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    req.socket?.remoteAddress ||
+    req.ip ||
+    null;
+  // Convert IPv6 to IPv4 (::ffff:127.0.0.1)
+  if (ip?.includes("::ffff:")) {
+    ip = ip.replace("::ffff:", "");
+  }
+  return ip;
 }
 
 const axios = require("axios");
+
 async function getGeoFromIP(ip) {
   try {
-    const url = `http://ip-api.com/json/${ip}`;
-    const response = await axios.get(url, { timeout: 3000 });
-
-    if (response.data?.status === "success") {
+    // 🚫 Skip localhost & private IPs
+    if (!ip || ip === "::1" || ip === "127.0.0.1") {
       return {
-        city: response.data.city || "Unknown City",
-        state: response.data.regionName || "Unknown State"
+        city: "Localhost",
+        state: "Localhost"
+      };
+    }
+
+    const url = `http://ip-api.com/json/${ip}?fields=status,city,regionName`;
+    const { data } = await axios.get(url, { timeout: 3000 });
+
+    if (data?.status === "success") {
+      return {
+        city: data.city || "Unknown City",
+        state: data.regionName || "Unknown State"
       };
     }
 
@@ -44,7 +58,6 @@ async function getGeoFromIP(ip) {
     };
   }
 }
-
 
 exports.LeadsAdd = catchAsync(async (req, res) => {
   try {
@@ -67,17 +80,19 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
       type
     } = req.body;
 
-    // ✅ Derive these from backend
+    // ✅ Backend derived values
     const ip_address = getClientIP(req);
     const device_type = getDeviceType(req);
 
-    // 🔁 Fallback: fetch city/state from IP if missing
+    console.log("IP:", ip_address);
+    console.log("Device:", device_type);
+
     if (!city || !state) {
       const geo = await getGeoFromIP(ip_address);
       city = city || geo.city;
       state = state || geo.state;
     }
-
+    const pro =  JSON.parse(proInsights)
     const data = {
       name,
       email,
@@ -107,12 +122,15 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
 
     const record = await prisma.leads.create({ data });
 
+
+
     return successResponse(res, "Leads added successfully", 201, record);
   } catch (error) {
-    console.log("Create Leads Error:", error);
+    console.error("Create Leads Error:", error);
     return errorResponse(res, error.message, 500);
   }
 });
+
 
 
 
@@ -139,21 +157,21 @@ exports.LeadsGet = catchAsync(async (req, res) => {
 });
 
 exports.AllLeadsUniversities = catchAsync(async (req, res) => {
-try {
+  try {
     const universities = await prisma.university.findMany({
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+      select: {
+        id: true,
+        name: true,
+      },
+    });
 
-  return successResponse(
-    res,
-    "Universities fetched successfully",
-    200,
-    { universities }
-  );
-} catch (error) {
+    return successResponse(
+      res,
+      "Universities fetched successfully",
+      200,
+      { universities }
+    );
+  } catch (error) {
     return errorResponse(res, error.message, 500);
-}
+  }
 });

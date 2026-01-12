@@ -431,13 +431,13 @@ exports.AddCourse = catchAsync(async (req, res) => {
     nri = attachImagesToItems(nri, nriimages, "images");
 
     const finalData = {
-      fees_desc :  req.body.fees_desc || "",
+      fees_desc: req.body.fees_desc || "",
       name: req.body.name || "",
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
       cover_image_alt: req.body.cover_image_alt || "",
-    category_id : req.body.category_id|| "",
-    university_id : req.body.university_id || "",
+      category_id: req.body.category_id || "",
+      university_id: req.body.university_id || "",
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
       about_title: req.body.about_title || "",
@@ -511,13 +511,13 @@ exports.AddCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug:  generatedSlug,
+        slug: req.body.slug ? req.body.slug : generatedSlug || req.body.slug ,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
-        university_id :Number(finalData.university_id),
-        category_id : Number(finalData.category_id) ,
-        video: finalData.video
+        university_id: Number(finalData.university_id),
+        category_id: Number(finalData.category_id),
+        video: finalData.video,
       }
     });
     // Upsert related tables
@@ -528,7 +528,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
         fees_title: finalData.fees_title || "",
-        fees_desc : finalData.fees_desc || ""
+        fees_desc: finalData.fees_desc || "",
+        fees_notes: req.body?.fees_notes || "",
       },
       create: {
         course_id: CoursesData.id,
@@ -536,7 +537,23 @@ exports.AddCourse = catchAsync(async (req, res) => {
         semester_wise_fees: finalData.semester_fees,
         tuition_fees: finalData.tuition_fees,
         fees_title: finalData.fees_title || "",
-        fees_desc : finalData.fees_desc || ""
+        fees_desc: finalData.fees_desc || "",
+        fees_notes: req.body?.fees_notes || "",
+      }
+    });
+
+
+     await prisma.About.upsert({
+      where: { course_id: CoursesData.id },
+      update: {
+        annual_fees: req.body.about_title,
+        semester_wise_fees: req.body.about_desc,
+    
+      },
+      create: {
+        course_id: CoursesData.id,
+         annual_fees: req.body.about_title,
+        semester_wise_fees: req.body.about_desc,
       }
     });
 
@@ -580,14 +597,16 @@ exports.AddCourse = catchAsync(async (req, res) => {
         title: finalData.creteria,
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
-        IndianCriteria: finalData.IndianCriteria || ""
+        IndianCriteria: finalData.IndianCriteria || "",
+        notes: req.body.notescreteria || "",
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.creteria,
         description: finalData.desccreteria || "",
         NRICriteria: finalData.NRICriteria || "",
-        IndianCriteria: finalData.IndianCriteria || ""
+        IndianCriteria: finalData.IndianCriteria || "",
+        notes: req.body.notescreteria || "",
       }
     });
 
@@ -595,16 +614,19 @@ exports.AddCourse = catchAsync(async (req, res) => {
       where: { course_id: CoursesData.id },
       update: {
         title: finalData.semesters_title,
-        semesters: finalData.semesters
+        semesters: finalData.semesters,
+        notes: req.body.semesters_notes,
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.semesters_title,
-        semesters: finalData.semesters
+        semesters: finalData.semesters,
+        notes: req.body.semesters_notes,
+
       }
     });
 
-const record =       await prisma.Services.upsert({
+    const record = await prisma.Services.upsert({
       where: { course_id: CoursesData.id },
       update: {
         title: finalData.servicetitle,
@@ -689,13 +711,16 @@ const record =       await prisma.Services.upsert({
       update: {
         title: finalData.financialname,
         description: finalData.financialdescription || null,
-        aid: finalData.fees
+        aid: finalData.fees,
+        notes: req.body.finacial_notes,
       },
       create: {
         course_id: CoursesData.id,
         title: finalData.financialname,
         description: finalData.financialdescription || null,
-        aid: finalData.fees
+        aid: finalData.fees,
+        notes: req.body.finacial_notes,
+
       }
     });
 
@@ -1024,7 +1049,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         examPatterns: true,
         financialAid: true,
         career: true,
-        partners: true, 
+        partners: true,
         services: true,
         admissionprocess: true,
         faq: true,
@@ -1049,8 +1074,6 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     let descriptions = parseArray(req.body.descriptions);
     let indian = parseArray(req.body.indian);
     let nri = parseArray(req.body.nri);
-
-
     // Build images from uploads
     const patternsImages = mapUploadedArray(req, uploadedFiles, "patternsimages");
     const servicesImages = mapUploadedArray(req, uploadedFiles, "servicesimages");
@@ -1058,72 +1081,65 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
     const campusImages = mapUploadedArray(req, uploadedFiles, "campusimages");
     const nriimages = mapUploadedArray(req, uploadedFiles, "nriimages");
     const Indianimages = mapUploadedArray(req, uploadedFiles, "Indianimages");
-
     const factsImages = mapUploadedArray(req, uploadedFiles, "factsimages");
     // Attach images to arrays
     services = attachImagesToItems(services, servicesImages, "image", existing.services?.services);
     services = attachImagesToItems(services, servicesIcons, "icon", existing.services?.services);
-
     patterns = attachImagesToItems(patterns, patternsImages, "image", existing.examPatterns?.patterns);
-
     campusList = attachImagesToItems(campusList, campusImages, "image", existing.universityCampuses?.campus);
     indian = attachImagesToItems(indian, Indianimages, "image", existing.EligibilityCriteria?.IndianCriteria);
     nri = attachImagesToItems(nri, nriimages, "image", existing.EligibilityCriteria?.NRICriteria);
-
-
     facts = attachImagesToItems(facts, factsImages, "image", existing.facts?.facts);
-
-
     // FINAL DATA MERGED WITH EXISTING
     const finalData = {
-      name: req.body.name  || "",
-      university_id: req.body.university_id  || "",
-      position: req.body.position|| "",
-      icon_alt: req.body.icon_alt  || "",
-      meta_title: req.body.meta_title  || "",
-      category_id: req.body.category_id  || "",
-      descriptions: descriptions?.length &&  descriptions || "",
-      cover_image_alt: req.body.cover_image_alt  || "",
-      about_title: req.body.about_title  || "",
-      about_desc: req.body.about_desc  || "",
-      tuition_fees: req.body.tuition_fees  || "",
-      anuual_fees: req.body.anuual_fees  || "",
-      fees_desc : req.body.fees_desc || "",
+      name: req.body.name || "",
+      university_id: req.body.university_id || "",
+      position: req.body.position || "",
+      icon_alt: req.body.icon_alt || "",
+      meta_title: req.body.meta_title || "",
+      category_id: req.body.category_id || "",
+      descriptions: descriptions?.length && descriptions || "",
+      cover_image_alt: req.body.cover_image_alt || "",
+      about_title: req.body.about_title || "",
+      about_desc: req.body.about_desc || "",
+      tuition_fees: req.body.tuition_fees || "",
+      anuual_fees: req.body.anuual_fees || "",
+      fees_desc: req.body.fees_desc || "",
       semester_fees: req.body.semester_fees || "",
       approvals_name: req.body.approvals_name || "",
-      approvals_desc: req.body.approvals_desc  || "",
+      approvals_desc: req.body.approvals_desc || "",
       approvals: parseArray(req.body.approvals) || "",
       rankings_name: req.body.rankings_name || "",
-      rankings_description: req.body.rankings_description  || "",
-      creteria: req.body.creteria  || "",
-      NRICriteria: nri?.length && nri  || "",
-      IndianCriteria: indian?.length && indian  || "",
-      semesters_title: req.body.semesters_title  || "",
-      semesters: parseArray(req.body.semesters)  || "",
-      certificatename: req.body.certificatename  || "",
-      certificatedescription: req.body.certificatedescription  || "",
-      image_alt: req.body.image_alt  || "",
-      fees_title: req.body.fees_title  || "",
+      rankings_description: req.body.rankings_description || "",
+      creteria: req.body.creteria || "",
+      NRICriteria: nri?.length && nri || "",
+      IndianCriteria: indian?.length && indian || "",
+      semesters_title: req.body.semesters_title || "",
+      semesters: parseArray(req.body.semesters) || "",
+      certificatename: req.body.certificatename || "",
+      certificatedescription: req.body.certificatedescription || "",
+      image_alt: req.body.image_alt || "",
+      fees_title: req.body.fees_title || "",
       certificatemage:
         uploadedFiles["certificatemage"]
           ? (deleteUploadedFiles([existing.certificatemage]),
             toPublicUrl(req, uploadedFiles["certificatemage"]))
           : existing?.certificatemage,
       careername: req.body.careername || "",
-      careermanages: parseArray(req.body.careermanages)  || "",
-      careerdesc: req.body.careerdesc  || "",
-      meta_description: req.body.meta_description  || "",
-      canonical_url: req.body.canonical_url  || "",
-      meta_keywords: req.body.meta_keywords  || "",
+      careermanages: parseArray(req.body.careermanages) || "",
+      careerdesc: req.body.careerdesc || "",
+      meta_description: req.body.meta_description || "",
+      canonical_url: req.body.canonical_url || "",
+      meta_keywords: req.body.meta_keywords || "",
 
-      partnersdesc: req.body.partnersdesc  || "",
-      partnersname: req.body.partnersname  || "",
+      partnersdesc: req.body.partnersdesc || "",
+      partnersname: req.body.partnersname || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
-      skills: parseArray(req.body.skills)  || "",
-      skillsname: req.body.skillsname  || "",
+      skills: parseArray(req.body.skills) || "",
+      skillsname: req.body.skillsname || "",
       skilldesc: req.body.skilldesc || "",
-      desccreteria: req.body.desccreteria  || "",
+      desccreteria: req.body.desccreteria || "",
       icon:
         uploadedFiles["icon"]
           ? (deleteUploadedFiles([existing?.icon]),
@@ -1137,33 +1153,28 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           : existing?.cover_image || null,
 
       servicedesc: req.body.servicedesc || "",
-      servicetitle: req.body.servicetitle   ||"",
-      services: services?.length && services  ||  [],
-      patterns: patterns?.length && patterns  || [],
-      patterndescription: req.body.patterndescription|| "",
-      patternname: req.body.patternname  || "",
+      servicetitle: req.body.servicetitle || "",
+      services: services?.length && services || [],
+      patterns: patterns?.length && patterns || [],
+      patterndescription: req.body.patterndescription || "",
+      patternname: req.body.patternname || "",
       bottompatterndesc: req.body.bottompatterndesc || "",
-      advantages: advantages?.length && advantages  || [],
-
-      campusList: campusList?.length && campusList  || [],
-
-      fees: fees?.length ? fees : existing.financialAid?.aid || "",
-
-      facts: facts?.length && facts  || [],
-      factsname: req.body.factsname  || "",
-      onlines: onlines?.length && onlines  || [],
+      advantages: advantages?.length && advantages || [],
+      campusList: campusList?.length && campusList || [],
+      fees: fees?.length && fees || "",
+      facts: facts?.length && facts || [],
+      factsname: req.body.factsname || "",
+      onlines: onlines?.length && onlines || [],
       onlinetitle: req.body.onlinetitle || "",
-      onlinedesc: req.body.onlinedesc  || "",
+      onlinedesc: req.body.onlinedesc || "",
       financialdescription:
-        req.body.financialdescription  || "",
-      financialname: req.body.financialname  || "",
-      faqs: faqs?.length ? faqs : existing.faq?.faqs || "",
+        req.body.financialdescription || "",
+      financialname: req.body.financialname || "",
+      faqs: faqs?.length && faqs || "",
       partners: parseArray(req.body.partners) || [],
 
 
     };
-      let newSlug = await generateUniqueSlug(prisma, finalData.name, CourseId);
-    // UPDATE MAIN UNIVERSITY
     const UpdateCourse = await prisma.Course.update({
       where: { id: CourseId },
       data: {
@@ -1172,7 +1183,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug:  newSlug,
+        slug: req.body.slug,
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
@@ -1194,8 +1205,9 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           annual_fees: finalData?.anuual_fees,
           semester_wise_fees: finalData?.semester_fees,
           tuition_fees: finalData?.tuition_fees,
-          fees_title: finalData?.fees_title ,
-          fees_desc :   finalData?.fees_desc ,
+          fees_title: finalData?.fees_title,
+          fees_desc: finalData?.fees_desc,
+          fees_notes: req.body?.fees_notes,
         }
       });
 
@@ -1226,6 +1238,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           title: finalData.creteria,
           description: finalData.desccreteria,
           NRICriteria: finalData.NRICriteria,
+          notes: req.body.notescreteria || "",
           IndianCriteria: finalData.IndianCriteria || ""
         },
         create: {
@@ -1234,29 +1247,24 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           NRICriteria: finalData.NRICriteria,
           IndianCriteria: finalData.IndianCriteria || "",
           description: finalData.desccreteria,
+          notes: req.body.notescreteria || "",
+
         }
       })
-
-      // await prisma.Curriculum.upsert({
-      //   where: { course_id: CourseId },
-      //   update: { title: finalData.semesters_title, semesters: finalData.semesters, },
-      //   create: {
-      //     course_id: Number(CourseId),
-      //     title: finalData.semesters_title,
-      //     semesters: finalData.semesters,
-      //   }
-      // })
 
       await prisma.Curriculum.upsert({
         where: { course_id: Number(CourseId) }, // ya unique id field
         update: {
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
         },
         create: {
           course_id: Number(CourseId),
           title: finalData.semesters_title,
           semesters: finalData.semesters,
+          notes: req.body.semesters_notes,
+
         }
       });
 
@@ -1327,12 +1335,15 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
           title: finalData.financialname,
           description: finalData.financialdescription,
           aid: finalData.fees,
+          notes: req.body.finacial_notes,
+
         },
         create: {
           course_id: CourseId,
           title: finalData.financialname,
           description: finalData.financialdescription,
-          aid: finalData.fees,
+          aid: finalData.fees, notes: req.body.finacial_notes,
+
         }
       });
 
@@ -1390,7 +1401,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       });
 
 
-  const servcies =     await prisma.Services.upsert({
+      const servcies = await prisma.Services.upsert({
         where: { course_id: Number(CourseId) },
         update: {
           title: finalData.servicetitle,
