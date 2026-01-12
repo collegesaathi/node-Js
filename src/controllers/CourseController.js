@@ -546,14 +546,14 @@ exports.AddCourse = catchAsync(async (req, res) => {
      await prisma.About.upsert({
       where: { course_id: CoursesData.id },
       update: {
-        annual_fees: req.body.about_title,
-        semester_wise_fees: req.body.about_desc,
+        title: req.body.about_title,
+        description: req.body.about_desc,
     
       },
       create: {
         course_id: CoursesData.id,
-         annual_fees: req.body.about_title,
-        semester_wise_fees: req.body.about_desc,
+         title: req.body.about_title,
+        description: req.body.about_desc,
       }
     });
 
