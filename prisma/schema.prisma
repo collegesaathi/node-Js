@@ -614,7 +614,7 @@ model ProgramSummary {
   title       String
   description String?
   button        String?
-  summary    String?
+  summary    Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
@@ -640,13 +640,12 @@ model SpecialisationAdmission {
     subdesc String?
     notes    String?
     doc_title  String?
-   specialisation_program_id   Int? @unique
     doc_des String?
-    enta_title  String?
-    enta_des String?
+    entrance_title  String?
+    entrance_des String?
     direct_title  String?
     direct_desc    String?
-  electives    Json?
+   specialisation_program_id   Int? @unique
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
@@ -686,7 +685,7 @@ model ProgramCareer {
   title       String
   description String?
   notes String?
-  career      Json?
+  Career      Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
