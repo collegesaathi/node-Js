@@ -473,7 +473,7 @@ model Seo {
   meta_description String?
   meta_keywords    String?
   canonical_url    String?
-  json_ld          Json?
+  json_ld          Json  @default("[]")
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   deleted_at    DateTime?

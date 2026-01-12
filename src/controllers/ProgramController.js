@@ -220,6 +220,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
+      console.log("✅ ProgramCareer OK");
+
+
       await tx.ProgramExperience.create({
         data: {
           title: req.body.experincename || "",
@@ -230,21 +233,38 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
+      console.log("✅ Program Exp. OK");
+
+
       await tx.Faq.create({
         data: {
           program_id: programId,
           faqs: parseArray(req.body.faqs) || [],
         },
-      })
-      await tx.Seo.create({
-        data: {
+      })  
+      console.log("✅ Faq OK");
+
+      await tx.Seo.upsert({
+        where: {
+          program_id: programId,
+        },
+        update: {
+          meta_title: req.body.meta_title || "",
+          meta_description: req.body.meta_description || "",
+          meta_keywords: req.body.meta_keywords || "",
+          canonical_url: req.body.canonical_url || "",
+        },
+        create: {
           program_id: programId,
           meta_title: req.body.meta_title || "",
           meta_description: req.body.meta_description || "",
           meta_keywords: req.body.meta_keywords || "",
           canonical_url: req.body.canonical_url || "",
-        }
-      })
+        },
+      });
+
+      console.log("✅ Seo OK");
+
       await tx.ProgramHighlights.create({
         data: {
           title: req.body.highlights_title || "",
@@ -338,7 +358,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
 
 
       return program;
-    });
+    },
+     { timeout: 30000 });
+
 
     return successResponse(res, "Program added successfully", 201, result);
 
