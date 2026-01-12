@@ -473,7 +473,7 @@ model Seo {
   meta_description String?
   meta_keywords    String?
   canonical_url    String?
-  json_ld          Json  @default("[]")
+  json_ld          Json?
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   deleted_at    DateTime?
@@ -685,7 +685,7 @@ model ProgramCareer {
   title       String
   description String?
   notes String?
- Career Json?
+  Career      Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
