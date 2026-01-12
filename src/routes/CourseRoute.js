@@ -12,7 +12,7 @@ router.get("/course/university/:id", GetUniversityCourseList)
 router.get("/course_name/:id", GetCourseByName)
 router.post("/admin/course/update", dynamicUpload("universities").any(), UpdateCourse)
 
-router.delete("/course/:slug", DeleteCourseBySlug);
+router.delete("/course/slug/:slug", DeleteCourseBySlug);
 
 
 module.exports = router;
