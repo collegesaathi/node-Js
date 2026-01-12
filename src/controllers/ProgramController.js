@@ -124,9 +124,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
     }
     uploadedFiles[file.fieldname].push(file.path);
   });
-  Loggers.http(req.body)
-  Loggers.http(uploadedFiles)
-  return false;
+  // Loggers.http(req.body)
+  // Loggers.http(uploadedFiles)
+  // return false;
 
   try {
     let faqs = parseArray(req.body.faqs);
@@ -181,7 +181,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
           category_id: req.body.category_id || 1,
-          summary: summary,
         },
       });
 
@@ -201,23 +200,28 @@ exports.AddProgram = catchAsync(async (req, res) => {
           program_id: programId,
         },
       });
+      await tx.ProgramSummary.create({
+        data: {
+          title: req.body.summarytitle || "",
+          description: req.body.summarydesc || "",
+          button: req.body.summarybutton || "",
+          summary: summary,
+          program_id: programId
+
+        },
+      });
 
       await tx.ProgramCareer.create({
         data: {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
-          career: parseArray(req.body.Careers),
+          career:  parseArray(req.body.Careers),
           program_id: programId,
         },
       });
-      await tx.FinancialAid.create({
-        data: {
-          title: req.body.financialname || "",
-          description: req.body.financialdesc || "",
-          aid: parseArray(req.body.FinancialAid),
-          program_id: programId,
-        },
-      });
+
+      console.log("✅ ProgramCareer OK");
+
 
       await tx.ProgramExperience.create({
         data: {
@@ -229,21 +233,38 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
+      console.log("✅ Program Exp. OK");
+
+
       await tx.Faq.create({
         data: {
           program_id: programId,
-          faqs: faqs || [],
-        }
-      })
-      await tx.Seo.create({
-        data: {
+          faqs: parseArray(req.body.faqs) || [],
+        },
+      })  
+      console.log("✅ Faq OK");
+
+      await tx.Seo.upsert({
+        where: {
+          program_id: programId,
+        },
+        update: {
+          meta_title: req.body.meta_title || "",
+          meta_description: req.body.meta_description || "",
+          meta_keywords: req.body.meta_keywords || "",
+          canonical_url: req.body.canonical_url || "",
+        },
+        create: {
           program_id: programId,
           meta_title: req.body.meta_title || "",
           meta_description: req.body.meta_description || "",
           meta_keywords: req.body.meta_keywords || "",
           canonical_url: req.body.canonical_url || "",
-        }
-      })
+        },
+      });
+
+      console.log("✅ Seo OK");
+
       await tx.ProgramHighlights.create({
         data: {
           title: req.body.highlights_title || "",
@@ -254,12 +275,12 @@ exports.AddProgram = catchAsync(async (req, res) => {
         },
       });
 
-      const programChoose = await tx.ProgramChoose.create({
+      await tx.ProgramChoose.create({
         data: {
           title: req.body.purpusename || "",
           description: req.body.purpsedesc || "",
           choose: choose,
-          purpuse: purpuse,
+          // purpuse: purpuse,
           program_id: programId,
         },
       });
@@ -337,7 +358,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
 
 
       return program;
-    });
+    },
+     { timeout: 30000 });
+
 
     return successResponse(res, "Program added successfully", 201, result);
 
@@ -475,7 +498,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     const onlineEntrance = parse(req.body.onlines);
     const durationData = parse(req.body.DurationData);
     let curriculumData = parse(req.body.curriculm);
-    let summary = parse(req.body.summary);
 
     const chooseimages = mapUploadedArray(req, uploadedFiles, "chooseimages");
     const purpuseimages = mapUploadedArray(req, uploadedFiles, "purpuseimages");
@@ -489,11 +511,12 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
     finacels = attachImagesToItems(finacels, fincalceAddsimages, "image", existing.financial?.financial);
 
     curriculumData = attachImagesToItems(curriculumData, curriculumsimages, "image", existing.curriculum?.curriculum_id);
-    summary = attachImagesToItems(summary, summaryAudios, "audio", existing.summary);
 
     const PlacementAddsimages = mapUploadedArray(req, uploadedFiles, "PlacementAddsimages");
     // Attach images to arrays
     subPlacementJson = attachImagesToItems(subPlacementJson, PlacementAddsimages, "image", existing.placement?.subplacement);
+    const existingSummary = await prisma.ProgramSummary.findUnique({ where: { program_id: programId },});
+    summary = attachImagesToItems( summary, summaryAudios, "audio", existingSummary?.summary);
     /* ---------------- SLUG GENERATION ---------------- */
     const generatedSlug = await generateUniqueSlug(
       prisma,
@@ -510,7 +533,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       // bannerImage: uploaded.bannerImage || existing.bannerImage,
       bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
       video: req.body.video || existing.video,
-      summary,
       // pdfdownlaod: uploaded.pdf_download || existing.pdfdownlaod,
       // audio: uploaded.audio || existing.audio,
       bannerImage:
@@ -795,6 +817,22 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
           entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
           program_id: programId,
         }
+      });
+      await tx.ProgramSummary.upsert({
+        where: { program_id: programId },
+        create: {
+          program_id: programId,
+          title: req.body.summary_title || "",
+          description: req.body.summary_description || "",
+          button: req.body.summary_button || "",
+          summary: summary,
+        },
+        update: {
+          title: req.body.summary_title || "",
+          description: req.body.summary_description || "",
+          button: req.body.summary_button || "",
+          summary: summary,
+        },
       });
 
     });
