@@ -307,238 +307,237 @@ model  AdmissionProcess {
 }
 
 model Skills {
-  id            Int        @id @default(autoincrement())
-  course_id Int? @unique
-  specialisation_id Int?      @unique
-  title         String
-  description   String?
-  skills    Json?
-  course        Course?  @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  id                  Int        @id @default(autoincrement())
+  course_id           Int?       @unique
+  specialisation_id   Int?       @unique
+  title               String
+  description         String?
+  skills              Json?
+  course              Course?  @relation(fields: [course_id], references: [id])
+  specialisation      Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 model Advantages {
-  id                Int       @id @default(autoincrement())
-  university_id     Int?      @unique
-  course_id         Int?      @unique
-  specialisation_id Int?      @unique
-  title             String
-  description       String?
-  advantages        Json?
-  university        University? @relation(fields: [university_id], references: [id])
-  course            Course?     @relation(fields: [course_id], references: [id])
-  specialisation    Specialisation? @relation(fields: [specialisation_id], references: [id])
+  id                      Int       @id @default(autoincrement())
+  university_id           Int?      @unique
+  course_id               Int?      @unique
+  specialisation_id       Int?      @unique
+  title                   String
+  description             String?
+  advantages              Json?
+  university              University? @relation(fields: [university_id], references: [id])
+  course                  Course?     @relation(fields: [course_id], references: [id])
+  specialisation          Specialisation? @relation(fields: [specialisation_id], references: [id])
 }
 
 model Facts {
-  id            Int        @id @default(autoincrement())
-  university_id Int? @unique
-  course_id Int? @unique
-  specialisation_id Int?      @unique
-  title         String
-  facts         Json?
-  university    University? @relation(fields: [university_id], references: [id])
-  course        Course?  @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  id                      Int         @id @default(autoincrement())
+  university_id           Int?        @unique
+  course_id               Int?        @unique
+  specialisation_id       Int?        @unique
+  title                   String
+  facts                   Json?
+  university              University? @relation(fields: [university_id], references: [id])
+  course                  Course?  @relation(fields: [course_id], references: [id])
+  specialisation          Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 model UniversityCampus {
-  id            Int        @id @default(autoincrement())
-  university_id Int    @unique
-  campus         Json?
-  campusInternationList  Json?
-  university    University @relation(fields: [university_id], references: [id])
+  id                      Int         @id @default(autoincrement())
+  university_id           Int         @unique
+  campus                  Json?
+  campusInternationList   Json?
+  university              University @relation(fields: [university_id], references: [id])
 }
 
 
 model Category {
-  id          Int       @id @default(autoincrement())
-  name        String
-  short_title String?
-  icon        String?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
-  deleted_at  DateTime?
-  courses     Course[]
-  programs    Program[] 
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  short_title           String?
+  icon                  String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  deleted_at            DateTime?
+  courses               Course[]
+  programs              Program[] 
 }
 
 model BlogTag {
-  id         Int       @id @default(autoincrement())
-  name       String
-  icon       String?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-  tags       Tags[]
+  id                    Int       @id @default(autoincrement())
+  name                  String
+  icon                  String?
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  deleted_at            DateTime?
+  tags                  Tags[]
 }
 
 model Blog {
-  id            Int         @id @default(autoincrement())
-  university_id Int?
-  title         String
-  slug          String      @unique
-  image         String?
-  description   String?
-  author        String?
-  is_featured   Boolean     @default(false)
-  is_pinned     Boolean     @default(false)
-  is_trending   Boolean     @default(false)
-  views         Int         @default(0)
-  likes         Int         @default(0)
-  dislikes      Int         @default(0)
-  comments      Int         @default(0)
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  deleted_at    DateTime?
-  university    University? @relation(fields: [university_id], references: [id])
-  tags          Tags[]
-  seo                Seo?
+  id                      Int         @id @default(autoincrement())
+  university_id           Int?
+  title                   String
+  slug                    String      @unique
+  image                   String?
+  description             String?
+  author                  String?
+  is_featured             Boolean     @default(false)
+  is_pinned               Boolean     @default(false)
+  is_trending             Boolean     @default(false)
+  views                   Int         @default(0)
+  likes                   Int         @default(0)
+  dislikes                Int         @default(0)
+  comments                Int         @default(0)
+  created_at              DateTime    @default(now())
+  updated_at              DateTime    @updatedAt
+  deleted_at              DateTime?
+  university              University? @relation(fields: [university_id], references: [id])
+  tags                    Tags[]
+  seo                     Seo?
 }
 
 model Tags {
-  id         Int       @id @default(autoincrement())
-  blog_id    Int
-  tag_id     Int
-  created_at DateTime  @default(now())
-  deleted_at DateTime? @db.Timestamp(6)
-  blog       Blog      @relation(fields: [blog_id], references: [id], onDelete: Cascade)
-  blogTag    BlogTag   @relation(fields: [tag_id], references: [id], onDelete: Cascade)
+  id                    Int       @id @default(autoincrement())
+  blog_id               Int
+  tag_id                Int
+  created_at            DateTime  @default(now())
+  deleted_at            DateTime? @db.Timestamp(6)
+  blog                  Blog      @relation(fields: [blog_id], references: [id], onDelete: Cascade)
+  blogTag               BlogTag   @relation(fields: [tag_id], references: [id], onDelete: Cascade)
 
   @@map("tags")
 }
 
 model BlacklistedToken {
-  id         Int      @id @default(autoincrement())
-  token      String   @unique
-  user_id    Int?
-  created_at DateTime @default(now())
-  user       User?    @relation(fields: [user_id], references: [id])
+  id                    Int      @id @default(autoincrement())
+  token                 String   @unique
+  user_id               Int?
+  created_at            DateTime @default(now())
+  user                  User?    @relation(fields: [user_id], references: [id])
 }
 
 
 model Placements {
-  id                 Int                  @id @default(autoincrement())
-  title              String
-  image              String?
-  created_at         DateTime             @default(now())
-  updated_at         DateTime             @updatedAt
-  deleted_at         DateTime?
+  id                    Int                  @id @default(autoincrement())
+  title                 String
+  image                 String?
+  created_at            DateTime             @default(now())
+  updated_at            DateTime             @updatedAt
+  deleted_at            DateTime?
 }
 
 model leads {
-  id            Int         @id @default(autoincrement())
-  university_id Int?
-  name          String
-  phone_number  String?
-  email         String?
-  course_id     Int?
-  specialisation_id Int?
-  state         String?
-  city          String?
-  content       String?
-  page_name     String?     
-  proInsights   Json?   
-  utm_source   String?
-  utm_medium   String?
-  utm_campaign   String?
-  utm_content   String?
-  utm_term   String?
-  type         String?
-  device_type String?
-  ip_address   String?
-  created_at    DateTime    @default(now())
-  updated_at    DateTime    @updatedAt
-  deleted_at    DateTime?
-  course        Course?     @relation(fields: [course_id], references: [id])
-  university    University? @relation(fields: [university_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  id                    Int         @id @default(autoincrement())
+  university_id         Int?
+  name                  String
+  phone_number          String?
+  email                 String?
+  course_id             Int?
+  specialisation_id     Int?
+  state                 String?
+  city                  String?
+  content               String?
+  page_name             String?     
+  proInsights           Json?   
+  utm_source            String?
+  utm_medium            String?
+  utm_campaign          String?
+  utm_content           String?
+  utm_term              String?
+  type                  String?
+  device_type           String?
+  ip_address            String?
+  created_at            DateTime    @default(now())
+  updated_at            DateTime    @updatedAt
+  deleted_at            DateTime?
+  course                Course?     @relation(fields: [course_id], references: [id])
+  university            University? @relation(fields: [university_id], references: [id])
+  specialisation        Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 model Seo {
-  id            Int        @id @default(autoincrement())
-  university_id Int? @unique
-  course_id     Int? @unique
-  program_id    Int? @unique
-  blog_id       Int? @unique
-  specialisation_id  Int? @unique
-  meta_title       String?
-  meta_description String?
-  meta_keywords    String?
-  canonical_url    String?
-  json_ld          Json?
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
-  deleted_at    DateTime?
+  id                    Int        @id @default(autoincrement())
+  university_id         Int? @unique
+  course_id             Int? @unique
+  program_id            Int? @unique
+  blog_id               Int? @unique
+  specialisation_id     Int? @unique
+  meta_title            String?
+  meta_description      String?
+  meta_keywords         String?
+  canonical_url         String?
+  json_ld               Json?
+  created_at            DateTime   @default(now())
+  updated_at            DateTime   @updatedAt
+  deleted_at            DateTime?
   // Relations
-  university    University? @relation(fields: [university_id], references: [id])
-  course        Course?     @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-  program     Program? @relation(fields: [program_id], references: [id])
-  blog          Blog?       @relation(fields: [blog_id], references: [id])
+  university            University? @relation(fields: [university_id], references: [id])
+  course                Course?     @relation(fields: [course_id], references: [id])
+  specialisation        Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  program               Program? @relation(fields: [program_id], references: [id])
+  blog                  Blog?       @relation(fields: [blog_id], references: [id])
 }
 
 model Career {
-  id            Int        @id @default(autoincrement())
-  course_id      Int? @unique
-   specialisation_id      Int? @unique
-  title         String
-  description   String?
-  Career    Json?
-  course    Course? @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-
+  id                    Int        @id @default(autoincrement())
+  course_id             Int? @unique
+  specialisation_id     Int? @unique
+  title                 String
+  description           String?
+  Career                Json?
+  course                Course? @relation(fields: [course_id], references: [id])
+  specialisation        Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 
 model Curriculum {
-  id            Int        @id @default(autoincrement())
-  course_id      Int? @unique
-  specialisation_id Int? @unique
-  title         String
-  description   String?
-  semesters     Json?
-  course    Course? @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+  id                      Int        @id @default(autoincrement())
+  course_id               Int? @unique
+  specialisation_id       Int? @unique
+  title                   String
+  description             String?
+  semesters               Json?
+  course                  Course? @relation(fields: [course_id], references: [id])
+  specialisation          Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 model  EligibilityCriteria{
-    id            Int        @id @default(autoincrement())
-  course_id      Int? @unique
-  specialisation_id Int? @unique
-  title         String
-  description   String?
-  IndianCriteria Json?
-  NRICriteria Json?
-  course    Course? @relation(fields: [course_id], references: [id])
-  specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
+    id                    Int        @id @default(autoincrement())
+  course_id               Int? @unique
+  specialisation_id       Int? @unique
+  title                   String
+  description             String?
+  IndianCriteria          Json?
+  NRICriteria             Json?
+  course                  Course? @relation(fields: [course_id], references: [id])
+  specialisation          Specialisation?  @relation(fields: [specialisation_id], references: [id])
 }
 
 model Program {
-  id                  Int        @id @default(autoincrement())
-  title               String
-  description         String
-  bannerImage         String?
-  slug                String    @unique
-  bannerImageAlt      String?
-  pdfdownlaod         String?
-  career_growth       String?
-  duration            String?
-  specialization      String?
-  audio               String?
-  subtitle            String?
-  shortDescription    String?
-  video               String?
-  universitytitle     String?
-  universitydesc      String?
-  universitybtmdesc   String?
-  university_id       Json?
-  conclusion          String?
-  specialisationtitle String?
-  specialisationdesc  String?
-  summary             Json?
+  id                      Int        @id @default(autoincrement())
+  title                   String
+  description             String
+  bannerImage             String?
+  slug                    String    @unique
+  bannerImageAlt          String?
+  pdfdownlaod             String?
+  career_growth           String?
+  duration                String?
+  specialization          String?
+  audio                   String?
+  subtitle                String?
+  shortDescription        String?
+  video                   String?
+  universitytitle         String?
+  universitydesc          String?
+  universitybtmdesc       String?
+  university_id           Json?
+  conclusion              String?
+  specialisationtitle     String?
+  specialisationdesc      String?
+  summary                 Json?
   // ✅ CATEGORY RELATION
-  category_id         Int             @default(1)
+  category_id             Int             @default(1)
   category                Category    @relation(fields: [category_id], references: [id])
   careers                 ProgramCareer?
   placement               ProgramPlacement?
@@ -555,213 +554,213 @@ model Program {
   financial               ProgramFinancialScholarship?
   durationfees            ProgramDurationFees?
   financialaid            FinancialAid ?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  deleted_at          DateTime?  
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  deleted_at              DateTime?  
 }
 
 model SpecialisationProgram {
-  id                  Int        @id @default(autoincrement())
-  title               String
-  description         String
-  bannerImage         String?
-  slug                String    @unique
-  bannerImageAlt      String?
-  pdfdownlaod         String?
-  career_growth       String?
-  duration            String?
-  specialization      String?
-  audio               String?
-  subtitle            String?
-  shortDescription    String?
-  video               String?
-  universitytitle     String?
-  universitydesc      String?
-  universitybtmdesc   String?
-  university_id       Json?
-  conclusion          String?
-  specialisationtitle String?
-  specialisationdesc  String?
-  summary             Json?
+  id                    Int        @id @default(autoincrement())
+  title                 String
+  description           String
+  bannerImage           String?
+  slug                  String    @unique
+  bannerImageAlt        String?
+  pdfdownlaod           String?
+  career_growth         String?
+  duration              String?
+  specialization        String?
+  audio                 String?
+  subtitle              String?
+  shortDescription      String?
+  video                 String?
+  universitytitle       String?
+  universitydesc        String?
+  universitybtmdesc     String?
+  university_id         Json?
+  conclusion            String?
+  specialisationtitle   String?
+  specialisationdesc    String?
+  summary               Json?
   // ✅ CATEGORY RELATION
-  category_id         Int             @default(1)
-  category                Category    @relation(fields: [category_id], references: [id])
-  careers                 ProgramCareer?
-  placement               ProgramPlacement?
-  choose                  ProgramChoose?
-  academic                ProgramAcademic?
-  graph                   ProgramGraph?
-  highlights              ProgramHighlights?
-  entrance                ProgramEntrance?
-  faqs                    Faq?
-  seo                     Seo?
-  institutes              ProgramInstitutes?
-  curriculum              ProgramCurriculum?
-  experience              ProgramExperience?
-  financial               ProgramFinancialScholarship?
-  durationfees            ProgramDurationFees?
-  financialaid            FinancialAid ?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  deleted_at          DateTime?  
+  category_id           Int             @default(1)
+  category              Category    @relation(fields: [category_id], references: [id])
+  careers               ProgramCareer?
+  placement             ProgramPlacement?
+  choose                ProgramChoose?
+  academic              ProgramAcademic?
+  graph                 ProgramGraph?
+  highlights            ProgramHighlights?
+  entrance              ProgramEntrance?
+  faqs                  Faq?
+  seo                   Seo?
+  institutes            ProgramInstitutes?
+  curriculum            ProgramCurriculum?
+  experience            ProgramExperience?
+  financial             ProgramFinancialScholarship?
+  durationfees          ProgramDurationFees?
+  financialaid          FinancialAid?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  deleted_at            DateTime?  
 }
 
 model ProgramAcademic {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  Image        String?
-  image_alt    String?
-  entra_title String?
-  entra_desc  String?
-  entra_image String?
-  entra_image_alt String?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  Image                       String?
+  image_alt                   String?
+  entra_title                 String?
+  entra_desc                  String?
+  entra_image                 String?
+  entra_image_alt             String?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramCareer {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  career      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  career                      Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 
 model ProgramFinancialScholarship {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  financial      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  financial                   Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramDurationFees {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  duration      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  duration                    Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramGraph {
- id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  subdesc    String?
-  monthly      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+ id                           Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  subdesc                     String?
+  monthly                     Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramHighlights {
- id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  subtitle    String?
-  Highlights      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+ id                           Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  subtitle                    String?
+  Highlights                  Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramEntrance{
- id            Int        @id @default(autoincrement())
-  icon        String?
-  title       String
-  description String?
-  Entrance      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  icon                        String?
+  title                       String
+  description                 String?
+  Entrance                    Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramInstitutes{
-   id            Int        @id @default(autoincrement())
-  icon        String?
-  title       String
-  description String?
-  Institutes      Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+   id                          Int        @id @default(autoincrement())
+  icon                        String?
+  title                       String
+  description                 String?
+  Institutes                  Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramPlacement {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  placement_ids  Json?
-  subtitle String?
-  Subdec   String?
-  subplacement  Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  placement_ids               Json?
+  subtitle                    String?
+  Subdec                      String?
+  subplacement                Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramCurriculum {
-  id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  subtitle   String?
-  curriculum_id  Json?
-  program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  subtitle                    String?
+  curriculum_id               Json?
+  program_id                  Int?  @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramChoose {
- id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  descbtm     String?
-  choose        Json?
-  purpuse        Json?
-  program_id  Int? @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  descbtm                     String?
+  choose                      Json?
+  purpuse                     Json?
+  program_id                  Int? @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model ProgramExperience {
- id            Int        @id @default(autoincrement())
-  title       String
-  description String?
-  notes     String?
-  experiences        Json?
-  program_id  Int? @unique
-  specialisation_program_id  Int?  @unique
-  program     Program? @relation(fields: [program_id], references: [id])
-  specialisationprogram     SpecialisationProgram? @relation(fields: [program_id], references: [id])
+  id                          Int        @id @default(autoincrement())
+  title                       String
+  description                 String?
+  notes                       String?
+  experiences                 Json?
+  program_id                  Int? @unique
+  specialisation_program_id   Int?  @unique
+  program                     Program? @relation(fields: [program_id], references: [id])
+  specialisationprogram       SpecialisationProgram? @relation(fields: [program_id], references: [id])
 }
 
 model homePageVideo {
-  id                  Int      @id @default(autoincrement())
-  title               String?
-  coverimage          String?
-  videoUrl            String?
-  description         String?
-  created_at          DateTime @default(now())
-  updated_at          DateTime @updatedAt
-  deleted_at          DateTime?
+  id                          Int      @id @default(autoincrement())
+  title                       String?
+  coverimage                  String?
+  videoUrl                    String?
+  description                 String?
+  created_at                  DateTime @default(now())
+  updated_at                  DateTime @updatedAt
+  deleted_at                  DateTime?
 }
