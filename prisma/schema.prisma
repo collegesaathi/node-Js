@@ -575,9 +575,32 @@ model Program {
 model SpecialisationProgram {
   id                  Int @id @default(autoincrement())
   program_id           Int
-  category_id          Int
-  category Category @relation(fields: [category_id], references: [id])
   program  Program  @relation(fields: [program_id], references: [id])
+  title               String
+  description         String
+  bannerImage         String?
+  slug                String    @unique
+  bannerImageAlt      String?
+  pdfdownlaod         String?
+  career_growth       String?
+  duration            String?
+  specialization      String?
+  audio               String?
+  subtitle            String?
+  shortDescription    String?
+  video               String?
+  universitytitle     String?
+  universitydesc      String?
+  universitybtmdesc   String?
+  university_id       Json?
+  conclusion          String?
+  specialisationtitle String?
+  specialisationdesc  String?
+  notes_title String?
+  notes_desc String?
+  // ✅ CATEGORY RELATION
+  category_id         Int          
+  category                Category    @relation(fields: [category_id], references: [id])
   curriculum Curriculum?
   summary             ProgramSummary?
   programvs           ProgramVs?
