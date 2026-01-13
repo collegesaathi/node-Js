@@ -116,12 +116,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
   });
 
   // Early return for debugging - remove in production
-  if (false) {
     Loggers.silly(req.body);
     Loggers.silly(uploadedFiles);
-    return false;
-  }
-
+    // return false;
   try {
     // 1. PARALLEL DATA PARSING
     const [
@@ -205,7 +202,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           conclusion: req.body.conclusion || "",
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
-          category_id: req.body.category_id || 1,
+          category_id: Number(req.body.category_id) || 1,
         },
       });
 
