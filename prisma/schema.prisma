@@ -580,7 +580,7 @@ model SpecialisationProgram {
 
   category Category @relation(fields: [category_id], references: [id])
   program  Program  @relation(fields: [program_id], references: [id])
-
+ 
   curriculum Curriculum?
 
   summary             ProgramSummary?
