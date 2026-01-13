@@ -366,8 +366,7 @@ model Category {
   deleted_at  DateTime?
   courses     Course[]
   programs    Program[] 
-    specialisationPrograms SpecialisationProgram[]
-
+  specialisationPrograms SpecialisationProgram[]
 }
 
 model BlogTag {

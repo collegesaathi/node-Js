@@ -631,7 +631,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       getFileUrl("entrance_icon", ""),
       getFileUrl("summary_audio", "")
     ]);
-
     const programUpdateData = {
       title: req.body.name || existingProgram.title,
       slug: finalSlug,
@@ -653,12 +652,10 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       conclusion: req.body.conclusion || existingProgram.conclusion,
       specialisationtitle: req.body.specialisationtitle || existingProgram.specialisationtitle,
       specialisationdesc: req.body.specialisationdesc || existingProgram.specialisationdesc,
-      category_id: req.body.category_id && Number(req.body.category_id) ,
+      category_id: Number(req.body.category_id),
       updatedAt: new Date()
     };
-
     await prisma.$transaction(async (tx) => {
-      // Update main program
       await tx.Program.update({
         where: { id: programId },
         data: programUpdateData
