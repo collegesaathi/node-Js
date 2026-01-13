@@ -549,7 +549,7 @@ model Program {
   specialisationtitle String?
   specialisationdesc  String?
   // ✅ CATEGORY RELATION
-  category_id         Int             @default(1)
+  category_id         Int          
   category                Category    @relation(fields: [category_id], references: [id])
   summary                 ProgramSummary?
   programvs               ProgramVs?
@@ -577,12 +577,9 @@ model SpecialisationProgram {
   id                  Int @id @default(autoincrement())
   program_id           Int
   category_id          Int
-
   category Category @relation(fields: [category_id], references: [id])
   program  Program  @relation(fields: [program_id], references: [id])
-
   curriculum Curriculum?
-
   summary             ProgramSummary?
   programvs           ProgramVs?
   careers             ProgramCareer?
@@ -606,9 +603,6 @@ model SpecialisationProgram {
   deleted_at DateTime?
 }
 
-
-
-
 model ProgramSummary {
   id            Int        @id @default(autoincrement())
   title       String
@@ -620,7 +614,6 @@ model ProgramSummary {
   program     Program? @relation(fields: [program_id], references: [id])
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
-
 
 model SpecialisationElectives {
   id            Int        @id @default(autoincrement())
