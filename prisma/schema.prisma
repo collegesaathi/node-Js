@@ -366,8 +366,7 @@ model Category {
   deleted_at  DateTime?
   courses     Course[]
   programs    Program[] 
-    specialisationPrograms SpecialisationProgram[]
-
+  specialisationPrograms SpecialisationProgram[]
 }
 
 model BlogTag {
@@ -473,7 +472,7 @@ model Seo {
   meta_description String?
   meta_keywords    String?
   canonical_url    String?
-  json_ld          Json  @default("[]")
+  json_ld          Json?
   created_at    DateTime   @default(now())
   updated_at    DateTime   @updatedAt
   deleted_at    DateTime?
@@ -549,7 +548,7 @@ model Program {
   specialisationtitle String?
   specialisationdesc  String?
   // ✅ CATEGORY RELATION
-  category_id         Int             @default(1)
+  category_id         Int          
   category                Category    @relation(fields: [category_id], references: [id])
   summary                 ProgramSummary?
   programvs               ProgramVs?
@@ -577,12 +576,9 @@ model SpecialisationProgram {
   id                  Int @id @default(autoincrement())
   program_id           Int
   category_id          Int
-
   category Category @relation(fields: [category_id], references: [id])
   program  Program  @relation(fields: [program_id], references: [id])
- 
   curriculum Curriculum?
-
   summary             ProgramSummary?
   programvs           ProgramVs?
   careers             ProgramCareer?
@@ -606,21 +602,17 @@ model SpecialisationProgram {
   deleted_at DateTime?
 }
 
-
-
-
 model ProgramSummary {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
   button        String?
-  summary    Json?
+  summary_audio String?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
-
 
 model SpecialisationElectives {
   id            Int        @id @default(autoincrement())
@@ -640,13 +632,12 @@ model SpecialisationAdmission {
     subdesc String?
     notes    String?
     doc_title  String?
-   specialisation_program_id   Int? @unique
     doc_des String?
-    enta_title  String?
-    enta_des String?
+    entrance_title  String?
+    entrance_des String?
     direct_title  String?
     direct_desc    String?
-  electives    Json?
+   specialisation_program_id   Int? @unique
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
@@ -654,7 +645,7 @@ model ProgramVs {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
-  notes String?
+  notes       String?
   summary    Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
@@ -686,7 +677,7 @@ model ProgramCareer {
   title       String
   description String?
   notes String?
- Career Json?
+  Career      Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])

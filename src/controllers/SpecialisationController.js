@@ -380,7 +380,7 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions,
         icon: finalData.icon,
-        slug:  req.body.slug ? req.body.slug : uniqueSlug || req.body.slug,
+        slug:  req.body.slug ? req.body.slug : uniqueSlug ,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
@@ -1130,5 +1130,46 @@ exports.SpecialisationDelete = catchAsync(async (req, res) => {
       return errorResponse(res, "Specialisation not found", 404);
     }
     return errorResponse(res, error.message, 500);
+  }
+});
+
+
+exports.DeleteSpecialisationBySlug = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    if (!slug) {
+      return errorResponse(res, "Specialisation slug is required", 400);
+    }
+
+    // Pehle find karo
+    const specialisation = await prisma.Specialisation.findFirst({
+      where: { slug },
+    });
+
+    if (!specialisation) {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+
+    // 🔥 PERMANENT DELETE
+    await prisma.Specialisation.delete({
+      where: {
+        id: specialisation.id,
+      },
+    });
+
+    return successResponse(
+      res,
+      "Specialisation permanently deleted successfully",
+      200
+    );
+  } catch (error) {
+    console.error("DeleteSpecialisationBySlug error:", error);
+    return errorResponse(
+      res,
+      error.message || "Error deleting specialisation",
+      500,
+      error
+    );
   }
 });
