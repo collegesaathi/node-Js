@@ -1066,10 +1066,11 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
         deleted_at: null,
       },
       select: {
-        services: true, // ✅ ONLY SERVICES
+        services: true, 
+        rankings :true,
+        examPatterns :true,
       },
     });
-
     if (!university) {
       return errorResponse(res, "University not found", 404);
     }
@@ -1078,7 +1079,7 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
       res,
       "University services fetched successfully",
       200,
-      university.services
+   {  university}
     );
   } catch (error) {
     console.error("GetServicesUniversityById error:", error);
