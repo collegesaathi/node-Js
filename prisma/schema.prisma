@@ -366,8 +366,7 @@ model Category {
   deleted_at  DateTime?
   courses     Course[]
   programs    Program[] 
-    specialisationPrograms SpecialisationProgram[]
-
+  specialisationPrograms SpecialisationProgram[]
 }
 
 model BlogTag {
@@ -549,7 +548,7 @@ model Program {
   specialisationtitle String?
   specialisationdesc  String?
   // ✅ CATEGORY RELATION
-  category_id         Int             @default(1)
+  category_id         Int          
   category                Category    @relation(fields: [category_id], references: [id])
   summary                 ProgramSummary?
   programvs               ProgramVs?
@@ -576,13 +575,33 @@ model Program {
 model SpecialisationProgram {
   id                  Int @id @default(autoincrement())
   program_id           Int
-  category_id          Int
-
-  category Category @relation(fields: [category_id], references: [id])
   program  Program  @relation(fields: [program_id], references: [id])
-
+  title               String
+  description         String
+  bannerImage         String?
+  slug                String    @unique
+  bannerImageAlt      String?
+  pdfdownlaod         String?
+  career_growth       String?
+  duration            String?
+  specialization      String?
+  audio               String?
+  subtitle            String?
+  shortDescription    String?
+  video               String?
+  universitytitle     String?
+  universitydesc      String?
+  universitybtmdesc   String?
+  university_id       Json?
+  conclusion          String?
+  specialisationtitle String?
+  specialisationdesc  String?
+  notes_title String?
+  notes_desc String?
+  // ✅ CATEGORY RELATION
+  category_id         Int          
+  category                Category    @relation(fields: [category_id], references: [id])
   curriculum Curriculum?
-
   summary             ProgramSummary?
   programvs           ProgramVs?
   careers             ProgramCareer?
@@ -606,21 +625,17 @@ model SpecialisationProgram {
   deleted_at DateTime?
 }
 
-
-
-
 model ProgramSummary {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
   button        String?
-  summary    Json?
+  summary_audio String?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
-
 
 model SpecialisationElectives {
   id            Int        @id @default(autoincrement())
@@ -653,7 +668,7 @@ model ProgramVs {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
-  notes String?
+  notes       String?
   summary    Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
