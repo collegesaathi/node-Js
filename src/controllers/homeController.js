@@ -328,3 +328,59 @@ exports.VideoDelete = catchAsync(async (req, res) => {
   }
 });
 
+
+exports.ExploreUniversities = catchAsync(async (req, res) => {
+  
+  const topUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      position: { gte: 1, lte: 10 },
+    },
+     select: {
+        id: true,
+        slug: true,
+        name:true,
+        icon: true,
+        position:true
+      },
+    orderBy: {
+      position: 'asc'
+    }
+  });
+  // 2️⃣ Baaki sab ( >10 or NULL )
+  const otherUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      OR: [
+        { position: 0 },        // jinki position set hi nahi hai
+        { position: { gt: 10 } }   // jinki position 10 se zyada hai
+      ]
+    },
+
+     select: {
+        id: true,
+        slug: true,
+        name:true,
+        icon: true,
+        position:true
+      },
+    orderBy: [
+      { position: 'asc' },
+      { created_at: 'desc' }
+    ]
+  });
+  // 3️⃣ Merge
+  const finalList = [...topUniversities, ...otherUniversities];
+
+
+  const totalUniversities = finalList.length;
+
+return successResponse(res, "Universities fetched successfully", 200, {
+    universities: finalList,
+  totalUniversities
+  
+  });
+
+});
+
+

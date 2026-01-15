@@ -180,7 +180,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           conclusion: req.body.conclusion || "",
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
-          category_id: req.body.category_id || 1,
+          category_id: Number(req.body.category_id) || 1,
         },
       });
 
@@ -215,7 +215,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
         data: {
           title: req.body.careername || "",
           description: req.body.careerdesc || "",
-          career:  parseArray(req.body.Careers),
+          Career:  parseArray(req.body.Careers),
           program_id: programId,
         },
       });
