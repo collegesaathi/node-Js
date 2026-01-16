@@ -287,14 +287,13 @@ model Faq {
   university_id Int?  @unique
   course_id     Int?       @unique
   specialisation_id Int?      @unique
-  program_specialisation_id  Int? @unique
+  specialisation_program_id  Int? @unique
   program_id Int?      @unique
   faqs          Json?
   university University? @relation(fields: [university_id], references: [id])
   course        Course?  @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-  specialisationProgram   SpecialisationProgram?  @relation(fields: [program_specialisation_id], references: [id])
-
+  specialisationProgram   SpecialisationProgram?  @relation(fields: [specialisation_program_id], references: [id])
   program Program?  @relation(fields: [program_id], references: [id])
 }
 
@@ -503,14 +502,12 @@ model Curriculum {
   id            Int        @id @default(autoincrement())
   course_id      Int? @unique
   specialisation_id Int? @unique
-  program_specialisation_id Int? @unique
   title         String
   description   String?
   semesters     Json?
   notes  String?
   course    Course? @relation(fields: [course_id], references: [id])
   specialisation   Specialisation?  @relation(fields: [specialisation_id], references: [id])
-  specialisationProgram   SpecialisationProgram?  @relation(fields: [program_specialisation_id], references: [id])
 }
 
 model  EligibilityCriteria{
@@ -598,28 +595,27 @@ model SpecialisationProgram {
   specialisationdesc  String?
   notes_title String?
   notes_desc String?
+   demand_desc String?
+  demand_title String?
   // ✅ CATEGORY RELATION
   category_id         Int          
   category                Category    @relation(fields: [category_id], references: [id])
-  curriculum Curriculum?
   summary             ProgramSummary?
-  programvs           ProgramVs?
-  careers             ProgramCareer?
+  durationfees        ProgramDurationFees?
+  salary              SpecialisationSalary?
+  specialisationAdmission SpecialisationAdmission?
+  resource                         SpecialisationResource?
   placement           ProgramPlacement?
-  choose              ProgramChoose?
-  academic            ProgramAcademic?
   graph               ProgramGraph?
-  highlights          ProgramHighlights?
-  entrance            ProgramEntrance?
+  programCurriculum        ProgramCurriculum?
   faqs                Faq?
   seo                 Seo?
+  choose              ProgramChoose?
+   entrance            ProgramEntrance?
   institutes          ProgramInstitutes?
-  experience          ProgramExperience?
   electives           SpecialisationElectives?
-  financial           ProgramFinancialScholarship?
-  durationfees        ProgramDurationFees?
-  specialisationAdmission SpecialisationAdmission?
-  programCurriculum        ProgramCurriculum?
+  careers             SpecialisationProgramCareer?
+  academic            ProgramAcademic?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deleted_at DateTime?
@@ -641,8 +637,28 @@ model SpecialisationElectives {
   id            Int        @id @default(autoincrement())
   title       String
   description String?
+  notes       String?
   electives    Json?
-  program_id  Int?  @unique
+  specialisation_program_id Int? @unique
+  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
+}
+
+model SpecialisationSalary {
+  id            Int        @id @default(autoincrement())
+  title       String
+  description String?
+  salary    Json?
+  notes    String?
+  specialisation_program_id Int? @unique
+  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
+}
+
+model SpecialisationResource {
+  id            Int        @id @default(autoincrement())
+  title       String
+  description String?
+  resources    Json?
+  notes        String?
   specialisation_program_id Int? @unique
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
@@ -671,9 +687,7 @@ model ProgramVs {
   notes       String?
   summary    Json?
   program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
-  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
 
@@ -702,8 +716,21 @@ model ProgramCareer {
   notes String?
   Career      Json?
   program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
+}
+
+
+model SpecialisationProgramCareer {
+  id            Int        @id @default(autoincrement())
+  title       String
+  description String?
+    sub_title       String?
+  sub_description String?
+      sector_title       String?
+  sector_description String?
+  notes String?
+  Career      Json?
+  specialisation_program_id  Int?  @unique
   specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
@@ -714,9 +741,7 @@ model ProgramFinancialScholarship {
   description String?
   financial      Json?
   program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
-  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
 model ProgramDurationFees {
@@ -736,6 +761,7 @@ model ProgramGraph {
   description String?
   subdesc    String?
   monthly      Json?
+  yearly      Json?
   program_id  Int?  @unique
   specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
@@ -749,9 +775,7 @@ model ProgramHighlights {
   subtitle    String?
   Highlights      Json?
   program_id  Int?  @unique
-  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
-  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
 model ProgramEntrance{
@@ -823,9 +847,7 @@ model ProgramExperience {
   notes     String?
   experiences        Json?
   program_id  Int? @unique
-  specialisation_program_id  Int?  @unique
   program     Program? @relation(fields: [program_id], references: [id])
-  specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
 }
 
 

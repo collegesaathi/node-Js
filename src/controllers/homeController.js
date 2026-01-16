@@ -19,7 +19,6 @@ function toPublicUrl(req, filePath) {
 
 exports.home = catchAsync(async (req, res) => {
   try {
-
     // ✅ CATEGORY WITH COURSES
     const categories = await prisma.category.findMany({
       orderBy: { id: "asc" },
