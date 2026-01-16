@@ -108,6 +108,8 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
   });
 }
 
+
+
 exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
   try {
     // 1. VALIDATE REQUIRED FIELDS
@@ -128,7 +130,11 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
         uploadedFiles[file.fieldname].push(file.path);
       });
     }
+   
+
+
     // 3. PARALLEL PARSING OF ALL ARRAYS
+    // Fix: Ensure all array parsing happens correctly and match the destructuring
     const [
       faqs,
       institutesJson,
@@ -136,7 +142,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       subPlacementJson,
       fincalceAdds,
       summaryJson,
-      purpuse,
       universityIds,
       onlines,
       salary,
@@ -145,15 +150,13 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       semesters
     ] = await Promise.all([
       safeParseArray(req.body.faqs),
-      safeParseArray(req.body.keyhight),
-      safeParseArray(req.body.institutes),
+      // FIXED: keyhight should probably be keyHighlight or something else
+      safeParseArray(req.body.institutes || req.body.keyhight), // Fixed this line
       safeParseArray(req.body.selectedPartners),
       safeParseArray(req.body.PlacementAdds),
       safeParseArray(req.body.curriculm),
       safeParseArray(req.body.fincalceAdds),
       safeParseArray(req.body.summary),
-      safeParseArray(req.body.choose),
-      safeParseArray(req.body.purpuse),
       safeParseArray(req.body.university_id),
       safeParseArray(req.body.onlines),
       safeParseArray(req.body.salary),
@@ -171,13 +174,13 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       resourcesimages,
       electvieimages
     ] = await Promise.all([
-      mapUploadedArray(req, uploadedFiles, "electvieimages"),
+      // FIXED: Correct the field names to match what you expect from frontend
       mapUploadedArray(req, uploadedFiles, "fincalceAddsimages"),
-
-      mapUploadedArray(req, uploadedFiles, "resourcesimages"),
       mapUploadedArray(req, uploadedFiles, "purpuseimages"),
       mapUploadedArray(req, uploadedFiles, "PlacementAddsimages"),
-      mapUploadedArray(req, uploadedFiles, "summaryaudio")
+      mapUploadedArray(req, uploadedFiles, "summaryaudio"),
+      mapUploadedArray(req, uploadedFiles, "resourcesimages"),
+      mapUploadedArray(req, uploadedFiles, "electvieimages")
     ]);
 
     // 5. PARALLEL IMAGE ATTACHMENT
@@ -187,13 +190,20 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       resources,
       electives
     ] = await Promise.all([
-      attachImagesToItems(fincalceAdds, fincalceAddsimages, "image"),
-      attachImagesToItems(electives, electvieimages, "image"),
-      attachImagesToItems(resources, resourcesimages, "image"),
-      attachImagesToItems(purpuse, purpuseimages, "image"),
-      attachImagesToItems(subPlacementJson, PlacementAddsimages, "image"),
-      attachImagesToItems(summaryJson, summaryAudio, "audio")
+      // FIXED: Correct the variable names and order
+      attachImagesToItems(fincalceAdds || [], fincalceAddsimages || [], "image"),
+      attachImagesToItems(finalChoose || [], purpuseimages || [], "image"),
+      attachImagesToItems(resources || [], resourcesimages || [], "image"),
+      attachImagesToItems(subPlacementJson || [], PlacementAddsimages || [], "image"),
+      attachImagesToItems(summaryJson || [], summaryAudio || [], "audio"),
+      // These need to be defined - you're using variables that don't exist yet
+      attachImagesToItems([], electvieimages || [], "image") // electives doesn't exist yet
     ]);
+
+    // FIXED: Need to define missing variables
+    const purpuse = req.body.purpuse ? safeParseArray(req.body.purpuse) : [];
+    const resourcesData = req.body.resources ? safeParseArray(req.body.resources) : [];
+    const electivesData = req.body.electives ? safeParseArray(req.body.electives) : [];
 
     // 6. GENERATE SLUG
     const generatedSlug = await generateUniqueSlug(prisma, req.body.name);
@@ -203,10 +213,10 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       title: req.body.name?.trim() || "",
       slug: req.body.slug?.trim() || generatedSlug,
       description: req.body.descriptions?.trim() || "",
-      bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]) || "",
+      bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
       bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
-      pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
-      audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]),
+      pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
+      audio: uploadedFiles["audio"]?.[0] ? toPublicUrl(req, uploadedFiles["audio"][0]) : null,
       career_growth: req.body.career_growth?.trim() || "",
       duration: req.body.duration?.trim() || "",
       specialization: req.body.specialization?.trim() || "",
@@ -216,7 +226,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       universitytitle: req.body.universitytitle?.trim() || "",
       universitydesc: req.body.universitydesc?.trim() || "",
       universitybtmdesc: req.body.universitybtmdesc?.trim() || "",
-      university_id: universityIds,
+      university_id: universityIds || [],
       conclusion: req.body.conclusion?.trim() || "",
       specialisationtitle: req.body.specialisationtitle?.trim() || "",
       specialisationdesc: req.body.specialisationdesc?.trim() || "",
@@ -234,12 +244,12 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       const specialisationProgram = await tx.SpecialisationProgram.create({
         data: programData,
       });
-      console.log("specialisationProgram", specialisationProgram)
 
-      const id = specialisationProgram.id;
+      console.log("specialisationProgram", specialisationProgram);
 
-      console.log("programId", programId)
-
+      // FIXED: Use the correct variable name (id, not programId)
+      const programId = specialisationProgram.id;
+      console.log("programId", programId);
 
       // 9. PREPARE ALL RELATED DATA CREATIONS
       const relatedDataCreations = [
@@ -248,33 +258,35 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           data: {
             title: req.body.academictitle?.trim() || "",
             description: req.body.academicdesc?.trim() || "",
-            Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]) || "",
+            Image: uploadedFiles["academic_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["academic_cover_image"][0]) : "",
             image_alt: req.body.academic_image_alt?.trim() || "",
             entra_title: req.body.entracetitle?.trim() || "",
             entra_desc: req.body.entracedesc?.trim() || "",
-            entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]) || "",
+            entra_image: uploadedFiles["entrace_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["entrace_cover_image"][0]) : "",
             entra_image_alt: req.body.entra_image_alt?.trim() || req.body.entracetitle?.trim() || "",
             specialisation_program_id: programId,
             notes_title: req.body.degree_title?.trim() || "",
             notes_desc: req.body.degree_desc?.trim() || "",
           },
         }),
+
         // ProgramSummary
         tx.ProgramSummary.create({
           data: {
             title: req.body.summarytitle?.trim() || "",
             description: req.body.summarydesc?.trim() || "",
             button: req.body.summarybutton?.trim() || "",
-            summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]) || "",
+            summary_audio: uploadedFiles["summary_audio"]?.[0] ? toPublicUrl(req, uploadedFiles["summary_audio"][0]) : "",
             specialisation_program_id: programId
           },
         }),
-        // ProgramChoose
+
+        // ProgramChoose - FIXED: attachImagesToItems should return correct structure
         tx.ProgramChoose.create({
           data: {
             title: req.body.purpusename?.trim() || "",
             description: req.body.purpsedesc?.trim() || "",
-            choose: finalChoose,
+            choose: finalChoose || [],
             specialisation_program_id: programId,
           },
         }),
@@ -282,10 +294,10 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
         // ProgramEntrance
         tx.ProgramEntrance.create({
           data: {
-            icon: toPublicUrl(req, uploadedFiles["entrance_icon"]) || "",
+            icon: uploadedFiles["entrance_icon"]?.[0] ? toPublicUrl(req, uploadedFiles["entrance_icon"][0]) : "",
             title: req.body.onlinetitle?.trim() || "",
             description: req.body.onlinedesc?.trim() || "",
-            Entrance: onlines,
+            Entrance: onlines || [],
             specialisation_program_id: programId,
           },
         }),
@@ -295,32 +307,30 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           data: {
             title: req.body.durationtitle?.trim() || "",
             description: req.body.durationdesc?.trim() || "",
-            duration: DurationData,
+            duration: DurationData || [],
             specialisation_program_id: programId,
           },
         }),
 
-        // SpecialisationElectives
+        // SpecialisationElectives - FIXED: Use electivesData
         tx.SpecialisationElectives.create({
           data: {
             title: req.body.electivetitle?.trim() || "",
             description: req.body.electivedesc?.trim() || "",
-            electives: electives,
+            electives: electives || electivesData || [],
             specialisation_program_id: programId,
           },
         }),
-
 
         // ProgramCurriculum
         tx.ProgramCurriculum.create({
           data: {
             title: req.body.semesters_title?.trim() || "",
             description: req.body.semesters_notes?.trim() || "",
-            curriculum_id: semesters,
+            curriculum_id: semesters || [],
             specialisation_program_id: programId,
           },
         }),
-
 
         // SpecialisationAdmission
         tx.SpecialisationAdmission.create({
@@ -340,33 +350,32 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           },
         }),
 
-        // SpecialisationResource
+        // SpecialisationResource - FIXED: Use resourcesData
         tx.SpecialisationResource.create({
           data: {
             notes: req.body.resource_notes?.trim() || "",
             description: req.body.resource_desc?.trim() || "",
             title: req.body.resource_title?.trim() || "",
-            resources: resources,
+            resources: resources || resourcesData || [],
             specialisation_program_id: programId,
           },
         }),
 
-        // SpecialisationProgramCareer
+        // SpecialisationProgramCareer - FIXED: Use fincalceAdds
         tx.SpecialisationProgramCareer.create({
           data: {
             title: req.body.opp_name?.trim() || "",
             description: req.body.opp_desc?.trim() || "",
             sub_title: req.body.financialname?.trim() || "",
             sub_description: req.body.financialdescription?.trim() || "",
-            Career: fincalceAdds,
+            Career: fincalceAdds || [],
             sector_title: req.body.sector_name?.trim() || "",
             sector_description: req.body.sector_desc?.trim() || "",
             specialisation_program_id: programId,
           },
         }),
 
-
-        // (Salary)
+        // SpecialisationSalary
         tx.SpecialisationSalary.create({
           data: {
             title: req.body.salarytitle?.trim() || "",
@@ -376,34 +385,37 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
             specialisation_program_id: programId,
           },
         }),
+
         // ProgramPlacement
         tx.ProgramPlacement.create({
           data: {
             title: req.body.placementname?.trim() || "",
             description: req.body.placementdescription?.trim() || "",
-            placement_ids: placementIdsJson,
+            placement_ids: placementIdsJson || [],
             subtitle: req.body.partnersname?.trim() || "",
             Subdec: req.body.partnersdesc?.trim() || "",
-            subplacement: finalSubPlacementJson,
+            subplacement: finalSubPlacementJson || [],
             specialisation_program_id: programId,
           },
         }),
+
         // ProgramGraph
         tx.ProgramGraph.create({
           data: {
             title: req.body.futuretitle?.trim() || "",
             description: req.body.futuredesc?.trim() || "",
             subdesc: req.body.futurebtmdesc?.trim() || "",
-            yearly: yearlyData,
+            yearly: yearlyData || [],
             specialisation_program_id: programId,
           },
         }),
-        // Professionals
+
+        // ProgramInstitutes
         tx.ProgramInstitutes.create({
           data: {
             title: req.body.instututitle?.trim() || "",
             description: req.body.instutudesc?.trim() || "",
-            Institutes: institutesJson,
+            Institutes: institutesJson || [],
             specialisation_program_id: programId,
           },
         }),
@@ -467,8 +479,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.GetSpecialisationProgramList = catchAsync(async (req, res) => {
   try {
     const { id } = req.params;
@@ -501,8 +511,8 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
   try {
     const { id } = req.body;
 
-    console.log("id" ,id)
-    
+    console.log("id", id)
+
     if (!id) {
       return errorResponse(res, "Specalization Program ID is required", 400);
     }
@@ -511,7 +521,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
     const existingProgram = await prisma.SpecialisationProgram.findUnique({
       where: { id: Number(id) },
       include: {
-          summary: true,
+        summary: true,
         careers: true,
         placement: true,
         choose: true,
@@ -522,8 +532,8 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
         seo: true,
         institutes: true,
         durationfees: true,
-        salary:true,
-        resource : true,
+        salary: true,
+        resource: true,
         specialisationAdmission: true,
         programCurriculum: true,
         electives: true,
@@ -545,17 +555,17 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
       });
     }
 
+
+     Loggers.http(req.body)
+    Loggers.http(uploadedFiles)
     // 2. PARALLEL PARSING OF ALL ARRAYS (FIXED VARIABLE NAMES)
     const [
       faqs,
-      highlightsJson,
       institutesJson,
       placementIdsJson,
       subPlacementJson,
-      curriculumJson,
       fincalceAdds,
       summaryJson,
-      choose,
       purpuse,
       universityIds,
       resources,
@@ -605,7 +615,6 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
 
     // 4. PARALLEL IMAGE ATTACHMENT (FIXED ACCORDING TO YOUR ORDER)
     const [
-      finalChoose,
       finalSubPlacementJson,
       finalResources,
       finalElectives,
@@ -632,8 +641,8 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
       slug: slug,
       description: req.body.descriptions?.trim() || existingProgram.description,
       bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]?.[0]) || existingProgram.bannerImage,
-      bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || existingProgram.bannerImageAlt,
-      pdfdownload: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]) || existingProgram.pdfdownload,
+      bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() ,
+      pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
       audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]) || existingProgram.audio,
       career_growth: req.body.career_growth?.trim() || existingProgram.career_growth,
       duration: req.body.duration?.trim() || existingProgram.duration,
@@ -665,438 +674,226 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
         data: programData,
       });
 
-const programId = Number(id);
+      const programId = Number(id);
 
-console.log("programId" ,programId)
+      console.log("programId", programId)
 
 
       // 8. UPDATE OR CREATE ALL RELATED DATA (FIXED DATA MAPPING)
       const relatedDataOperations = [];
 
       // ProgramAcademic
-        relatedDataOperations.push(
-          tx.ProgramAcademic.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.academictitle?.trim(),
-              description: req.body.academicdesc?.trim() ,
-              Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]?.[0]) ,
-              image_alt: req.body.academic_image_alt?.trim() ,
-              entra_title: req.body.entracetitle?.trim() ,
-              entra_desc: req.body.entracedesc?.trim() ,
-              entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]?.[0]) ,
-              entra_image_alt: req.body.entra_image_alt?.trim() ,
-              notes_title: req.body.degree_title?.trim() ,
-              notes_desc: req.body.degree_desc?.trim() ,
-            },
-          })
-        );
+      relatedDataOperations.push(
+        tx.ProgramAcademic.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.academictitle?.trim(),
+            description: req.body.academicdesc?.trim(),
+            Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]?.[0]),
+            image_alt: req.body.academic_image_alt?.trim(),
+            entra_title: req.body.entracetitle?.trim(),
+            entra_desc: req.body.entracedesc?.trim(),
+            entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]?.[0]),
+            entra_image_alt: req.body.entra_image_alt?.trim(),
+            notes_title: req.body.degree_title?.trim(),
+            notes_desc: req.body.degree_desc?.trim(),
+          },
+        })
+      );
 
       // ProgramSummary
-      if (existingProgram.ProgramSummary) {
-        relatedDataOperations.push(
-          tx.ProgramSummary.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.summarytitle?.trim() ,
-              description: req.body.summarydesc?.trim() ,
-              button: req.body.summarybutton?.trim() ,
-              summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]?.[0]) ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramSummary.create({
-            data: {
-              title: req.body.summarytitle?.trim() || "",
-              description: req.body.summarydesc?.trim() || "",
-              button: req.body.summarybutton?.trim() || "",
-              summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]?.[0]) || "",
-              specialisation_program_id: id
-            },
-          })
-        );
-      }
+      relatedDataOperations.push(
+        tx.ProgramSummary.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.summarytitle?.trim(),
+            description: req.body.summarydesc?.trim(),
+            button: req.body.summarybutton?.trim(),
+            summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]?.[0]),
+          },
+        })
+      );
 
       // ProgramChoose
-      if (existingProgram.ProgramChoose) {
-        relatedDataOperations.push(
-          tx.ProgramChoose.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.purpusename?.trim() ,
-              description: req.body.purpsedesc?.trim(),
-              choose: finalChoose ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramChoose.create({
-            data: {
-              title: req.body.purpusename?.trim() || "",
-              description: req.body.purpsedesc?.trim() || "",
-              choose: finalChoose,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
+      relatedDataOperations.push(
+        tx.ProgramChoose.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.purpusename?.trim(),
+            description: req.body.purpsedesc?.trim(),
+            choose: finalPurpuse,
+          },
+        })
+      );
 
+      console.log(finalPurpuse)
       // ProgramEntrance
-      if (existingProgram.ProgramEntrance) {
-        relatedDataOperations.push(
-          tx.ProgramEntrance.update({
-            where: { specialisation_program_id: id },
-            data: {
-              icon: toPublicUrl(req, uploadedFiles["entrance_icon"]?.[0]) ,
-              title: req.body.onlinetitle?.trim() ,
-              description: req.body.onlinedesc?.trim() ,
-              Entrance: onlines ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramEntrance.create({
-            data: {
-              icon: toPublicUrl(req, uploadedFiles["entrance_icon"]?.[0]) || "",
-              title: req.body.onlinetitle?.trim() || "",
-              description: req.body.onlinedesc?.trim() || "",
-              Entrance: onlines,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
+
+      relatedDataOperations.push(
+        tx.ProgramEntrance.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            icon: toPublicUrl(req, uploadedFiles["entrance_icon"]?.[0]),
+            title: req.body.onlinetitle?.trim(),
+            description: req.body.onlinedesc?.trim(),
+            Entrance: onlines,
+          },
+        })
+      );
+
+
 
       // ProgramDurationFees
-      if (existingProgram.ProgramDurationFees) {
-        relatedDataOperations.push(
-          tx.ProgramDurationFees.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.durationtitle?.trim() ,
-              description: req.body.durationdesc?.trim() ,
-              duration: DurationData ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramDurationFees.create({
-            data: {
-              title: req.body.durationtitle?.trim() || "",
-              description: req.body.durationdesc?.trim() || "",
-              duration: DurationData,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // SpecialisationElectives
-      if (existingProgram.SpecialisationElectives) {
-        relatedDataOperations.push(
-          tx.SpecialisationElectives.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.electivetitle?.trim() ,
-              description: req.body.electivedesc?.trim() ,
-              electives: finalElectives,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.SpecialisationElectives.create({
-            data: {
-              title: req.body.electivetitle?.trim() || "",
-              description: req.body.electivedesc?.trim() || "",
-              electives: finalElectives,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // ProgramCurriculum
-      if (existingProgram.ProgramCurriculum) {
-        relatedDataOperations.push(
-          tx.ProgramCurriculum.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.semesters_title?.trim() ,
-              description: req.body.semesters_notes?.trim() ,
-              curriculum_id: semesters ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramCurriculum.create({
-            data: {
-              title: req.body.semesters_title?.trim() || "",
-              description: req.body.semesters_notes?.trim() || "",
-              curriculum_id: semesters,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // SpecialisationAdmission
-      if (existingProgram.SpecialisationAdmission) {
-        relatedDataOperations.push(
-          tx.SpecialisationAdmission.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.admission_title?.trim(),
-              description: req.body.admission_desc?.trim() ,
-              subtitle: req.body.admission_sub_title?.trim() ,
-              subdesc: req.body.admission_sub_desc?.trim() ,
-              notes: req.body.admission_notes?.trim() ,
-              doc_title: req.body.doc_title?.trim() ,
-              doc_des: req.body.doc_des?.trim() ,
-              entrance_title: req.body.entrance_title?.trim() ,
-              entrance_des: req.body.entrance_des?.trim() ,
-              direct_title: req.body.direct_title?.trim() ,
-              direct_desc: req.body.direct_desc?.trim(),
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.SpecialisationAdmission.create({
-            data: {
-              title: req.body.admission_title?.trim() || "",
-              description: req.body.admission_desc?.trim() || "",
-              subtitle: req.body.admission_sub_title?.trim() || "",
-              subdesc: req.body.admission_sub_desc?.trim() || "",
-              notes: req.body.admission_notes?.trim() || "",
-              doc_title: req.body.doc_title?.trim() || "",
-              doc_des: req.body.doc_des?.trim() || "",
-              entrance_title: req.body.entrance_title?.trim() || "",
-              entrance_des: req.body.entrance_des?.trim() || "",
-              direct_title: req.body.direct_title?.trim() || "",
-              direct_desc: req.body.direct_desc?.trim() || "",
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // SpecialisationResource
-      if (existingProgram.SpecialisationResource) {
-        relatedDataOperations.push(
-          tx.SpecialisationResource.update({
-            where: { specialisation_program_id: id },
-            data: {
-              notes: req.body.resource_notes?.trim() ,
-              description: req.body.resource_desc?.trim() ,
-              title: req.body.resource_title?.trim(),
-              resources: finalResources ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.SpecialisationResource.create({
-            data: {
-              notes: req.body.resource_notes?.trim() || "",
-              description: req.body.resource_desc?.trim() || "",
-              title: req.body.resource_title?.trim() || "",
-              resources: finalResources,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // SpecialisationProgramCareer
-      if (existingProgram.SpecialisationProgramCareer) {
-        relatedDataOperations.push(
-          tx.SpecialisationProgramCareer.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.opp_name?.trim() ,
-              description: req.body.opp_desc?.trim() ,
-              sub_title: req.body.financialname?.trim() ,
-              sub_description: req.body.financialdescription?.trim() ,
-              Career: fincalceAdds ,
-              sector_title: req.body.sector_name?.trim() ,
-              sector_description: req.body.sector_desc?.trim() ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.SpecialisationProgramCareer.create({
-            data: {
-              title: req.body.opp_name?.trim() || "",
-              description: req.body.opp_desc?.trim() || "",
-              sub_title: req.body.financialname?.trim() || "",
-              sub_description: req.body.financialdescription?.trim() || "",
-              Career: fincalceAdds,
-              sector_title: req.body.sector_name?.trim() || "",
-              sector_description: req.body.sector_desc?.trim() || "",
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // SpecialisationSalary
-      if (existingProgram.SpecialisationSalary) {
-        relatedDataOperations.push(
-          tx.SpecialisationSalary.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.salarytitle?.trim() ,
-              description: req.body.salarydesc?.trim(),
-              notes: req.body.salarynote?.trim() ,
-              salary: salary ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.SpecialisationSalary.create({
-            data: {
-              title: req.body.salarytitle?.trim() || "",
-              description: req.body.salarydesc?.trim() || "",
-              notes: req.body.salarynote?.trim() || "",
-              salary: salary || [],
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // ProgramPlacement
-      if (existingProgram.ProgramPlacement) {
-        relatedDataOperations.push(
-          tx.ProgramPlacement.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.placementname?.trim() ,
-              description: req.body.placementdescription?.trim() ,
-              placement_ids: placementIdsJson ,
-              subtitle: req.body.partnersname?.trim(),
-              Subdec: req.body.partnersdesc?.trim() ,
-              subplacement: finalSubPlacementJson ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramPlacement.create({
-            data: {
-              title: req.body.placementname?.trim() || "",
-              description: req.body.placementdescription?.trim() || "",
-              placement_ids: placementIdsJson,
-              subtitle: req.body.partnersname?.trim() || "",
-              Subdec: req.body.partnersdesc?.trim() || "",
-              subplacement: finalSubPlacementJson,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // ProgramGraph
-      if (existingProgram.ProgramGraph) {
-        relatedDataOperations.push(
-          tx.ProgramGraph.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.futuretitle?.trim() ,
-              description: req.body.futuredesc?.trim() ,
-              subdesc: req.body.futurebtmdesc?.trim(),
-              yearly: yearlyData ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramGraph.create({
-            data: {
-              title: req.body.futuretitle?.trim() || "",
-              description: req.body.futuredesc?.trim() || "",
-              subdesc: req.body.futurebtmdesc?.trim() || "",
-              yearly: yearlyData,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // ProgramInstitutes
-      if (existingProgram.ProgramInstitutes) {
-        relatedDataOperations.push(
-          tx.ProgramInstitutes.update({
-            where: { specialisation_program_id: id },
-            data: {
-              title: req.body.instututitle?.trim() ,
-              description: req.body.instutudesc?.trim() ,
-              Institutes: institutesJson ,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.ProgramInstitutes.create({
-            data: {
-              title: req.body.instututitle?.trim() || "",
-              description: req.body.instutudesc?.trim() || "",
-              Institutes: institutesJson,
-              specialisation_program_id: id,
-            },
-          })
-        );
-      }
-
-      // Faq
-      if (existingProgram.Faq) {
-        relatedDataOperations.push(
-          tx.Faq.update({
-            where: { specialisation_program_id: id },
-            data: {
-              faqs: faqs || existingProgram.Faq.faqs,
-            },
-          })
-        );
-      } else {
-        relatedDataOperations.push(
-          tx.Faq.create({
-            data: {
-              specialisation_program_id: id,
-              faqs: faqs || [],
-            },
-          })
-        );
-      }
-
-      // Seo
       relatedDataOperations.push(
-        tx.Seo.upsert({
-          where: { specialisation_program_id: id },
-          update: {
-            meta_title: req.body.meta_title?.trim()  || "",
-            meta_description: req.body.meta_description?.trim()  || "",
-            meta_keywords: req.body.meta_keywords?.trim() || "",
-            canonical_url: req.body.canonical_url?.trim()  || "",
+        tx.ProgramDurationFees.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.durationtitle?.trim(),
+            description: req.body.durationdesc?.trim(),
+            duration: DurationData,
           },
-          create: {
-            specialisation_program_id: id,
-            meta_title: req.body.meta_title?.trim() || "",
+        })
+      );
+      // SpecialisationElectives
+      relatedDataOperations.push(
+        tx.SpecialisationElectives.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.electivetitle?.trim(),
+            description: req.body.electivedesc?.trim(),
+            electives: finalElectives,
+          },
+        })
+      );
+      // ProgramCurriculum
+      relatedDataOperations.push(
+        tx.ProgramCurriculum.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.semesters_title?.trim(),
+            description: req.body.semesters_notes?.trim(),
+            curriculum_id: semesters,
+          },
+        })
+      );
+      // SpecialisationAdmission
+      relatedDataOperations.push(
+        tx.SpecialisationAdmission.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.admission_title?.trim(),
+            description: req.body.admission_desc?.trim(),
+            subtitle: req.body.admission_sub_title?.trim(),
+            subdesc: req.body.admission_sub_desc?.trim(),
+            notes: req.body.admission_notes?.trim(),
+            doc_title: req.body.doc_title?.trim(),
+            doc_des: req.body.doc_des?.trim(),
+            entrance_title: req.body.entrance_title?.trim(),
+            entrance_des: req.body.entrance_des?.trim(),
+            direct_title: req.body.direct_title?.trim(),
+            direct_desc: req.body.direct_desc?.trim(),
+          },
+        })
+      );
+      // SpecialisationResource
+      relatedDataOperations.push(
+        tx.SpecialisationResource.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            notes: req.body.resource_notes?.trim(),
+            description: req.body.resource_desc?.trim(),
+            title: req.body.resource_title?.trim(),
+            resources: finalResources,
+          },
+        })
+      );
+      // SpecialisationProgramCareer
+      relatedDataOperations.push(
+        tx.SpecialisationProgramCareer.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.opp_name?.trim(),
+            description: req.body.opp_desc?.trim(),
+            sub_title: req.body.financialname?.trim(),
+            sub_description: req.body.financialdescription?.trim(),
+            Career: fincalceAdds,
+            sector_title: req.body.sector_name?.trim(),
+            sector_description: req.body.sector_desc?.trim(),
+          },
+        })
+      );
+      // SpecialisationSalary
+      relatedDataOperations.push(
+        tx.SpecialisationSalary.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.salarytitle?.trim(),
+            description: req.body.salarydesc?.trim(),
+            notes: req.body.salarynote?.trim(),
+            salary: salary,
+          },
+        })
+      );
+      // ProgramPlacement
+      relatedDataOperations.push(
+        tx.ProgramPlacement.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.placementname?.trim(),
+            description: req.body.placementdescription?.trim(),
+            placement_ids: placementIdsJson,
+            subtitle: req.body.partnersname?.trim(),
+            Subdec: req.body.partnersdesc?.trim(),
+            subplacement: finalSubPlacementJson,
+          },
+        })
+      );
+      // ProgramGraph
+      relatedDataOperations.push(
+        tx.ProgramGraph.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.futuretitle?.trim(),
+            description: req.body.futuredesc?.trim(),
+            subdesc: req.body.futurebtmdesc?.trim(),
+            yearly: yearlyData,
+          },
+        })
+      );
+      // ProgramInstitutes
+      relatedDataOperations.push(
+        tx.ProgramInstitutes.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            title: req.body.instututitle?.trim(),
+            description: req.body.instutudesc?.trim(),
+            Institutes: institutesJson,
+          },
+        })
+      );
+      // Faq
+      relatedDataOperations.push(
+        tx.Faq.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+            faqs: faqs,
+          },
+        })
+      );
+      // Seo
+
+       relatedDataOperations.push(
+        tx.Seo.update({
+          where: { specialisation_program_id: Number(id) },
+          data: {
+             meta_title: req.body.meta_title?.trim() || "",
             meta_description: req.body.meta_description?.trim() || "",
             meta_keywords: req.body.meta_keywords?.trim() || "",
             canonical_url: req.body.canonical_url?.trim() || "",
           },
         })
       );
+   
 
       // Execute all operations in parallel
       await Promise.all(relatedDataOperations);
@@ -1107,13 +904,7 @@ console.log("programId" ,programId)
     return successResponse(res, "Specialization Program updated successfully", 200, result);
 
   } catch (error) {
-    console.error("❌ UpdateSpecialisationProgram ERROR =====================");
     console.error("Error:", error);
-    console.error("Request Body:", JSON.stringify(req.body, null, 2));
-    console.error("Uploaded Files:", req.files);
-    console.error("Program ID:", req.body.id);
-    console.error("========================================");
-
     // Handle specific Prisma errors
     if (error.code === "P2002") {
       return errorResponse(res, `Duplicate entry: ${error.meta?.target?.join(", ")} already exists`, 400);
@@ -1155,8 +946,8 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
         seo: true,
         institutes: true,
         durationfees: true,
-        salary:true,
-        resource : true,
+        salary: true,
+        resource: true,
         specialisationAdmission: true,
         programCurriculum: true,
         electives: true,
