@@ -1173,3 +1173,60 @@ exports.DeleteSpecialisationBySlug = catchAsync(async (req, res) => {
     );
   }
 });
+
+exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      return errorResponse(res, "Program slug is required", 400);
+    }
+    
+    const ProgramData = await prisma.SpecialisationProgram.findFirst({
+      where: {
+        slug: slug,
+        deleted_at: null, // Uncomment if you want to filter deleted records
+      },
+      include: {
+        // Main relations from your model
+        category: true, // Changed from category_id relation
+        program: true, // Changed from program_id relation
+        
+        // All related data with proper names from your model
+        summary: true,
+        durationfees: true,
+        salary: true,
+        specialisationAdmission: true,
+        resource: true,
+        placement: true,
+        graph: true,
+        programCurriculum: true, // Note: field name is programCurriculum (camelCase)
+        faqs: true,
+        seo: true,
+        choose: true,
+        entrance: true,
+        institutes: true,
+        electives: true,
+        careers: true,
+        academic: true,
+      },
+    });
+
+    if (!ProgramData) {
+      return errorResponse(res, "Specialisation Program not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "Program fetched successfully",
+      200,
+      ProgramData
+    );
+  } catch (error) {
+    console.error("❌ GetSpecialisationProgramById error", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching program",
+      500
+    );
+  }
+});
