@@ -128,9 +128,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
         uploadedFiles[file.fieldname].push(file.path);
       });
     }
-Loggers.http(req.body)
-Loggers.http(uploadedFiles)
-
     // 3. PARALLEL PARSING OF ALL ARRAYS
     const [
       faqs,
@@ -237,11 +234,11 @@ Loggers.http(uploadedFiles)
       const specialisationProgram = await tx.SpecialisationProgram.create({
         data: programData,
       });
-      console.log("specialisationProgram" ,specialisationProgram)
+      console.log("specialisationProgram", specialisationProgram)
 
       const programId = specialisationProgram.id;
 
-      console.log("programId" ,programId)
+      console.log("programId", programId)
 
 
       // 9. PREPARE ALL RELATED DATA CREATIONS
@@ -293,7 +290,7 @@ Loggers.http(uploadedFiles)
           },
         }),
 
-           // ProgramDurationFees
+        // ProgramDurationFees
         tx.ProgramDurationFees.create({
           data: {
             title: req.body.durationtitle?.trim() || "",
@@ -303,7 +300,7 @@ Loggers.http(uploadedFiles)
           },
         }),
 
-            // SpecialisationElectives
+        // SpecialisationElectives
         tx.SpecialisationElectives.create({
           data: {
             title: req.body.electivetitle?.trim() || "",
@@ -313,7 +310,7 @@ Loggers.http(uploadedFiles)
           },
         }),
 
-        
+
         // ProgramCurriculum
         tx.ProgramCurriculum.create({
           data: {
@@ -324,7 +321,7 @@ Loggers.http(uploadedFiles)
           },
         }),
 
-        
+
         // SpecialisationAdmission
         tx.SpecialisationAdmission.create({
           data: {
@@ -343,7 +340,7 @@ Loggers.http(uploadedFiles)
           },
         }),
 
-            // SpecialisationResource
+        // SpecialisationResource
         tx.SpecialisationResource.create({
           data: {
             notes: req.body.resource_notes?.trim() || "",
@@ -369,17 +366,17 @@ Loggers.http(uploadedFiles)
         }),
 
 
-          // (Salary)
+        // (Salary)
         tx.SpecialisationSalary.create({
           data: {
             title: req.body.salarytitle?.trim() || "",
             description: req.body.salarydesc?.trim() || "",
             notes: req.body.salarynote?.trim() || "",
             salary: salary || [],
-           specialisation_program_id: programId,
+            specialisation_program_id: programId,
           },
         }),
-             // ProgramPlacement
+        // ProgramPlacement
         tx.ProgramPlacement.create({
           data: {
             title: req.body.placementname?.trim() || "",
@@ -401,7 +398,7 @@ Loggers.http(uploadedFiles)
             specialisation_program_id: programId,
           },
         }),
-            // Professionals
+        // Professionals
         tx.ProgramInstitutes.create({
           data: {
             title: req.body.instututitle?.trim() || "",
