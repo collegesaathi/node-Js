@@ -685,6 +685,9 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         entra_image: uploadedFiles.entrace_cover_image?.[0]
           ? toPublicUrl(req, uploadedFiles.entrace_cover_image[0])
           : existing?.academic?.entra_image,
+            entra_title: req.body.entracetitle || "",
+            entra_desc: req.body.entracedesc || "",
+            entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
       },
       create: {
         program_id: programId,
@@ -692,22 +695,27 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         description: req.body.academicdesc,
         Image: toPublicUrl(req, uploadedFiles.academic_cover_image?.[0]),
         entra_image: toPublicUrl(req, uploadedFiles.entrace_cover_image?.[0]),
+          entra_title: req.body.entracetitle || "",
+            entra_desc: req.body.entracedesc || "",
+            entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
       }
     });
 
     await prisma.ProgramSummary.upsert({
       where: { program_id: programId },
       update: {
-        title: req.body.summarytitle,
-        description: req.body.summarydesc,
+        title: req.body.summarytitle || "",
+            description: req.body.summarydesc || "",
+            button: req.body.summarybutton || "",
               summary_audio: uploadedFiles.summary_audio?.[0]
           ? toPublicUrl(req, uploadedFiles.summary_audio[0])
           : existing.summary_audio,
       },
       create: {
         program_id: programId,
-        title: req.body.summarytitle,
-        description: req.body.summarydesc,
+       title: req.body.summarytitle || "",
+            description: req.body.summarydesc || "",
+            button: req.body.summarybutton || "",
       summary_audio: uploadedFiles.summary_audio?.[0]
           ? toPublicUrl(req, uploadedFiles.summary_audio[0])
           : existing.summary_audio,
