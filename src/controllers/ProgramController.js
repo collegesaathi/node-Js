@@ -88,7 +88,6 @@ function mapUploadedArray(req, uploadedFiles, baseKey) {
 
   return result;
 }
-
 function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) {
   return newItems?.map((item, index) => {
     const newImage = uploadedImages[index];
@@ -105,6 +104,8 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
     };
   });
 }
+
+
 exports.AddProgram = catchAsync(async (req, res) => {
   const uploadedFiles = {};
 
@@ -116,11 +117,11 @@ exports.AddProgram = catchAsync(async (req, res) => {
   });
 
   // Early return for debugging - remove in production
-    Loggers.silly(req.body);
-    Loggers.silly(uploadedFiles);
-    // return false;
+  Loggers.silly(req.body);
+  Loggers.silly(uploadedFiles);
+  
   try {
-    // 1. PARALLEL DATA PARSING
+    // 1. PARALLEL DATA PARSING - ADDED purpuse TO THE LIST
     const [
       faqs,
       highlightsJson,
@@ -131,6 +132,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       fincalceAdds,
       summaryJson,
       choose,
+      purpuse  // ADDED THIS LINE
     ] = await Promise.all([
       parseArray(req.body.faqs),
       parseArray(req.body.keyhight),
@@ -141,32 +143,34 @@ exports.AddProgram = catchAsync(async (req, res) => {
       parseArray(req.body.fincalceAdds),
       parseArray(req.body.summary),
       parseArray(req.body.choose),
-      parseArray(req.body.purpuse)
+      parseArray(req.body.purpuse)  // ADDED THIS LINE
     ]);
 
-    // 2. PARALLEL FILE MAPPING
+    // 2. PARALLEL FILE MAPPING - FIXED ORDER AND ADDED purpuseimages
     const [
-      factsImages,
+      fincalceAddsimages,
       chooseimages,
+      purpuseimages,  // ADDED THIS FOR PURPOSE IMAGES
       PlacementAddsimages,
       summaryAudio
     ] = await Promise.all([
       mapUploadedArray(req, uploadedFiles, "fincalceAddsimages"),
       mapUploadedArray(req, uploadedFiles, "chooseimages"),
-      mapUploadedArray(req, uploadedFiles, "purpuseimages"),
+      mapUploadedArray(req, uploadedFiles, "purpuseimages"),  // ADDED THIS
       mapUploadedArray(req, uploadedFiles, "PlacementAddsimages"),
       mapUploadedArray(req, uploadedFiles, "summaryaudio")
     ]);
 
-    // 3. PARALLEL IMAGE ATTACHMENT
+    // 3. PARALLEL IMAGE ATTACHMENT - ADDED finalPurpuse
     const [
       finalFincalceAdds,
-      finalChoose,
+      finalPurpuse,  // ADDED THIS
       finalSubPlacementJson,
       finalSummary
     ] = await Promise.all([
-      attachImagesToItems(fincalceAdds, factsImages, "image"),
+      attachImagesToItems(fincalceAdds, fincalceAddsimages, "image"),
       attachImagesToItems(choose, chooseimages, "image"),
+      attachImagesToItems(purpuse, purpuseimages, "image"),  // ADDED THIS
       attachImagesToItems(subPlacementJson, PlacementAddsimages, "image"),
       attachImagesToItems(summaryJson, summaryAudio, "audio")
     ]);
@@ -185,7 +189,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           title: req.body.name || "",
           slug: req.body.slug ? req.body.slug : generatedSlug,
           description: req.body.descriptions || "",
-          bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]) || "",
+          bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]?.[0]) || "",
           bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
           pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
           audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]),
@@ -217,11 +221,11 @@ exports.AddProgram = catchAsync(async (req, res) => {
           data: {
             title: req.body.academictitle || "",
             description: req.body.academicdesc || "",
-            Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]) || "",
+            Image: toPublicUrl(req, uploadedFiles["academic_cover_image"]?.[0]) || "",
+            entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]?.[0]) || "",
             image_alt: req.body.academic_image_alt || "",
             entra_title: req.body.entracetitle || "",
             entra_desc: req.body.entracedesc || "",
-            entra_image: toPublicUrl(req, uploadedFiles["entrace_cover_image"]) || "",
             entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
             program_id: programId,
           },
@@ -235,7 +239,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
             title: req.body.summarytitle || "",
             description: req.body.summarydesc || "",
             button: req.body.summarybutton || "",
-            summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]) || "",
+            summary_audio: toPublicUrl(req, uploadedFiles["summary_audio"]?.[0]) || "",
             program_id: programId
           },
         })
@@ -309,13 +313,13 @@ exports.AddProgram = catchAsync(async (req, res) => {
         })
       );
 
-      // ProgramChoose
+      // ProgramChoose - CHANGED TO USE finalPurpuse
       relatedDataPromises.push(
         tx.ProgramChoose.create({
           data: {
             title: req.body.purpusename || "",
             description: req.body.purpsedesc || "",
-            choose: finalChoose,
+            choose: finalPurpuse,  // CHANGED FROM finalChoose TO finalPurpuse
             program_id: programId,
           },
         })
@@ -338,7 +342,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       relatedDataPromises.push(
         tx.ProgramEntrance.create({
           data: {
-            icon: toPublicUrl(req, uploadedFiles["entrance_icon"]) || "",
+            icon: toPublicUrl(req, uploadedFiles["entrance_icon"]?.[0]) || "",
             title: req.body.onlinetitle || "",
             description: req.body.onlinedesc || "",
             Entrance: parseArray(req.body.onlines),
@@ -462,9 +466,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
 });
 
 
-
-
-
 // Program Get By ID Controller Logic
 exports.GetProgramById = catchAsync(async (req, res) => {
   try {
@@ -515,19 +516,16 @@ exports.GetProgramById = catchAsync(async (req, res) => {
   }
 });
 
+
+
 exports.UpdateProgram = catchAsync(async (req, res) => {
   try {
     const programId = Number(req.body.id);
-    if (!programId) return errorResponse(res, "Program ID is required", 400);
-
-    const existingProgram = await prisma.Program.findUnique({
-      where: { id: programId }
-    });
-
-    if (!existingProgram) {
-      return errorResponse(res, "Program not found", 404);
+    if (!programId) {
+      return errorResponse(res, "Program ID is required", 400);
     }
 
+    /* ================= FILE COLLECTION (ADD STYLE) ================= */
     const uploadedFiles = {};
     req.files?.forEach(file => {
       if (!uploadedFiles[file.fieldname]) {
@@ -536,6 +534,34 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname].push(file.path);
     });
 
+    /* ================= FETCH EXISTING ================= */
+    const existing = await prisma.Program.findUnique({
+      where: { id: programId },
+      include: {
+        academic: true,
+        summary: true,
+        careers: true,
+        experience: true,
+        faqs: true,
+        seo: true,
+        highlights: true,
+        choose: true,
+        graph: true,
+        entrance: true,
+        placement: true,
+        institutes: true,
+        financial: true,
+        durationfees: true,
+        curriculum: true,
+        programvs: true,
+      }
+    });
+
+    if (!existing) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    /* ================= PARSE DATA ================= */
     const [
       faqs,
       highlightsJson,
@@ -546,7 +572,11 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       fincalceAdds,
       summaryJson,
       choose,
-      purpuse
+      purpuse,
+      monthlyData,
+      entranceData,
+      durationData,
+      vsData
     ] = await Promise.all([
       parseArray(req.body.faqs),
       parseArray(req.body.keyhight),
@@ -557,356 +587,364 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       parseArray(req.body.fincalceAdds),
       parseArray(req.body.summary),
       parseArray(req.body.choose),
-      parseArray(req.body.purpuse)
+      parseArray(req.body.purpuse),
+      parseArray(req.body.monthlyData),
+      parseArray(req.body.onlines),
+      parseArray(req.body.DurationData),
+      parseArray(req.body.addvs),
     ]);
 
+    /* ================= IMAGE MAPPING ================= */
     const [
-      factsImages,
+      fincalceAddsimages,
       chooseimages,
       purpuseimages,
       PlacementAddsimages,
-      summaryAudio,
-      curriculumsimages
+      summaryAudio
     ] = await Promise.all([
       mapUploadedArray(req, uploadedFiles, "fincalceAddsimages"),
       mapUploadedArray(req, uploadedFiles, "chooseimages"),
       mapUploadedArray(req, uploadedFiles, "purpuseimages"),
       mapUploadedArray(req, uploadedFiles, "PlacementAddsimages"),
       mapUploadedArray(req, uploadedFiles, "summaryaudio"),
-      mapUploadedArray(req, uploadedFiles, "curriculumsimages")
     ]);
 
-    // 5. PARALLEL IMAGE ATTACHMENT (Add API के matching)
-    const [
-      finalFincalceAdds,
-      finalChoose,
-      finalPurpuse,
-      finalSubPlacementJson,
-      finalSummary,
-      finalCurriculumData
-    ] = await Promise.all([
-      attachImagesToItems(fincalceAdds, factsImages, "image"),
-      attachImagesToItems(choose, chooseimages, "image"),
-      attachImagesToItems(purpuse, purpuseimages, "image"),
-      attachImagesToItems(subPlacementJson, PlacementAddsimages, "image"),
-      attachImagesToItems(summaryJson, summaryAudio, "audio"),
-      attachImagesToItems(curriculumJson, curriculumsimages, "image")
-    ]);
-
-    // 6. SLUG GENERATION
-    let finalSlug = existingProgram.slug;
-    if (req.body.name && req.body.name !== existingProgram.title) {
-      finalSlug = await generateUniqueSlug(prisma, req.body.name, programId);
-    } else if (req.body.slug) {
-      finalSlug = req.body.slug;
-    }
-
-    // 7. FILE URL GENERATION
-    const getFileUrl = (fieldName, existingField) => {
-      const existingValue = existingProgram[existingField] || "";
-      if (uploadedFiles[fieldName]?.[0]) {
-        deleteUploadedFiles([existingValue]);
-        return toPublicUrl(req, uploadedFiles[fieldName][0]);
-      }
-      return existingValue;
-    };
-
-    const [
-      bannerImageUrl,
-      pdfDownloadUrl,
-      audioUrl,
-      academicImageUrl,
-      entranceImageUrl,
-      entranceIconUrl,
-      summaryAudioUrl
-    ] = await Promise.all([
-      getFileUrl("cover_image", "bannerImage"),
-      getFileUrl("pdf_download", "pdfdownlaod"),
-      getFileUrl("audio", "audio"),
-      getFileUrl("academic_cover_image", ""),
-      getFileUrl("entrace_cover_image", ""),
-      getFileUrl("entrance_icon", ""),
-      getFileUrl("summary_audio", "")
-    ]);
-    const programUpdateData = {
-      title: req.body.name || existingProgram.title,
-      slug: finalSlug,
-      description: req.body.descriptions || existingProgram.description,
-      bannerImage: bannerImageUrl,
-      bannerImageAlt: req.body.bannerImageAlt || req.body.name || existingProgram.bannerImageAlt,
-      pdfdownlaod: pdfDownloadUrl,
-      audio: audioUrl,
-      career_growth: req.body.career_growth || existingProgram.career_growth,
-      duration: req.body.duration || existingProgram.duration,
-      specialization: req.body.specialization || existingProgram.specialization,
-      subtitle: req.body.subtitle || existingProgram.subtitle,
-      shortDescription: req.body.shortDescription || existingProgram.shortDescription,
-      video: req.body.video || existingProgram.video,
-      universitytitle: req.body.universitytitle || existingProgram.universitytitle,
-      universitydesc: req.body.universitydesc || existingProgram.universitydesc,
-      universitybtmdesc: req.body.universitybtmdesc || existingProgram.universitybtmdesc,
-      university_id: parseArray(req.body.university_id) || existingProgram.university_id || [],
-      conclusion: req.body.conclusion || existingProgram.conclusion,
-      specialisationtitle: req.body.specialisationtitle || existingProgram.specialisationtitle,
-      specialisationdesc: req.body.specialisationdesc || existingProgram.specialisationdesc,
-      category_id: Number(req.body.category_id),
-      updatedAt: new Date()
-    };
-    await prisma.$transaction(async (tx) => {
-      await tx.Program.update({
-        where: { id: programId },
-        data: programUpdateData
-      });
-
-      const upsertOperations = [
-        // ProgramAcademic
-        {
-          table: 'ProgramAcademic',
-          where: { program_id: programId },
-          data: {
-            title: req.body.academictitle || "",
-            description: req.body.academicdesc || "",
-            Image: academicImageUrl,
-            image_alt: req.body.academic_image_alt || "",
-            entra_title: req.body.entracetitle || "",
-            entra_desc: req.body.entracedesc || "",
-            entra_image: entranceImageUrl,
-            entra_image_alt: req.body.entra_image_alt || req.body.entracetitle || "",
-            program_id: programId,
-          }
-        },
-        // ProgramSummary
-        {
-          table: 'ProgramSummary',
-          where: { program_id: programId },
-          data: {
-            title: req.body.summarytitle || "",
-            description: req.body.summarydesc || "",
-            button: req.body.summarybutton || "",
-            summary_audio: summaryAudioUrl,
-            program_id: programId
-          }
-        },
-        // ProgramCareer
-        {
-          table: 'ProgramCareer',
-          where: { program_id: programId },
-          data: {
-            title: req.body.careername || "",
-            description: req.body.careerdesc || "",
-            Career: parseArray(req.body.Careers),
-            program_id: programId,
-          }
-        },
-        // ProgramExperience
-        {
-          table: 'ProgramExperience',
-          where: { program_id: programId },
-          data: {
-            title: req.body.experincename || "",
-            description: req.body.experincedesc || "",
-            notes: req.body.experincenotes || "",
-            experiences: parseArray(req.body.Experinces),
-            program_id: programId,
-          }
-        },
-        // Faq
-        {
-          table: 'Faq',
-          where: { program_id: programId },
-          data: {
-            program_id: programId,
-            faqs: faqs || [],
-          }
-        },
-        // Seo
-        {
-          table: 'Seo',
-          where: { program_id: programId },
-          data: {
-            program_id: programId,
-            meta_title: req.body.meta_title || "",
-            meta_description: req.body.meta_description || "",
-            meta_keywords: req.body.meta_keywords || "",
-            canonical_url: req.body.canonical_url || "",
-          }
-        },
-        // ProgramHighlights
-        {
-          table: 'ProgramHighlights',
-          where: { program_id: programId },
-          data: {
-            title: req.body.highlights_title || "",
-            description: req.body.highlights_description || "",
-            subtitle: req.body.highlights_subtitle || "",
-            Highlights: highlightsJson,
-            program_id: programId,
-          }
-        },
-        // ProgramChoose
-        {
-          table: 'ProgramChoose',
-          where: { program_id: programId },
-          data: {
-            title: req.body.purpusename || "",
-            description: req.body.purpsedesc || "",
-            choose: finalChoose,
-            program_id: programId,
-          }
-        },
-        // ProgramGraph
-        {
-          table: 'ProgramGraph',
-          where: { program_id: programId },
-          data: {
-            title: req.body.futuretitle || "",
-            description: req.body.futuredesc || "",
-            subdesc: req.body.futurebtmdesc || "",
-            monthly: parseArray(req.body.monthlyData),
-            program_id: programId,
-          }
-        },
-        // ProgramEntrance
-        {
-          table: 'ProgramEntrance',
-          where: { program_id: programId },
-          data: {
-            icon: entranceIconUrl,
-            title: req.body.onlinetitle || "",
-            description: req.body.onlinedesc || "",
-            Entrance: parseArray(req.body.onlines),
-            program_id: programId,
-          }
-        },
-        // ProgramPlacement
-        {
-          table: 'ProgramPlacement',
-          where: { program_id: programId },
-          data: {
-            title: req.body.placementname || "",
-            description: req.body.placementdescription || "",
-            placement_ids: placementIdsJson,
-            subtitle: req.body.partnersname || "",
-            Subdec: req.body.partnersdesc || "",
-            subplacement: finalSubPlacementJson,
-            program_id: programId,
-          }
-        },
-        // ProgramInstitutes
-        {
-          table: 'ProgramInstitutes',
-          where: { program_id: programId },
-          data: {
-            title: req.body.instututitle || "",
-            description: req.body.instutudesc || "",
-            Institutes: institutesJson,
-            program_id: programId,
-          }
-        },
-        // ProgramFinancialScholarship
-        {
-          table: 'ProgramFinancialScholarship',
-          where: { program_id: programId },
-          data: {
-            title: req.body.financialname || "",
-            description: req.body.financialdescription || "",
-            financial: finalFincalceAdds,
-            program_id: programId,
-          }
-        },
-        // ProgramDurationFees
-        {
-          table: 'ProgramDurationFees',
-          where: { program_id: programId },
-          data: {
-            title: req.body.durationname || "",
-            description: req.body.durationdesc || "",
-            duration: parseArray(req.body.DurationData),
-            program_id: programId,
-          }
-        },
-        // ProgramCurriculum
-        {
-          table: 'ProgramCurriculum',
-          where: { program_id: programId },
-          data: {
-            title: req.body.curriculum_title || "",
-            description: req.body.curriculum_description || "",
-            subtitle: req.body.curriculum_subtitle || "",
-            curriculum_id: finalCurriculumData,
-            program_id: programId,
-          }
-        },
-        // ProgramVs (conditional)
-        {
-          table: 'ProgramVs',
-          where: { program_id: programId },
-          data: {
-            title: req.body.addvstitle || "",
-            description: req.body.addvsdesc || "",
-            summary: parseArray(req.body.addvs),
-            program_id: programId,
-          },
-          condition: req.body.addvs
-        },
-
-      ];
-
-      const upsertPromises = upsertOperations
-        .filter(op => op.condition !== false) // Skip if condition explicitly false
-        .map(op => {
-          const { condition, ...operation } = op;
-          return tx[operation.table].upsert({
-            where: operation.where,
-            create: operation.data,
-            update: operation.data
-          });
-        });
-
-      await Promise.all(upsertPromises);
-    }, { timeout: 30000 });
-
-    // 10. CLEAR CACHE
-    const cacheKey = `program:${finalSlug}`;
-    if (global.redisClient) {
-      await global.redisClient.del(cacheKey);
-    }
-
-    return successResponse(res, "Program updated successfully", 200);
-
-  } catch (error) {
-    console.error("❌ UpdateProgram ERROR =====================");
-    console.error("Error:", error);
-    console.error("Error Message:", error.message);
-    console.error("Error Code:", error.code);
-    console.error("Stack:", error.stack);
-
-    // Prisma unique constraint
-    if (error.code === "P2002") {
-      return errorResponse(
-        res,
-        `Duplicate field value: ${error.meta?.target?.join(", ")}`,
-        400
-      );
-    }
-
-    // Prisma record not found
-    if (error.code === "P2025") {
-      return errorResponse(res, "Record not found", 404);
-    }
-
-    // Prisma validation errors
-    if (error.code === "P2009" || error.code === "P2010") {
-      return errorResponse(res, error.message, 400);
-    }
-
-    return errorResponse(
-      res,
-      error.message || "Internal Server Error",
-      500
+    /* ================= FINAL DATA ================= */
+    const finalFinancial = attachImagesToItems(
+      fincalceAdds,
+      fincalceAddsimages,
+      "image",
+      existing?.financial?.financial
     );
+
+    const finalPurpuse = attachImagesToItems(
+      purpuse,
+      purpuseimages,
+      "image",
+      existing?.choose?.choose
+    );
+
+    const finalSubPlacement = attachImagesToItems(
+      subPlacementJson,
+      PlacementAddsimages,
+      "image",
+      existing?.placement?.subplacement
+    );
+
+    const finalSummary = attachImagesToItems(
+      summaryJson,
+      summaryAudio,
+      "audio",
+      existing?.summary?.summary_audio
+    );
+
+      
+    /* ================= MAIN PROGRAM ================= */
+    const program = await prisma.Program.update({
+      where: { id: programId },
+      data: {
+        title: req.body.name || existing.title,
+        slug: req.body.slug || existing.slug,
+        description: req.body.descriptions || "",
+        bannerImage: uploadedFiles.cover_image?.[0]
+          ? toPublicUrl(req, uploadedFiles.cover_image[0])
+          : existing.bannerImage,
+        bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
+        pdfdownlaod: uploadedFiles.pdf_download?.[0]
+          ? toPublicUrl(req, uploadedFiles.pdf_download[0])
+          : existing.pdfdownlaod,
+        audio: uploadedFiles.audio?.[0]
+          ? toPublicUrl(req, uploadedFiles.audio[0])
+          : existing.audio,
+        career_growth: req.body.career_growth || "",
+        duration: req.body.duration || "",
+        specialization: req.body.specialization || "",
+        subtitle: req.body.subtitle || "",
+        shortDescription: req.body.shortDescription || "",
+        video: req.body.video || "",
+        universitytitle: req.body.universitytitle || "",
+        universitydesc: req.body.universitydesc || "",
+        universitybtmdesc: req.body.universitybtmdesc || "",
+        university_id: parseArray(req.body.university_id),
+        conclusion: req.body.conclusion || "",
+        specialisationtitle: req.body.specialisationtitle || "",
+        specialisationdesc: req.body.specialisationdesc || "",
+        category_id: Number(req.body.category_id) || existing.category_id,
+      }
+    });
+
+    /* ================= ALL TABLE UPSERTS ================= */
+
+    await prisma.ProgramAcademic.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.academictitle,
+        description: req.body.academicdesc,
+        Image: uploadedFiles.academic_cover_image?.[0]
+          ? toPublicUrl(req, uploadedFiles.academic_cover_image[0])
+          : existing?.academic?.Image,
+        entra_image: uploadedFiles.entrace_cover_image?.[0]
+          ? toPublicUrl(req, uploadedFiles.entrace_cover_image[0])
+          : existing?.academic?.entra_image,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.academictitle,
+        description: req.body.academicdesc,
+        Image: toPublicUrl(req, uploadedFiles.academic_cover_image?.[0]),
+        entra_image: toPublicUrl(req, uploadedFiles.entrace_cover_image?.[0]),
+      }
+    });
+
+    await prisma.ProgramSummary.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.summarytitle,
+        description: req.body.summarydesc,
+              summary_audio: uploadedFiles.summary_audio?.[0]
+          ? toPublicUrl(req, uploadedFiles.summary_audio[0])
+          : existing.summary_audio,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.summarytitle,
+        description: req.body.summarydesc,
+      summary_audio: uploadedFiles.summary_audio?.[0]
+          ? toPublicUrl(req, uploadedFiles.summary_audio[0])
+          : existing.summary_audio,
+      }
+    });
+
+    await prisma.ProgramCareer.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.careername,
+        description: req.body.careerdesc,
+        Career: parseArray(req.body.Careers),
+      },
+      create: {
+        program_id: programId,
+        title: req.body.careername,
+        description: req.body.careerdesc,
+        Career: parseArray(req.body.Careers),
+      }
+    });
+
+    await prisma.ProgramExperience.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.experincename,
+        description: req.body.experincedesc,
+        experiences: parseArray(req.body.Experinces),
+      },
+      create: {
+        program_id: programId,
+        title: req.body.experincename,
+        description: req.body.experincedesc,
+        experiences: parseArray(req.body.Experinces),
+      }
+    });
+
+    await prisma.Faq.upsert({
+      where: { program_id: programId },
+      update: { faqs },
+      create: { program_id: programId, faqs }
+    });
+
+    await prisma.Seo.upsert({
+      where: { program_id: programId },
+      update: {
+        meta_title: req.body.meta_title,
+        meta_description: req.body.meta_description,
+        meta_keywords: req.body.meta_keywords,
+        canonical_url: req.body.canonical_url,
+      },
+      create: {
+        program_id: programId,
+        meta_title: req.body.meta_title,
+        meta_description: req.body.meta_description,
+        meta_keywords: req.body.meta_keywords,
+        canonical_url: req.body.canonical_url,
+      }
+    });
+
+  await prisma.ProgramHighlights.upsert({
+  where: {
+    program_id: programId,   // ✅ allowed because @unique
+  },
+  update: {
+    title: req.body.highlights_title || "",
+    description: req.body.highlights_description || null,
+    subtitle: req.body.highlights_subtitle || null,
+    Highlights: highlightsJson || [],
+  },
+  create: {
+    title: req.body.highlights_title || "",   // ✅ REQUIRED
+    description: req.body.highlights_description || null,
+    subtitle: req.body.highlights_subtitle || null,
+    Highlights: highlightsJson || [],
+    program: {
+      connect: { id: programId }   // ✅ THIS IS THE FIX
+    }
   }
 });
+
+
+    await prisma.ProgramChoose.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.purpusename,
+        description: req.body.purpsedesc,
+        choose: finalPurpuse
+      },
+      create: {
+        program_id: programId,
+        title: req.body.purpusename,
+        description: req.body.purpsedesc,
+        choose: finalPurpuse
+      }
+    });
+
+    await prisma.ProgramGraph.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.futuretitle,
+        description: req.body.futuredesc,
+        subdesc: req.body.futurebtmdesc,
+        monthly: monthlyData,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.futuretitle,
+        description: req.body.futuredesc,
+        subdesc: req.body.futurebtmdesc,
+        monthly: monthlyData,
+      }
+    });
+
+    await prisma.ProgramEntrance.upsert({
+      where: { program_id: programId },
+      update: {
+        icon: uploadedFiles.entrance_icon?.[0]
+          ? toPublicUrl(req, uploadedFiles.entrance_icon[0])
+          : existing?.entrance?.icon,
+        title: req.body.onlinetitle,
+        description: req.body.onlinedesc,
+        Entrance: entranceData,
+      },
+      create: {
+        program_id: programId,
+        icon: toPublicUrl(req, uploadedFiles.entrance_icon?.[0]),
+        title: req.body.onlinetitle,
+        description: req.body.onlinedesc,
+        Entrance: entranceData,
+      }
+    });
+
+    await prisma.ProgramPlacement.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.placementname,
+        description: req.body.placementdescription,
+        placement_ids: placementIdsJson,
+        subplacement: finalSubPlacement,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.placementname,
+        description: req.body.placementdescription,
+        placement_ids: placementIdsJson,
+        subplacement: finalSubPlacement,
+      }
+    });
+
+    await prisma.ProgramInstitutes.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.instututitle,
+        description: req.body.instutudesc,
+        Institutes: institutesJson,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.instututitle,
+        description: req.body.instutudesc,
+        Institutes: institutesJson,
+      }
+    });
+
+    await prisma.ProgramFinancialScholarship.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.financialname,
+        description: req.body.financialdescription,
+        financial: finalFinancial,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.financialname,
+        description: req.body.financialdescription,
+        financial: finalFinancial,
+      }
+    });
+
+    await prisma.ProgramDurationFees.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.durationname,
+        description: req.body.durationdesc,
+        duration: durationData,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.durationname,
+        description: req.body.durationdesc,
+        duration: durationData,
+      }
+    });
+
+    await prisma.ProgramCurriculum.upsert({
+      where: { program_id: programId },
+      update: {
+        title: req.body.curriculum_title,
+        description: req.body.curriculum_description,
+        curriculum_id: curriculumJson,
+      },
+      create: {
+        program_id: programId,
+        title: req.body.curriculum_title,
+        description: req.body.curriculum_description,
+        curriculum_id: curriculumJson,
+      }
+    });
+
+    if (vsData?.length) {
+      await prisma.ProgramVs.upsert({
+        where: { program_id: programId },
+        update: {
+          title: req.body.addvstitle,
+          description: req.body.addvsdesc,
+          summary: vsData,
+        },
+        create: {
+          program_id: programId,
+          title: req.body.addvstitle,
+          description: req.body.addvsdesc,
+          summary: vsData,
+        }
+      });
+    }
+
+    return successResponse(res, "Program updated successfully", 200, program);
+
+  } catch (error) {
+    console.error("❌ UpdateProgram ERROR:", error);
+    return errorResponse(res, error.message || "Internal Server Error", 500);
+  }
+});
+
+
+
 
 
 
@@ -1001,3 +1039,4 @@ exports.AllPrograms = catchAsync(async (req, res) => {
     },
   });
 });
+

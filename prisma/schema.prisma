@@ -769,14 +769,15 @@ model ProgramGraph {
 }
 
 model ProgramHighlights {
- id            Int        @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String?
   subtitle    String?
-  Highlights      Json?
-  program_id  Int?  @unique
+  Highlights  Json?
+  program_id  Int?     @unique
   program     Program? @relation(fields: [program_id], references: [id])
 }
+
 
 model ProgramEntrance{
  id            Int        @id @default(autoincrement())

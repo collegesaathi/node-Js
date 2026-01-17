@@ -130,11 +130,15 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
         uploadedFiles[file.fieldname].push(file.path);
       });
     }
-   
 
+    Loggers.http(req.body);
+    Loggers.http(uploadedFiles);
 
-    // 3. PARALLEL PARSING OF ALL ARRAYS
-    // Fix: Ensure all array parsing happens correctly and match the destructuring
+    // 3. FIRST, PARSE ALL REQUIRED DATA ARRAYS
+    // Parse purpuse first since it's needed early
+    const purpuseData = req.body.purpuse ? safeParseArray(req.body.purpuse) : [];
+
+    // Parse all other arrays in parallel
     const [
       faqs,
       institutesJson,
@@ -147,11 +151,12 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       salary,
       yearlyData,
       DurationData,
-      semesters
+      semesters,
+      resourcesData,
+      electivesData
     ] = await Promise.all([
       safeParseArray(req.body.faqs),
-      // FIXED: keyhight should probably be keyHighlight or something else
-      safeParseArray(req.body.institutes || req.body.keyhight), // Fixed this line
+      safeParseArray(req.body.institutes || req.body.keyhight),
       safeParseArray(req.body.selectedPartners),
       safeParseArray(req.body.PlacementAdds),
       safeParseArray(req.body.curriculm),
@@ -162,7 +167,9 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       safeParseArray(req.body.salary),
       safeParseArray(req.body.yearlyData),
       safeParseArray(req.body.DurationData),
-      safeParseArray(req.body.semesters)
+      safeParseArray(req.body.semesters),
+      safeParseArray(req.body.resources),
+      safeParseArray(req.body.electives)
     ]);
 
     // 4. PARALLEL FILE MAPPING
@@ -174,7 +181,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       resourcesimages,
       electvieimages
     ] = await Promise.all([
-      // FIXED: Correct the field names to match what you expect from frontend
       mapUploadedArray(req, uploadedFiles, "fincalceAddsimages"),
       mapUploadedArray(req, uploadedFiles, "purpuseimages"),
       mapUploadedArray(req, uploadedFiles, "PlacementAddsimages"),
@@ -183,27 +189,24 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       mapUploadedArray(req, uploadedFiles, "electvieimages")
     ]);
 
-    // 5. PARALLEL IMAGE ATTACHMENT
-    const [
-      finalChoose,
-      finalSubPlacementJson,
-      resources,
-      electives
-    ] = await Promise.all([
-      // FIXED: Correct the variable names and order
-      attachImagesToItems(fincalceAdds || [], fincalceAddsimages || [], "image"),
-      attachImagesToItems(finalChoose || [], purpuseimages || [], "image"),
-      attachImagesToItems(resources || [], resourcesimages || [], "image"),
+    // 5. PARALLEL IMAGE ATTACHMENT - FIXED ORDER AND VARIABLES
+    const attachmentPromises = await Promise.all([
+      // For ProgramChoose (purpuse data with purpuseimages)
+      attachImagesToItems(purpuseData || [], purpuseimages || [], "image"),
+      // For ProgramPlacement (subPlacementJson with PlacementAddsimages)
       attachImagesToItems(subPlacementJson || [], PlacementAddsimages || [], "image"),
+      // For SpecialisationResource (resourcesData with resourcesimages)
+      attachImagesToItems(resourcesData || [], resourcesimages || [], "image"),
+      // For SpecialisationElectives (electivesData with electvieimages)
+      attachImagesToItems(electivesData || [], electvieimages || [], "image"),
+      // For ProgramSummary (summaryJson with summaryAudio)
       attachImagesToItems(summaryJson || [], summaryAudio || [], "audio"),
-      // These need to be defined - you're using variables that don't exist yet
-      attachImagesToItems([], electvieimages || [], "image") // electives doesn't exist yet
+      // For SpecialisationProgramCareer (fincalceAdds with fincalceAddsimages)
+      attachImagesToItems(fincalceAdds || [], fincalceAddsimages || [], "image")
     ]);
 
-    // FIXED: Need to define missing variables
-    const purpuse = req.body.purpuse ? safeParseArray(req.body.purpuse) : [];
-    const resourcesData = req.body.resources ? safeParseArray(req.body.resources) : [];
-    const electivesData = req.body.electives ? safeParseArray(req.body.electives) : [];
+    // Destructure results with meaningful names
+    const [finalChoose, finalSubPlacementJson, finalResources, finalElectives, finalSummary, finalCareer] = attachmentPromises;
 
     // 6. GENERATE SLUG
     const generatedSlug = await generateUniqueSlug(prisma, req.body.name);
@@ -230,7 +233,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       conclusion: req.body.conclusion?.trim() || "",
       specialisationtitle: req.body.specialisationtitle?.trim() || "",
       specialisationdesc: req.body.specialisationdesc?.trim() || "",
-      category_id: Number(req.body.category_id) || 1,
+      category_id: Number(req.body.category_id) || Number(req.body.categroy_id) || 1, // Fixed: using categroy_id from request
       program_id: Number(req.body.program_id) || 1,
       notes_title: req.body.note_title?.trim() || "",
       notes_desc: req.body.notes_descriptions?.trim() || "",
@@ -247,7 +250,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
 
       console.log("specialisationProgram", specialisationProgram);
 
-      // FIXED: Use the correct variable name (id, not programId)
       const programId = specialisationProgram.id;
       console.log("programId", programId);
 
@@ -281,7 +283,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           },
         }),
 
-        // ProgramChoose - FIXED: attachImagesToItems should return correct structure
+        // ProgramChoose - using purpuse data
         tx.ProgramChoose.create({
           data: {
             title: req.body.purpusename?.trim() || "",
@@ -312,12 +314,12 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           },
         }),
 
-        // SpecialisationElectives - FIXED: Use electivesData
+        // SpecialisationElectives
         tx.SpecialisationElectives.create({
           data: {
             title: req.body.electivetitle?.trim() || "",
             description: req.body.electivedesc?.trim() || "",
-            electives: electives || electivesData || [],
+            electives: finalElectives || [],
             specialisation_program_id: programId,
           },
         }),
@@ -350,25 +352,25 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           },
         }),
 
-        // SpecialisationResource - FIXED: Use resourcesData
+        // SpecialisationResource
         tx.SpecialisationResource.create({
           data: {
             notes: req.body.resource_notes?.trim() || "",
             description: req.body.resource_desc?.trim() || "",
             title: req.body.resource_title?.trim() || "",
-            resources: resources || resourcesData || [],
+            resources: finalResources || [],
             specialisation_program_id: programId,
           },
         }),
 
-        // SpecialisationProgramCareer - FIXED: Use fincalceAdds
+        // SpecialisationProgramCareer
         tx.SpecialisationProgramCareer.create({
           data: {
             title: req.body.opp_name?.trim() || "",
             description: req.body.opp_desc?.trim() || "",
             sub_title: req.body.financialname?.trim() || "",
             sub_description: req.body.financialdescription?.trim() || "",
-            Career: fincalceAdds || [],
+            Career: finalCareer || [],
             sector_title: req.body.sector_name?.trim() || "",
             sector_description: req.body.sector_desc?.trim() || "",
             specialisation_program_id: programId,
@@ -556,7 +558,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
     }
 
 
-     Loggers.http(req.body)
+    Loggers.http(req.body)
     Loggers.http(uploadedFiles)
     // 2. PARALLEL PARSING OF ALL ARRAYS (FIXED VARIABLE NAMES)
     const [
@@ -641,7 +643,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
       slug: slug,
       description: req.body.descriptions?.trim() || existingProgram.description,
       bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]?.[0]) || existingProgram.bannerImage,
-      bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() ,
+      bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim(),
       pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
       audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]) || existingProgram.audio,
       career_growth: req.body.career_growth?.trim() || existingProgram.career_growth,
@@ -882,18 +884,18 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
       );
       // Seo
 
-       relatedDataOperations.push(
+      relatedDataOperations.push(
         tx.Seo.update({
           where: { specialisation_program_id: Number(id) },
           data: {
-             meta_title: req.body.meta_title?.trim() || "",
+            meta_title: req.body.meta_title?.trim() || "",
             meta_description: req.body.meta_description?.trim() || "",
             meta_keywords: req.body.meta_keywords?.trim() || "",
             canonical_url: req.body.canonical_url?.trim() || "",
           },
         })
       );
-   
+
 
       // Execute all operations in parallel
       await Promise.all(relatedDataOperations);
@@ -967,5 +969,70 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
       error.message || "Something went wrong while fetching program",
       500
     );
+  }
+});
+
+
+
+//  Program Delete Controller Logic
+exports.ProgramDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return validationErrorResponse(res, "Specialisation Program ID is required", 400);
+    }
+
+    const programId = Number(id);
+
+    const existingProgram = await prisma.SpecialisationProgram.findUnique({
+      where: { id: programId },
+    });
+
+    if (!existingProgram) {
+      return validationErrorResponse(res, "Specialisation Program not found", 404);
+    }
+
+    let updatedRecord;
+
+    /* ------------------------------------------
+       RESTORE IF ALREADY DELETED
+    ------------------------------------------- */
+    if (existingProgram.deleted_at) {
+      updatedRecord = await prisma.SpecialisationProgram.update({
+        where: { id: programId },
+        data: { deleted_at: null },
+      });
+
+      return successResponse(
+        res,
+        "Specialisation Program restored successfully",
+        200,
+        updatedRecord
+      );
+    }
+
+    /* ------------------------------------------
+       SOFT DELETE
+    ------------------------------------------- */
+    updatedRecord = await prisma.SpecialisationProgram.update({
+      where: { id: programId },
+      data: { deleted_at: new Date() },
+    });
+
+    return successResponse(
+      res,
+      "Specialisation Program deleted successfully",
+      200,
+      updatedRecord
+    );
+
+  } catch (error) {
+
+    if (error.code === "P2025") {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    return errorResponse(res, error.message, 500);
   }
 });
