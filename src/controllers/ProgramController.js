@@ -525,7 +525,6 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       return errorResponse(res, "Program ID is required", 400);
     }
 
-    /* ================= FILE COLLECTION (ADD STYLE) ================= */
     const uploadedFiles = {};
     req.files?.forEach(file => {
       if (!uploadedFiles[file.fieldname]) {
