@@ -117,9 +117,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
   });
 
   // Early return for debugging - remove in production
-  Loggers.silly(req.body);
-  Loggers.silly(uploadedFiles);
-  
   try {
     // 1. PARALLEL DATA PARSING - ADDED purpuse TO THE LIST
     const [

@@ -227,7 +227,7 @@ CREATE TABLE "Faq" (
     "university_id" INTEGER,
     "course_id" INTEGER,
     "specialisation_id" INTEGER,
-    "program_specialisation_id" INTEGER,
+    "specialisation_program_id" INTEGER,
     "program_id" INTEGER,
     "faqs" JSONB,
 
@@ -562,6 +562,7 @@ CREATE TABLE "SpecialisationSalary" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "salary" JSONB,
+    "notes" TEXT,
     "specialisation_program_id" INTEGER,
 
     CONSTRAINT "SpecialisationSalary_pkey" PRIMARY KEY ("id")
@@ -840,6 +841,30 @@ CREATE TABLE "Chat" (
     CONSTRAINT "Chat_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "ClickPick" (
+    "id" SERIAL NOT NULL,
+    "category_id" INTEGER,
+    "program_id" INTEGER,
+    "specialisation_program_id" INTEGER,
+    "title" TEXT,
+    "description" JSONB,
+    "graph_title" TEXT,
+    "graph_value" JSONB,
+    "rounded_graph_title" TEXT,
+    "rounded_graph_desc" JSONB,
+    "bottom_title" TEXT,
+    "bottom_description" JSONB,
+    "specilisation_merged_desc" JSONB,
+    "salary_graph_title" TEXT,
+    "salary_graph_value" JSONB,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "ClickPick_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
 
@@ -943,7 +968,7 @@ CREATE UNIQUE INDEX "Faq_course_id_key" ON "Faq"("course_id");
 CREATE UNIQUE INDEX "Faq_specialisation_id_key" ON "Faq"("specialisation_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Faq_program_specialisation_id_key" ON "Faq"("program_specialisation_id");
+CREATE UNIQUE INDEX "Faq_specialisation_program_id_key" ON "Faq"("specialisation_program_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Faq_program_id_key" ON "Faq"("program_id");
@@ -1219,7 +1244,7 @@ ALTER TABLE "Faq" ADD CONSTRAINT "Faq_course_id_fkey" FOREIGN KEY ("course_id") 
 ALTER TABLE "Faq" ADD CONSTRAINT "Faq_specialisation_id_fkey" FOREIGN KEY ("specialisation_id") REFERENCES "Specialisation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Faq" ADD CONSTRAINT "Faq_program_specialisation_id_fkey" FOREIGN KEY ("program_specialisation_id") REFERENCES "SpecialisationProgram"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Faq" ADD CONSTRAINT "Faq_specialisation_program_id_fkey" FOREIGN KEY ("specialisation_program_id") REFERENCES "SpecialisationProgram"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Faq" ADD CONSTRAINT "Faq_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1409,3 +1434,12 @@ ALTER TABLE "ProgramChoose" ADD CONSTRAINT "ProgramChoose_specialisation_program
 
 -- AddForeignKey
 ALTER TABLE "ProgramExperience" ADD CONSTRAINT "ProgramExperience_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClickPick" ADD CONSTRAINT "ClickPick_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClickPick" ADD CONSTRAINT "ClickPick_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ClickPick" ADD CONSTRAINT "ClickPick_specialisation_program_id_fkey" FOREIGN KEY ("specialisation_program_id") REFERENCES "SpecialisationProgram"("id") ON DELETE SET NULL ON UPDATE CASCADE;

@@ -133,7 +133,20 @@ exports.List = catchAsync(async (req, res) => {
   }
 });
 
-
+exports.UniversityList = catchAsync(async (req, res) => {
+  try {
+    const universities = await prisma.university.findMany({});
+    return successResponse(
+      res,
+      "List fetched successfully",
+      200,
+      universities
+     
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
 // exports.CompareUniversity = catchAsync(async (req, res) => {
 //   try {
 
