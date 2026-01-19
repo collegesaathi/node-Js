@@ -80,7 +80,7 @@ exports.login = catchAsync(async (req, res) => {
 
     return successResponse(res, "Login successful", 200, { user: { id: user.id, full_name: user.full_name, email: user.email }, token });
   } catch (error) {
-    return errorResponse(error, "Something went wrong", 400);
+    return errorResponse(res, "Something went wrong", 400);
 
   }
 });
