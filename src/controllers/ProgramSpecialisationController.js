@@ -513,7 +513,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
   try {
     const { id } = req.body;
 
-    console.log("id", id)
+    // console.log("id", id)
 
     if (!id) {
       return errorResponse(res, "Specalization Program ID is required", 400);
@@ -560,6 +560,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
 
     Loggers.http(req.body)
     Loggers.http(uploadedFiles)
+    return false;
     // 2. PARALLEL PARSING OF ALL ARRAYS (FIXED VARIABLE NAMES)
     const [
       faqs,
