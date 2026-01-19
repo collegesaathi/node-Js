@@ -365,7 +365,6 @@ model Category {
   deleted_at  DateTime?
   courses     Course[]
   programs    Program[] 
-  specialisationPrograms SpecialisationProgram[]
   clickPicks  ClickPick[]
 }
 
@@ -599,9 +598,6 @@ model SpecialisationProgram {
   notes_desc String?
    demand_desc String?
   demand_title String?
-  // ✅ CATEGORY RELATION
-  category_id         Int          
-  category                Category    @relation(fields: [category_id], references: [id])
   summary             ProgramSummary?
   durationfees        ProgramDurationFees?
   salary              SpecialisationSalary?

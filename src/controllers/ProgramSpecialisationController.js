@@ -233,7 +233,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       conclusion: req.body.conclusion?.trim() || "",
       specialisationtitle: req.body.specialisationtitle?.trim() || "",
       specialisationdesc: req.body.specialisationdesc?.trim() || "",
-      category_id: Number(req.body.category_id) || Number(req.body.categroy_id) || 1, // Fixed: using categroy_id from request
+      // category _id: Number(req.body.category_id) || Number(req.body.categroy_id) || 1, // Fixed: using categroy_id from request
       program_id: Number(req.body.program_id) || 1,
       notes_title: req.body.note_title?.trim() || "",
       notes_desc: req.body.notes_descriptions?.trim() || "",
@@ -556,11 +556,6 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
         uploadedFiles[file.fieldname].push(file.path);
       });
     }
-
-
-    Loggers.http(req.body)
-    Loggers.http(uploadedFiles)
-    return false;
     // 2. PARALLEL PARSING OF ALL ARRAYS (FIXED VARIABLE NAMES)
     const [
       faqs,
@@ -660,7 +655,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
       conclusion: req.body.conclusion?.trim() || existingProgram.conclusion,
       specialisationtitle: req.body.specialisationtitle?.trim() || existingProgram.specialisationtitle,
       specialisationdesc: req.body.specialisationdesc?.trim() || existingProgram.specialisationdesc,
-      category_id: req.body.category_id ? Number(req.body.category_id) : existingProgram.category_id,
+      // category_id: req.body.category_id ? Number(req.body.category_id) : existingProgram.category_id,
       program_id: req.body.program_id ? Number(req.body.program_id) : existingProgram.program_id,
       notes_title: req.body.note_title?.trim() || existingProgram.notes_title,
       notes_desc: req.body.notes_descriptions?.trim() || existingProgram.notes_desc,
