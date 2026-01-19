@@ -1,10 +1,10 @@
 const express = require("express");
-const { List, University, CompareUniversity, AllProgram, PopUniversityApi, GetUniversityCategroyList, GetCategroyList, GetApprovalUniversity } = require("../controllers/CommonController");
+const { List, GlobalSearch, CompareUniversity, AllProgram, PopUniversityApi, GetUniversityCategroyList, GetCategroyList, GetApprovalUniversity } = require("../controllers/CommonController");
 const router = express.Router();
 
 router.get("/all/catergoy/university", List);
 
-router.get("/all/university", University);
+router.get("/all/university", GlobalSearch); //Route for global search
 
 router.get("/compare/university/:slug", CompareUniversity);
 
@@ -17,4 +17,5 @@ router.get("/categroy/university/:id", GetUniversityCategroyList);
 router.get("/common/categroy", GetCategroyList);
 
 router.get("/approval/placement/:slug", GetApprovalUniversity);
+
 module.exports = router;
