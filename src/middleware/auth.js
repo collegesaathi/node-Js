@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const prisma = require("../config/prisma");
 require("dotenv").config();
 
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 module.exports = async function (req, res, next) {
   try {

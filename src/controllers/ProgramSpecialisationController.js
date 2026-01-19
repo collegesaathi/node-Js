@@ -994,8 +994,47 @@ Loggers.error(req.body)
             specialisation_program_id: programId,
         },
       });
+
+         await tx.ProgramInstitutes.upsert({
+        where: { specialisation_program_id: programId },
+        update: {
+      title: req.body.instututitle?.trim() || "",
+            description: req.body.instutudesc?.trim() || "",
+            Institutes: institutesJson || [],
+            specialisation_program_id: programId,
+        },
+        create: {
+    title: req.body.instututitle?.trim() || "",
+            description: req.body.instutudesc?.trim() || "",
+            Institutes: institutesJson || [],
+            specialisation_program_id: programId,
+        },
+      });
+
+
+      
+       await tx.SpecialisationSalary.upsert({
+        where: { specialisation_program_id: programId },
+        update: {
+             title: req.body.salarytitle?.trim() || "",
+            description: req.body.salarydesc?.trim() || "",
+            notes: req.body.salarynote?.trim() || "",
+            salary: salary || [],
+            specialisation_program_id: programId,
+        },
+        create: {
+                title: req.body.salarytitle?.trim() || "",
+            description: req.body.salarydesc?.trim() || "",
+            notes: req.body.salarynote?.trim() || "",
+            salary: salary || [],
+            specialisation_program_id: programId,
+        },
+      });
      
 
+
+
+   
         await tx.SpecialisationAdmission.upsert({
         where: { specialisation_program_id: programId },
         update: {
