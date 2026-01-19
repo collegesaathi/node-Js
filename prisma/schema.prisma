@@ -919,27 +919,20 @@ model Job {
     category_id    Int?
     program_id     Int?
     specialisation_program_id Int? 
-
     title          String?
     description    Json?
     graph_title    String?
     graph_value     Json?
-
     rounded_graph_title String?
     rounded_graph_desc  Json?
-    
-
     bottom_title   String?
     bottom_description Json?
-
     specilisation_merged_desc Json?
     salary_graph_title String?
     salary_graph_value Json?
-
     category     Category?            @relation(fields: [category_id], references: [id])
     program      Program?            @relation(fields: [program_id], references: [id])
     specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
-
     created_at     DateTime @default(now())
     updated_at       DateTime @updatedAt
     deleted_at          DateTime?
