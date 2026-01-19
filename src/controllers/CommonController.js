@@ -2,28 +2,110 @@ const { errorResponse, successResponse, validationErrorResponse } = require("../
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 
-exports.University = catchAsync(async (req, res) => {
+exports.GlobalSearch = catchAsync(async (req, res) => {
   try {
     const { search } = req.query;
 
-    const universities = await prisma.university.findMany({
-      where: search && search.length >= 3
-          ? {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-            deleted_at: null
-          }
-          : {},
-    });
+    if (!search || search.length < 3) {
+      return successResponse(res, "Search term too short", 500);
+    }
 
-    return successResponse(
-      res,
-      "Universities fetched successfully",
-      200,
-      { universities }
-    );
+    const contains = {
+      contains: search,
+      mode: "insensitive"
+    };
+
+    const [
+      universities,
+      courses,
+      specialisations,
+      programs,
+      specialisationPrograms
+    ] = await prisma.$transaction([
+      prisma.university.findMany({
+        where: {
+          deleted_at: null,
+          OR: [
+            { name: contains },
+            { slug: contains }
+          ]
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          icon: true
+        }
+      }),
+
+      prisma.course.findMany({
+        where: {
+          deleted_at: null,
+          OR: [
+            { name: contains },
+            { slug: contains }
+          ]
+        },
+        include: {
+          university: {
+            select: { id: true, name: true, slug: true }
+          }
+        }
+      }),
+
+      prisma.specialisation.findMany({
+        where: {
+          deleted_at: null,
+          OR: [
+            { name: contains },
+            { slug: contains }
+          ]
+        },
+        include: {
+          course: {
+            select: { id: true, name: true, slug: true }
+          },
+          university: {
+            select: { id: true, name: true, slug: true }
+          }
+        }
+      }),
+
+      prisma.program.findMany({
+        where: {
+          deleted_at: null,
+          OR: [
+            { title: contains },
+            { slug: contains },
+            { shortDescription: contains }
+          ]
+        }
+      }),
+
+      prisma.specialisationProgram.findMany({
+        where: {
+          deleted_at: null,
+          OR: [
+            { title: contains },
+            { slug: contains },
+            { shortDescription: contains }
+          ]
+        },
+        include: {
+          program: {
+            select: { id: true, title: true, slug: true }
+          }
+        }
+      })
+    ]);
+
+    return successResponse(res, "Search results", 200, {
+      universities,
+      courses,
+      specialisations,
+      programs,
+      specialisationPrograms
+    });
   } catch (error) {
     return errorResponse(res, error.message, 500);
   }

@@ -974,8 +974,8 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
 
 
 
-//  Program Delete Controller Logic
-exports.ProgramDelete = catchAsync(async (req, res) => {
+//  Program Specialisation Delete Controller Logic
+exports.specialisationDelete = catchAsync(async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -983,10 +983,10 @@ exports.ProgramDelete = catchAsync(async (req, res) => {
       return validationErrorResponse(res, "Specialisation Program ID is required", 400);
     }
 
-    const programId = Number(id);
+    const SpecialisationprogramId = Number(id);
 
     const existingProgram = await prisma.SpecialisationProgram.findUnique({
-      where: { id: programId },
+      where: { id: SpecialisationprogramId },
     });
 
     if (!existingProgram) {
@@ -1000,23 +1000,18 @@ exports.ProgramDelete = catchAsync(async (req, res) => {
     ------------------------------------------- */
     if (existingProgram.deleted_at) {
       updatedRecord = await prisma.SpecialisationProgram.update({
-        where: { id: programId },
+        where: { id: SpecialisationprogramId },
         data: { deleted_at: null },
       });
 
-      return successResponse(
-        res,
-        "Specialisation Program restored successfully",
-        200,
-        updatedRecord
-      );
+      return successResponse( res, "Specialisation Program restored successfully", 200, updatedRecord );
     }
 
     /* ------------------------------------------
        SOFT DELETE
     ------------------------------------------- */
     updatedRecord = await prisma.SpecialisationProgram.update({
-      where: { id: programId },
+      where: { id: SpecialisationprogramId },
       data: { deleted_at: new Date() },
     });
 

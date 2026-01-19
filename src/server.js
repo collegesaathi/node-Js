@@ -67,6 +67,7 @@ app.use("/api", require("./routes/proinsightRoutes"));
 app.use("/api", require("./routes/JobRoute"));
 app.use("/api", require("./routes/ChatRoute"));
 app.use("/api", require("./routes/specialisationprogramRoutes"));
+app.use("/api", require("./routes/SitemapRoutes"));
 
 
 
