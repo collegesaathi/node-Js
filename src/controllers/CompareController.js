@@ -152,7 +152,7 @@ exports.GetClickPickData = catchAsync(async (req, res) => {
     }
 
     if (category_id) {
-      const courses = await prisma.Course.findMany({
+      const courses = await prisma.Program.findMany({
         where: {
           category_id: Number(category_id),
           deleted_at: null
@@ -182,9 +182,9 @@ exports.GetClickPickData = catchAsync(async (req, res) => {
     }
 
     if (course_id) {
-      const specialisations = await prisma.Specialisation.findMany({
+      const specialisations = await prisma.SpecialisationProgram.findMany({
         where: {
-          course_id: Number(course_id),
+          program_id: Number(course_id),
           deleted_at: null
         },
         // select: {
@@ -195,9 +195,7 @@ exports.GetClickPickData = catchAsync(async (req, res) => {
         //   cover_image: true,
         //   position: true
         // },
-        orderBy: {
-          position: "asc"
-        }
+       orderBy: { id: "asc" }
       });
 
       if (!specialisations.length) {

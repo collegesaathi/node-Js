@@ -224,3 +224,65 @@ exports.updateRecord = catchAsync(async (req, res) => {
   }
 });
 
+exports.GetClickpickData = catchAsync(async (req, res) => {
+    try {
+        const {
+            category_id,
+            program_id,
+            specialisation_program_id
+        } = req.query;
+
+        // Build dynamic where condition
+        const whereCondition = {
+            deleted_at: null
+        };
+
+        if (category_id) {
+            whereCondition.category_id = Number(category_id);
+        }
+
+        if (program_id) {
+            whereCondition.program_id = Number(program_id);
+        }
+
+        if (specialisation_program_id) {
+            whereCondition.specialisation_program_id = Number(specialisation_program_id);
+        }
+
+        // Optional: prevent empty query (recommended)
+        if (
+            !category_id &&
+            !program_id &&
+            !specialisation_program_id
+        ) {
+            return errorResponse(
+                res,
+                "At least one ID (category_id, program_id, or specialisation_program_id) is required",
+                400
+            );
+        }
+
+        const records = await prisma.ClickPick.findMany({
+            where: whereCondition,
+            include: {
+                category: true,
+                program: true,
+                specialisationProgram: true
+            },
+            orderBy: {
+                created_at: 'desc'
+            }
+        });
+
+        return successResponse(
+            res,
+            "ClickPick records fetched successfully",
+            200,
+            records
+        );
+
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+});
+
