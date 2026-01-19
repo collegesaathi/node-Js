@@ -92,7 +92,6 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
       city = city || geo.city;
       state = state || geo.state;
     }
-    const pro =  JSON.parse(proInsights)
     const data = {
       name,
       email,
