@@ -801,6 +801,23 @@ Loggers.error(req.body)
         },
       });
 
+  await tx.ProgramGraph.upsert({
+        where: { specialisation_program_id: programId },
+        update: {
+       title: req.body.futuretitle?.trim() || "",
+            description: req.body.futuredesc?.trim() || "",
+            subdesc: req.body.futurebtmdesc?.trim() || "",
+            yearly:      safeParseArray(req.body.yearlyData)|| [],
+            specialisation_program_id: programId,
+        },
+        create: {
+        title: req.body.futuretitle?.trim() || "",
+            description: req.body.futuredesc?.trim() || "",
+            subdesc: req.body.futurebtmdesc?.trim() || "",
+            yearly: safeParseArray(req.body.yearlyData) || [],
+            specialisation_program_id: programId,
+        },
+      });
       /* ---------- PLACEMENT ---------- */
       const existingPlacement = await tx.ProgramPlacement.findFirst({
         where: { specialisation_program_id: programId },
@@ -1000,13 +1017,13 @@ Loggers.error(req.body)
         update: {
       title: req.body.instututitle?.trim() || "",
             description: req.body.instutudesc?.trim() || "",
-            Institutes: institutesJson || [],
+            Institutes:  safeParseArray(req.body.institutes ) || [],
             specialisation_program_id: programId,
         },
         create: {
-    title: req.body.instututitle?.trim() || "",
+            title: req.body.instututitle?.trim() || "",
             description: req.body.instutudesc?.trim() || "",
-            Institutes: institutesJson || [],
+            Institutes: safeParseArray(req.body.institutes ) || [],
             specialisation_program_id: programId,
         },
       });
