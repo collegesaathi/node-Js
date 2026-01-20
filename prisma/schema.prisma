@@ -74,6 +74,8 @@ model Course {
   slug         String              @unique
   name         String
   icon         String?
+   time_frame         String? 
+   mode_of_education         String?
   video         String?
   cover_image        String?
   position           Int?                         @default(0)
@@ -120,6 +122,8 @@ model Specialisation {
   cover_image   String?
   icon_alt      String?
   cover_image_alt String?
+     time_frame         String? 
+   mode_of_education         String?
     description        Json?
   position      Int?      @default(0)
   created_at    DateTime  @default(now())
@@ -921,11 +925,15 @@ model Job {
     graph_value     Json?
     rounded_graph_title String?
     rounded_graph_desc  Json?
+    specialisation_graph_title String?
+    specialisation_graph_value  String?
     bottom_title   String?
     bottom_description Json?
-    specilisation_merged_desc Json?
+    specialization_merged_title String?
+    specialization_merged_desc String?
+    specialization_merged_content String?
     salary_graph_title String?
-    salary_graph_value Json?
+    salary_graph_value String?
     category     Category?            @relation(fields: [category_id], references: [id])
     program      Program?            @relation(fields: [program_id], references: [id])
     specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])

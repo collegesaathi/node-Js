@@ -1,89 +1,154 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
-const e = require("express");
 
 
-exports.addRecords = catchAsync(async (req, res) => {
-    try {
-        const body = req.body;
+const safeParseArray = (data) => {
+  try {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    return JSON.parse(data);
+  } catch (error) {
+    console.warn("Failed to parse array:", data);
+    return [];
+  }
+};
 
-        /**
-         * Safe JSON parser
-         * Accepts object OR JSON string
-         */
-        const parseJSON = (value) => {
-            if (value === undefined) return undefined; 
-            if (value === null) return undefined;
-            if (typeof value === "object") return value;
+exports.AddClickPick = catchAsync(async (req, res) => {
+  try {
+    console.log("addRecords,", req.body);
+    const {
+      category_id,
+      program_id,
+      specialisation_program_id,
+      title,
+      description,
+      graph_title,
+      graph_value,
+      rounded_graph_title,
+      rounded_graph_desc,
+      bottom_title,
+      bottom_description,
+      specialization_merged_title,
+      specialization_merged_desc,
+      specialization_merged_content,
+      salary_graph_title,
+      salary_graph_value,
+      specialisation_graph_title,
+      specialisation_graph_value,
+    } = req.body;
 
-            try {
-                return JSON.parse(value);
-            } catch {
-                throw new Error("Invalid JSON format in request body");
-            }
-        };
+    const data = {
+      category_id: category_id ? Number(category_id) : null,
+      program_id: program_id ? Number(program_id) : null,
+      specialisation_program_id: specialisation_program_id
+        ? Number(specialisation_program_id)
+        : null,
 
-        /**
-        * Build data dynamically
-        * Only include fields that actually exist
-        */
-        const data = {
-            category_id: body.category_id ? Number(body.category_id) : null,
-            program_id: body.program_id ? Number(body.program_id) : null,
-            specialisation_program_id: body.specialisation_program_id ? Number(body.specialisation_program_id) : null,
+      title: title || null,
+      description: description || "",
 
-            title: body.title ?? null,
-            description: parseJSON(body.description),
+      graph_title: graph_title || null,
+      graph_value: graph_value ? safeParseArray(graph_value) : null,
 
-            graph_title: body.graph_title ?? null,
-            graph_value: parseJSON(body.graph_value),
+      rounded_graph_title: rounded_graph_title || null,
+      rounded_graph_desc: rounded_graph_desc || "",
 
-            rounded_graph_title: body.rounded_graph_title ?? null,
-            rounded_graph_desc: parseJSON(body.rounded_graph_desc),
+      bottom_title: bottom_title || null,
+      bottom_description: bottom_description || "",
 
-            bottom_title: body.bottom_title ?? null,
-            bottom_description: parseJSON(body.bottom_description),
+      specialization_merged_title: specialization_merged_title || null,
+      specialization_merged_desc: specialization_merged_desc || null,
+      specialization_merged_content: specialization_merged_content || null,
 
-            specilisation_merged_desc: parseJSON(body.specilisation_merged_desc),
+      salary_graph_title: salary_graph_title || null,
+      salary_graph_value: salary_graph_value || null,
 
-            salary_graph_title: body.salary_graph_title ?? null,
-            salary_graph_value: parseJSON(body.salary_graph_value)
-        };
+      specialisation_graph_title: specialisation_graph_title || null,
+      specialisation_graph_value: specialisation_graph_value || null,
+    };
 
-        /**
-        * Optional cleanup:
-        * Remove undefined keys so Prisma stays clean
-        */
-        Object.keys(data).forEach(
-            (key) => data[key] === undefined && delete data[key]
-        );
+    /* ================= DB INSERT ================= */
+    const record = await prisma.ClickPick.create({
+      data,
+    });
 
-        const record = await prisma.ClickPick.create({ data });
-
-        return successResponse( res, "ClickPick record created successfully", 200, record,);
-    } catch (error) {
-        return errorResponse(res, error.message, 500);
-    }
+    return successResponse(res, "Click Pick added successfully", 201, record);
+  } catch (error) {
+    console.error("ClickPick Add Error:", error);
+    return errorResponse(res, error.message, 500);
+  }
 });
+
+
+
+
 
 exports.GetClickpickById = catchAsync(async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { category_id } = req.params;
 
-        const record = await prisma.ClickPick.findUnique({
-            where: { id: Number(id) },
-        });
-        return successResponse(
-            res,
-            "ClickPick record fetched successfully",
-            200,
-            record,
-        );
-    } catch (error) {
-        return errorResponse(res, error.message, 500);
-    }
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        category_id: Number(category_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
 });
+
+
+exports.GetProgClickpickById = catchAsync(async (req, res) => {
+  try {
+    const { program_id } = req.params;
+
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        program_id: Number(program_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+exports.GetSpecClickpickById = catchAsync(async (req, res) => {
+  try {
+    const { specialisation_program_id } = req.params;
+
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        specialisation_program_id: Number(specialisation_program_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
 
 exports.ClickPickDelete = catchAsync(async (req, res) => {
     try {
@@ -125,30 +190,6 @@ exports.updateRecord = catchAsync(async (req, res) => {
     if (!id) {
       return errorResponse(res, "ClickPick ID is required", 400);
     }
-
-    const body = req.body;
-
-    /**
-     * Safe JSON parser
-     * - undefined → ignore field
-     * - object → accept
-     * - string → JSON.parse
-     */
-    const parseJSON = (value) => {
-      if (value === undefined) return undefined;
-      if (value === null) return undefined;
-      if (typeof value === "object") return value;
-
-      try {
-        return JSON.parse(value);
-      } catch {
-        throw new Error("Invalid JSON format in request body");
-      }
-    };
-
-    /**
-     * Check if record exists
-     */
     const existing = await prisma.ClickPick.findUnique({
       where: { id }
     });
@@ -161,52 +202,57 @@ exports.updateRecord = catchAsync(async (req, res) => {
      * Build update payload
      * ONLY include fields that are sent
      */
+    const {
+      category_id,
+      program_id,
+      specialisation_program_id,
+      title,
+      description,
+      graph_title,
+      graph_value,
+      rounded_graph_title,
+      rounded_graph_desc,
+      bottom_title,
+      bottom_description,
+      specialization_merged_title,
+      specialization_merged_desc,
+      specialization_merged_content,
+      salary_graph_title,
+      salary_graph_value,
+      specialisation_graph_title,
+      specialisation_graph_value,
+    } = req.body;
+
     const data = {
-      category_id:
-        body.category_id !== undefined ? Number(body.category_id) : undefined,
+      category_id: category_id ? Number(category_id) : null,
+      program_id: program_id ? Number(program_id) : null,
+      specialisation_program_id: specialisation_program_id
+        ? Number(specialisation_program_id)
+        : null,
 
-      program_id:
-        body.program_id !== undefined ? Number(body.program_id) : undefined,
+      title: title || null,
+      description: description || "",
 
-      specialisation_program_id:
-        body.specialisation_program_id !== undefined
-          ? Number(body.specialisation_program_id)
-          : undefined,
+      graph_title: graph_title || null,
+      graph_value: graph_value ? safeParseArray(graph_value) : null,
 
-      title: body.title !== undefined ? body.title : undefined,
-      description: parseJSON(body.description),
+      rounded_graph_title: rounded_graph_title || null,
+      rounded_graph_desc: rounded_graph_desc || "",
 
-      graph_title:
-        body.graph_title !== undefined ? body.graph_title : undefined,
-      graph_value: parseJSON(body.graph_value),
+      bottom_title: bottom_title || null,
+      bottom_description: bottom_description || "",
 
-      rounded_graph_title:
-        body.rounded_graph_title !== undefined
-          ? body.rounded_graph_title
-          : undefined,
-      rounded_graph_desc: parseJSON(body.rounded_graph_desc),
+      specialization_merged_title: specialization_merged_title || null,
+      specialization_merged_desc: specialization_merged_desc || null,
+      specialization_merged_content: specialization_merged_content || null,
 
-      bottom_title:
-        body.bottom_title !== undefined ? body.bottom_title : undefined,
-      bottom_description: parseJSON(body.bottom_description),
+      salary_graph_title: salary_graph_title || null,
+      salary_graph_value: salary_graph_value || null,
 
-      specilisation_merged_desc: parseJSON(body.specilisation_merged_desc),
-
-      salary_graph_title:
-        body.salary_graph_title !== undefined
-          ? body.salary_graph_title
-          : undefined,
-      salary_graph_value: parseJSON(body.salary_graph_value)
+      specialisation_graph_title: specialisation_graph_title || null,
+      specialisation_graph_value: specialisation_graph_value || null,
     };
 
-    /**
-     * OPTIONAL:
-     * Prevent clearing relations accidentally
-     * (comment this in only if you want strict behavior)
-     */
-    // delete data.category_id;
-    // delete data.program_id;
-    // delete data.specialisation_program_id;
 
     const updated = await prisma.ClickPick.update({
         where: { id },
@@ -220,6 +266,7 @@ exports.updateRecord = catchAsync(async (req, res) => {
       updated
     );
   } catch (error) {
+    console.log("error" ,error)
     return errorResponse(res, error.message, 500);
   }
 });
