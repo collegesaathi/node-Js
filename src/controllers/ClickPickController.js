@@ -186,7 +186,7 @@ exports.ClickPickDelete = catchAsync(async (req, res) => {
 
 exports.updateRecord = catchAsync(async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.body.id);
     if (!id) {
       return errorResponse(res, "ClickPick ID is required", 400);
     }
@@ -276,10 +276,10 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
         const {
             category_id,
             program_id,
-            specialisation_program_id
+            specialisation_id
         } = req.query;
 
-        // Build dynamic where condition
+        // Build dynamic where condition for ClickPick
         const whereCondition = {
             deleted_at: null
         };
@@ -292,16 +292,12 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
             whereCondition.program_id = Number(program_id);
         }
 
-        if (specialisation_program_id) {
-            whereCondition.specialisation_program_id = Number(specialisation_program_id);
+        if (specialisation_id) {
+            whereCondition.specialisation_program_id = Number(specialisation_id);
         }
 
-        // Optional: prevent empty query (recommended)
-        if (
-            !category_id &&
-            !program_id &&
-            !specialisation_program_id
-        ) {
+        // Optional: prevent empty query
+        if (!category_id && !program_id && !specialisation_id) {
             return errorResponse(
                 res,
                 "At least one ID (category_id, program_id, or specialisation_program_id) is required",
@@ -309,7 +305,8 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
             );
         }
 
-        const records = await prisma.ClickPick.findMany({
+        // Fetch ClickPick record
+        const clickPickRecord = await prisma.ClickPick.findFirst({
             where: whereCondition,
             include: {
                 category: true,
@@ -320,16 +317,312 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
                 created_at: 'desc'
             }
         });
+        // Get university IDs from specialisationProgram
+        let universityIds = [];
+        let universities = [];
+
+        if (clickPickRecord?.specialisationProgram?.university_id) {
+            universityIds = clickPickRecord.specialisationProgram.university_id;
+            // Fetch universities using the IDs from specialisationProgram
+            universities = await prisma.University.findMany({
+                where: {
+                    id: {
+                        in: universityIds.map(id => Number(id))
+                    },
+                    deleted_at: null,
+                },
+                orderBy: {
+                    id: 'asc'
+                }
+            });
+
+            // Sort universities to match the order in university_id array
+            universities.sort((a, b) => {
+                const indexA = universityIds.indexOf(a.id);
+                const indexB = universityIds.indexOf(b.id);
+                return indexA - indexB;
+            });
+        } 
+        // Fallback: if no specialisationProgram but program exists
+        else if (clickPickRecord?.program?.id) {
+             universityIds = clickPickRecord?.program.university_id;
+           universities = await prisma.University.findMany({
+                where: {
+                    id: {
+                        in: universityIds.map(id => Number(id))
+                    },
+                    deleted_at: null,
+                },
+                orderBy: {
+                    id: 'asc'
+                }
+            });
+            
+            universityIds = universities.map(univ => univ.id);
+        }
+
+        // Prepare response data
+        const responseData = {
+            clickPick: {
+                ...clickPickRecord,
+                specialisationProgram: clickPickRecord?.specialisationProgram ? {
+                    ...clickPickRecord.specialisationProgram,
+                    university_id: undefined // Remove if you don't want to send it
+                } : null
+            },
+            universities: universities,
+        };
 
         return successResponse(
             res,
-            "ClickPick records fetched successfully",
+            "Data fetched successfully",
             200,
-            records
+            responseData
         );
 
     } catch (error) {
+        console.error("Error in GetClickpickData:", error);
         return errorResponse(res, error.message, 500);
     }
 });
 
+
+
+
+exports.GetClickPickListData = catchAsync(async (req, res) => {
+  try {
+    const { category_id, program_id } = req.query;
+    console.log("Request query:", req.query);
+
+    /**
+     * 1️⃣ NO PARAMS → FETCH ALL CATEGORIES
+     */
+    if (!category_id && !program_id) {
+      const categories = await prisma.category.findMany({
+        where: {
+          deleted_at: null
+        },
+        select: {
+          id: true,
+          name: true,
+          short_title: true,
+          icon: true
+        },
+        orderBy: {
+          id: "asc"
+        }
+      });
+
+      return successResponse(
+        res,
+        "Categories fetched successfully",
+        200,
+        categories
+      );
+    }
+
+    /**
+     * 2️⃣ CATEGORY_ID PROVIDED → FETCH PROGRAMS WITH UNIVERSITIES
+     */
+    if (category_id) {
+      const programs = await prisma.Program.findMany({
+        where: {
+          category_id: Number(category_id),
+          deleted_at: null
+        },
+        orderBy: {
+          id: 'asc'
+        }
+      });
+
+      if (!programs.length) {
+        return errorResponse(
+          res,
+          "No programs found for this category",
+          404
+        );
+      }
+      console.log("programs", programs);
+
+      // Fetch universities for each program using their university_id arrays
+      const formattedPrograms = await Promise.all(
+        programs.map(async (program) => {
+          let universities = [];
+          if (program.university_id && program.university_id.length > 0) {
+            universities = await prisma.University.findMany({
+              where: {
+                id: {
+                  in: program.university_id.map(id => Number(id))
+                },
+                deleted_at: null,
+              },
+              select: {
+                id: true,
+                name: true,
+                icon: true,
+              },
+              orderBy: {
+                name: 'asc'
+              }
+            });
+
+            // Sort universities to match the order in university_id array
+            universities.sort((a, b) => {
+              const indexA = program.university_id.indexOf(a.id);
+              const indexB = program.university_id.indexOf(b.id);
+              return indexA - indexB;
+            });
+          }
+
+          return {
+            id: program.id,
+            title: program.title,
+            bannerImage: program.bannerImage,
+            slug: program.slug,
+            university_id: program.university_id || [],
+            universities: universities,
+            totalUniversities: universities.length,
+            // Include other fields you might need
+            icon: program.icon || null, // If you have icon field
+            n_icon_path: program.n_icon_path || null // If you have n_icon_path
+          };
+        })
+      );
+
+      console.log("formattedPrograms", formattedPrograms);
+
+      return successResponse(
+        res,
+        "Programs fetched successfully with universities",
+        200,
+        formattedPrograms
+      );
+    }
+
+    /**
+     * 3️⃣ PROGRAM_ID PROVIDED → FETCH SPECIALIZATIONS WITH UNIVERSITIES
+     */
+    if (program_id) {
+      const program = await prisma.Program.findFirst({
+        where: {
+          id: Number(program_id),
+          deleted_at: null
+        }
+      });
+
+      if (!program) {
+        return errorResponse(
+          res,
+          "Program not found",
+          404
+        );
+      }
+
+      // Fetch specializations
+      const specialisations = await prisma.SpecialisationProgram.findMany({
+        where: {
+          program_id: Number(program_id),
+          deleted_at: null
+        },
+        orderBy: { 
+          id: "asc" 
+        }
+      });
+
+      if (!specialisations.length) {
+        return errorResponse(
+          res,
+          "No specializations found for this program",
+          404
+        );
+      }
+
+      // Fetch universities for the program
+      let programUniversities = [];
+      if (program.university_id && program.university_id.length > 0) {
+        programUniversities = await prisma.University.findMany({
+          where: {
+            id: {
+              in: program.university_id.map(id => Number(id))
+            },
+            deleted_at: null,
+              },
+          select: {
+            id: true,
+            name: true,
+            icon: true,
+          }
+        });
+
+        // Sort by university_id array order
+        programUniversities.sort((a, b) => {
+          const indexA = program.university_id.indexOf(a.id);
+          const indexB = program.university_id.indexOf(b.id);
+          return indexA - indexB;
+        });
+      }
+
+      // Fetch universities for each specialization
+      const formattedSpecialisations = await Promise.all(
+        specialisations.map(async (spec) => {
+          let specUniversities = [];
+          
+          if (spec.university_id && spec.university_id.length > 0) {
+            specUniversities = await prisma.University.findMany({
+              where: {
+                id: {
+                  in: spec.university_id.map(id => Number(id))
+                },
+                deleted_at: null,
+              },
+              select: {
+                id: true,
+                name: true,
+                icon: true,
+              }
+            });
+
+            // Sort by university_id array order
+            specUniversities.sort((a, b) => {
+              const indexA = spec.university_id.indexOf(a.id);
+              const indexB = spec.university_id.indexOf(b.id);
+              return indexA - indexB;
+            });
+          }
+
+          return {
+            id: spec.id,
+            title: spec.title,
+            description: spec.description,
+            bannerImage: spec.bannerImage,
+            slug: spec.slug,
+            university_id: spec.university_id || [],
+            universities: specUniversities,
+            totalUniversities: specUniversities.length
+          };
+        })
+      );
+
+      // Format response
+      const responseData = {
+        program: {
+          id: program.id,
+          title: program.title,
+          universities: programUniversities,
+          totalUniversities: programUniversities.length
+        },
+        specialisations: formattedSpecialisations
+      };
+
+      return successResponse(
+        res,
+        "Specializations fetched successfully with universities",
+        200,
+        responseData
+      );
+    }
+  } catch (error) {
+    console.error("Error in GetClickPickListData:", error);
+    return errorResponse(res, error.message, 500);
+  }
+});
