@@ -313,6 +313,8 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc || "",
       fees_title: req.body.fees_title || "",
       semester_fees: req.body.semester_fees || "",
+      mode_of_education: req.body.mode_of_education || "",
+      time_frame: req.body.time_frame || "",
       anuual_fees: req.body.anuual_fees || "",
       tuition_fees: req.body.tuition_fees || "",
       partnersdesc: req.body.partnersdesc || "",
@@ -695,6 +697,8 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
       descriptions: descriptions?.length && descriptions || "",
       cover_image_alt: req.body.cover_image_alt || "",
       about_title: req.body.about_title || "",
+      mode_of_education: req.body.mode_of_education || "",
+      time_frame: req.body.time_frame || "",
       about_desc: req.body.about_desc || "",
       tuition_fees: req.body.tuition_fees || "",
       anuual_fees: req.body.anuual_fees || "",
@@ -792,7 +796,9 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
-        course_id: Number(finalData.course_id) || ""
+        course_id: Number(finalData.course_id) || "",
+        mode_of_education: finalData.mode_of_education || "",
+        time_frame: finalData.time_frame || "",
       }
     });
 
