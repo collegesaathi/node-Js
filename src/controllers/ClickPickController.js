@@ -16,7 +16,6 @@ const safeParseArray = (data) => {
 
 exports.AddClickPick = catchAsync(async (req, res) => {
   try {
-    console.log("addRecords,", req.body);
     const {
       category_id,
       program_id,
@@ -266,7 +265,6 @@ exports.updateRecord = catchAsync(async (req, res) => {
       updated
     );
   } catch (error) {
-    console.log("error" ,error)
     return errorResponse(res, error.message, 500);
   }
 });
@@ -392,7 +390,6 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
 exports.GetClickPickListData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id } = req.query;
-    console.log("Request query:", req.query);
 
     /**
      * 1️⃣ NO PARAMS → FETCH ALL CATEGORIES
@@ -442,7 +439,6 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
           404
         );
       }
-      console.log("programs", programs);
 
       // Fetch universities for each program using their university_id arrays
       const formattedPrograms = await Promise.all(
@@ -489,7 +485,6 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
         })
       );
 
-      console.log("formattedPrograms", formattedPrograms);
 
       return successResponse(
         res,
