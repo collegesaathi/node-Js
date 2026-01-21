@@ -1,89 +1,153 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
-const e = require("express");
 
 
-exports.addRecords = catchAsync(async (req, res) => {
-    try {
-        const body = req.body;
+const safeParseArray = (data) => {
+  try {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    return JSON.parse(data);
+  } catch (error) {
+    console.warn("Failed to parse array:", data);
+    return [];
+  }
+};
 
-        /**
-         * Safe JSON parser
-         * Accepts object OR JSON string
-         */
-        const parseJSON = (value) => {
-            if (value === undefined) return undefined; 
-            if (value === null) return undefined;
-            if (typeof value === "object") return value;
+exports.AddClickPick = catchAsync(async (req, res) => {
+  try {
+    const {
+      category_id,
+      program_id,
+      specialisation_program_id,
+      title,
+      description,
+      graph_title,
+      graph_value,
+      rounded_graph_title,
+      rounded_graph_desc,
+      bottom_title,
+      bottom_description,
+      specialization_merged_title,
+      specialization_merged_desc,
+      specialization_merged_content,
+      salary_graph_title,
+      salary_graph_value,
+      specialisation_graph_title,
+      specialisation_graph_value,
+    } = req.body;
 
-            try {
-                return JSON.parse(value);
-            } catch {
-                throw new Error("Invalid JSON format in request body");
-            }
-        };
+    const data = {
+      category_id: category_id ? Number(category_id) : null,
+      program_id: program_id ? Number(program_id) : null,
+      specialisation_program_id: specialisation_program_id
+        ? Number(specialisation_program_id)
+        : null,
 
-        /**
-        * Build data dynamically
-        * Only include fields that actually exist
-        */
-        const data = {
-            category_id: body.category_id ? Number(body.category_id) : null,
-            program_id: body.program_id ? Number(body.program_id) : null,
-            specialisation_program_id: body.specialisation_program_id ? Number(body.specialisation_program_id) : null,
+      title: title || null,
+      description: description || "",
 
-            title: body.title ?? null,
-            description: parseJSON(body.description),
+      graph_title: graph_title || null,
+      graph_value: graph_value ? safeParseArray(graph_value) : null,
 
-            graph_title: body.graph_title ?? null,
-            graph_value: parseJSON(body.graph_value),
+      rounded_graph_title: rounded_graph_title || null,
+      rounded_graph_desc: rounded_graph_desc || "",
 
-            rounded_graph_title: body.rounded_graph_title ?? null,
-            rounded_graph_desc: parseJSON(body.rounded_graph_desc),
+      bottom_title: bottom_title || null,
+      bottom_description: bottom_description || "",
 
-            bottom_title: body.bottom_title ?? null,
-            bottom_description: parseJSON(body.bottom_description),
+      specialization_merged_title: specialization_merged_title || null,
+      specialization_merged_desc: specialization_merged_desc || null,
+      specialization_merged_content: specialization_merged_content || null,
 
-            specilisation_merged_desc: parseJSON(body.specilisation_merged_desc),
+      salary_graph_title: salary_graph_title || null,
+      salary_graph_value: salary_graph_value || null,
 
-            salary_graph_title: body.salary_graph_title ?? null,
-            salary_graph_value: parseJSON(body.salary_graph_value)
-        };
+      specialisation_graph_title: specialisation_graph_title || null,
+      specialisation_graph_value: specialisation_graph_value || null,
+    };
 
-        /**
-        * Optional cleanup:
-        * Remove undefined keys so Prisma stays clean
-        */
-        Object.keys(data).forEach(
-            (key) => data[key] === undefined && delete data[key]
-        );
+    /* ================= DB INSERT ================= */
+    const record = await prisma.ClickPick.create({
+      data,
+    });
 
-        const record = await prisma.ClickPick.create({ data });
-
-        return successResponse( res, "ClickPick record created successfully", 200, record,);
-    } catch (error) {
-        return errorResponse(res, error.message, 500);
-    }
+    return successResponse(res, "Click Pick added successfully", 201, record);
+  } catch (error) {
+    console.error("ClickPick Add Error:", error);
+    return errorResponse(res, error.message, 500);
+  }
 });
+
+
+
+
 
 exports.GetClickpickById = catchAsync(async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { category_id } = req.params;
 
-        const record = await prisma.ClickPick.findUnique({
-            where: { id: Number(id) },
-        });
-        return successResponse(
-            res,
-            "ClickPick record fetched successfully",
-            200,
-            record,
-        );
-    } catch (error) {
-        return errorResponse(res, error.message, 500);
-    }
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        category_id: Number(category_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
 });
+
+
+exports.GetProgClickpickById = catchAsync(async (req, res) => {
+  try {
+    const { program_id } = req.params;
+
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        program_id: Number(program_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+exports.GetSpecClickpickById = catchAsync(async (req, res) => {
+  try {
+    const { specialisation_program_id } = req.params;
+
+    const record = await prisma.ClickPick.findFirst({
+      where: {
+        specialisation_program_id: Number(specialisation_program_id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "ClickPick record fetched successfully",
+      200,
+      record
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
 
 exports.ClickPickDelete = catchAsync(async (req, res) => {
     try {
@@ -121,34 +185,10 @@ exports.ClickPickDelete = catchAsync(async (req, res) => {
 
 exports.updateRecord = catchAsync(async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = Number(req.body.id);
     if (!id) {
       return errorResponse(res, "ClickPick ID is required", 400);
     }
-
-    const body = req.body;
-
-    /**
-     * Safe JSON parser
-     * - undefined → ignore field
-     * - object → accept
-     * - string → JSON.parse
-     */
-    const parseJSON = (value) => {
-      if (value === undefined) return undefined;
-      if (value === null) return undefined;
-      if (typeof value === "object") return value;
-
-      try {
-        return JSON.parse(value);
-      } catch {
-        throw new Error("Invalid JSON format in request body");
-      }
-    };
-
-    /**
-     * Check if record exists
-     */
     const existing = await prisma.ClickPick.findUnique({
       where: { id }
     });
@@ -161,52 +201,57 @@ exports.updateRecord = catchAsync(async (req, res) => {
      * Build update payload
      * ONLY include fields that are sent
      */
+    const {
+      category_id,
+      program_id,
+      specialisation_program_id,
+      title,
+      description,
+      graph_title,
+      graph_value,
+      rounded_graph_title,
+      rounded_graph_desc,
+      bottom_title,
+      bottom_description,
+      specialization_merged_title,
+      specialization_merged_desc,
+      specialization_merged_content,
+      salary_graph_title,
+      salary_graph_value,
+      specialisation_graph_title,
+      specialisation_graph_value,
+    } = req.body;
+
     const data = {
-      category_id:
-        body.category_id !== undefined ? Number(body.category_id) : undefined,
+      category_id: category_id ? Number(category_id) : null,
+      program_id: program_id ? Number(program_id) : null,
+      specialisation_program_id: specialisation_program_id
+        ? Number(specialisation_program_id)
+        : null,
 
-      program_id:
-        body.program_id !== undefined ? Number(body.program_id) : undefined,
+      title: title || null,
+      description: description || "",
 
-      specialisation_program_id:
-        body.specialisation_program_id !== undefined
-          ? Number(body.specialisation_program_id)
-          : undefined,
+      graph_title: graph_title || null,
+      graph_value: graph_value ? safeParseArray(graph_value) : null,
 
-      title: body.title !== undefined ? body.title : undefined,
-      description: parseJSON(body.description),
+      rounded_graph_title: rounded_graph_title || null,
+      rounded_graph_desc: rounded_graph_desc || "",
 
-      graph_title:
-        body.graph_title !== undefined ? body.graph_title : undefined,
-      graph_value: parseJSON(body.graph_value),
+      bottom_title: bottom_title || null,
+      bottom_description: bottom_description || "",
 
-      rounded_graph_title:
-        body.rounded_graph_title !== undefined
-          ? body.rounded_graph_title
-          : undefined,
-      rounded_graph_desc: parseJSON(body.rounded_graph_desc),
+      specialization_merged_title: specialization_merged_title || null,
+      specialization_merged_desc: specialization_merged_desc || null,
+      specialization_merged_content: specialization_merged_content || null,
 
-      bottom_title:
-        body.bottom_title !== undefined ? body.bottom_title : undefined,
-      bottom_description: parseJSON(body.bottom_description),
+      salary_graph_title: salary_graph_title || null,
+      salary_graph_value: salary_graph_value || null,
 
-      specilisation_merged_desc: parseJSON(body.specilisation_merged_desc),
-
-      salary_graph_title:
-        body.salary_graph_title !== undefined
-          ? body.salary_graph_title
-          : undefined,
-      salary_graph_value: parseJSON(body.salary_graph_value)
+      specialisation_graph_title: specialisation_graph_title || null,
+      specialisation_graph_value: specialisation_graph_value || null,
     };
 
-    /**
-     * OPTIONAL:
-     * Prevent clearing relations accidentally
-     * (comment this in only if you want strict behavior)
-     */
-    // delete data.category_id;
-    // delete data.program_id;
-    // delete data.specialisation_program_id;
 
     const updated = await prisma.ClickPick.update({
         where: { id },
@@ -229,10 +274,10 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
         const {
             category_id,
             program_id,
-            specialisation_program_id
+            specialisation_id
         } = req.query;
 
-        // Build dynamic where condition
+        // Build dynamic where condition for ClickPick
         const whereCondition = {
             deleted_at: null
         };
@@ -245,16 +290,12 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
             whereCondition.program_id = Number(program_id);
         }
 
-        if (specialisation_program_id) {
-            whereCondition.specialisation_program_id = Number(specialisation_program_id);
+        if (specialisation_id) {
+            whereCondition.specialisation_program_id = Number(specialisation_id);
         }
 
-        // Optional: prevent empty query (recommended)
-        if (
-            !category_id &&
-            !program_id &&
-            !specialisation_program_id
-        ) {
+        // Optional: prevent empty query
+        if (!category_id && !program_id && !specialisation_id) {
             return errorResponse(
                 res,
                 "At least one ID (category_id, program_id, or specialisation_program_id) is required",
@@ -262,7 +303,8 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
             );
         }
 
-        const records = await prisma.ClickPick.findMany({
+        // Fetch ClickPick record
+        const clickPickRecord = await prisma.ClickPick.findFirst({
             where: whereCondition,
             include: {
                 category: true,
@@ -273,16 +315,309 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
                 created_at: 'desc'
             }
         });
+        // Get university IDs from specialisationProgram
+        let universityIds = [];
+        let universities = [];
+
+        if (clickPickRecord?.specialisationProgram?.university_id) {
+            universityIds = clickPickRecord.specialisationProgram.university_id;
+            // Fetch universities using the IDs from specialisationProgram
+            universities = await prisma.University.findMany({
+                where: {
+                    id: {
+                        in: universityIds.map(id => Number(id))
+                    },
+                    deleted_at: null,
+                },
+                orderBy: {
+                    id: 'asc'
+                }
+            });
+
+            // Sort universities to match the order in university_id array
+            universities.sort((a, b) => {
+                const indexA = universityIds.indexOf(a.id);
+                const indexB = universityIds.indexOf(b.id);
+                return indexA - indexB;
+            });
+        } 
+        // Fallback: if no specialisationProgram but program exists
+        else if (clickPickRecord?.program?.id) {
+             universityIds = clickPickRecord?.program.university_id;
+           universities = await prisma.University.findMany({
+                where: {
+                    id: {
+                        in: universityIds.map(id => Number(id))
+                    },
+                    deleted_at: null,
+                },
+                orderBy: {
+                    id: 'asc'
+                }
+            });
+            
+            universityIds = universities.map(univ => univ.id);
+        }
+
+        // Prepare response data
+        const responseData = {
+            clickPick: {
+                ...clickPickRecord,
+                specialisationProgram: clickPickRecord?.specialisationProgram ? {
+                    ...clickPickRecord.specialisationProgram,
+                    university_id: undefined // Remove if you don't want to send it
+                } : null
+            },
+            universities: universities,
+        };
 
         return successResponse(
             res,
-            "ClickPick records fetched successfully",
+            "Data fetched successfully",
             200,
-            records
+            responseData
         );
 
     } catch (error) {
+        console.error("Error in GetClickpickData:", error);
         return errorResponse(res, error.message, 500);
     }
 });
 
+
+
+
+exports.GetClickPickListData = catchAsync(async (req, res) => {
+  try {
+    const { category_id, program_id } = req.query;
+
+    /**
+     * 1️⃣ NO PARAMS → FETCH ALL CATEGORIES
+     */
+    if (!category_id && !program_id) {
+      const categories = await prisma.category.findMany({
+        where: {
+          deleted_at: null
+        },
+        select: {
+          id: true,
+          name: true,
+          short_title: true,
+          icon: true
+        },
+        orderBy: {
+          id: "asc"
+        }
+      });
+
+      return successResponse(
+        res,
+        "Categories fetched successfully",
+        200,
+        categories
+      );
+    }
+
+    /**
+     * 2️⃣ CATEGORY_ID PROVIDED → FETCH PROGRAMS WITH UNIVERSITIES
+     */
+    if (category_id) {
+      const programs = await prisma.Program.findMany({
+        where: {
+          category_id: Number(category_id),
+          deleted_at: null
+        },
+        orderBy: {
+          id: 'asc'
+        }
+      });
+
+      if (!programs.length) {
+        return errorResponse(
+          res,
+          "No programs found for this category",
+          404
+        );
+      }
+
+      // Fetch universities for each program using their university_id arrays
+      const formattedPrograms = await Promise.all(
+        programs.map(async (program) => {
+          let universities = [];
+          if (program.university_id && program.university_id.length > 0) {
+            universities = await prisma.University.findMany({
+              where: {
+                id: {
+                  in: program.university_id.map(id => Number(id))
+                },
+                deleted_at: null,
+              },
+              select: {
+                id: true,
+                name: true,
+                icon: true,
+              },
+              orderBy: {
+                name: 'asc'
+              }
+            });
+
+            // Sort universities to match the order in university_id array
+            universities.sort((a, b) => {
+              const indexA = program.university_id.indexOf(a.id);
+              const indexB = program.university_id.indexOf(b.id);
+              return indexA - indexB;
+            });
+          }
+
+          return {
+            id: program.id,
+            title: program.title,
+            bannerImage: program.bannerImage,
+            slug: program.slug,
+            university_id: program.university_id || [],
+            universities: universities,
+            totalUniversities: universities.length,
+            // Include other fields you might need
+            icon: program.icon || null, // If you have icon field
+            n_icon_path: program.n_icon_path || null // If you have n_icon_path
+          };
+        })
+      );
+
+
+      return successResponse(
+        res,
+        "Programs fetched successfully with universities",
+        200,
+        formattedPrograms
+      );
+    }
+
+    /**
+     * 3️⃣ PROGRAM_ID PROVIDED → FETCH SPECIALIZATIONS WITH UNIVERSITIES
+     */
+    if (program_id) {
+      const program = await prisma.Program.findFirst({
+        where: {
+          id: Number(program_id),
+          deleted_at: null
+        }
+      });
+
+      if (!program) {
+        return errorResponse(
+          res,
+          "Program not found",
+          404
+        );
+      }
+
+      // Fetch specializations
+      const specialisations = await prisma.SpecialisationProgram.findMany({
+        where: {
+          program_id: Number(program_id),
+          deleted_at: null
+        },
+        orderBy: { 
+          id: "asc" 
+        }
+      });
+
+      if (!specialisations.length) {
+        return errorResponse(
+          res,
+          "No specializations found for this program",
+          404
+        );
+      }
+
+      // Fetch universities for the program
+      let programUniversities = [];
+      if (program.university_id && program.university_id.length > 0) {
+        programUniversities = await prisma.University.findMany({
+          where: {
+            id: {
+              in: program.university_id.map(id => Number(id))
+            },
+            deleted_at: null,
+              },
+          select: {
+            id: true,
+            name: true,
+            icon: true,
+          }
+        });
+
+        // Sort by university_id array order
+        programUniversities.sort((a, b) => {
+          const indexA = program.university_id.indexOf(a.id);
+          const indexB = program.university_id.indexOf(b.id);
+          return indexA - indexB;
+        });
+      }
+
+      // Fetch universities for each specialization
+      const formattedSpecialisations = await Promise.all(
+        specialisations.map(async (spec) => {
+          let specUniversities = [];
+          
+          if (spec.university_id && spec.university_id.length > 0) {
+            specUniversities = await prisma.University.findMany({
+              where: {
+                id: {
+                  in: spec.university_id.map(id => Number(id))
+                },
+                deleted_at: null,
+              },
+              select: {
+                id: true,
+                name: true,
+                icon: true,
+              }
+            });
+
+            // Sort by university_id array order
+            specUniversities.sort((a, b) => {
+              const indexA = spec.university_id.indexOf(a.id);
+              const indexB = spec.university_id.indexOf(b.id);
+              return indexA - indexB;
+            });
+          }
+
+          return {
+            id: spec.id,
+            title: spec.title,
+            description: spec.description,
+            bannerImage: spec.bannerImage,
+            slug: spec.slug,
+            university_id: spec.university_id || [],
+            universities: specUniversities,
+            totalUniversities: specUniversities.length
+          };
+        })
+      );
+
+      // Format response
+      const responseData = {
+        program: {
+          id: program.id,
+          title: program.title,
+          universities: programUniversities,
+          totalUniversities: programUniversities.length
+        },
+        specialisations: formattedSpecialisations
+      };
+
+      return successResponse(
+        res,
+        "Specializations fetched successfully with universities",
+        200,
+        responseData
+      );
+    }
+  } catch (error) {
+    console.error("Error in GetClickPickListData:", error);
+    return errorResponse(res, error.message, 500);
+  }
+});

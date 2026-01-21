@@ -1,12 +1,11 @@
 const express = require("express");
-const { addRecords, GetClickpickById, ClickPickDelete, updateRecord, GetClickpickData } = require("../controllers/ClickPickController");
+const { GetClickpickById, ClickPickDelete, updateRecord, GetClickpickData, AddClickPick, GetProgClickpickById, GetSpecClickpickById, GetClickPickListData } = require("../controllers/ClickPickController");
 const router = express.Router();
+router.post("/admin/clickpick/add", AddClickPick); 
+router.post('/admin/clickpick/update',updateRecord) 
+router.delete("/clickpick/delete/:id", ClickPickDelete) 
+router.get('/clickpick', GetClickpickData) 
 
-router.post("/clickpick/add", addRecords); // Create
-router.get("/clickpick/:id", GetClickpickById); // Read
-router.post('/clickpick/update/:id',updateRecord) // Update
-router.delete("/clickpick/delete/:id", ClickPickDelete) // Delete
+router.get('/list/clickpick', GetClickPickListData);
 
-
-router.get('/clickpick', GetClickpickData) //Frontend data fetch
 module.exports = router;

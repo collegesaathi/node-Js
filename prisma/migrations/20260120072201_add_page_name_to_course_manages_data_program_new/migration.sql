@@ -523,7 +523,6 @@ CREATE TABLE "SpecialisationProgram" (
     "notes_desc" TEXT,
     "demand_desc" TEXT,
     "demand_title" TEXT,
-    "category_id" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -853,11 +852,15 @@ CREATE TABLE "ClickPick" (
     "graph_value" JSONB,
     "rounded_graph_title" TEXT,
     "rounded_graph_desc" JSONB,
+    "specialisation_graph_title" TEXT,
+    "specialisation_graph_value" TEXT,
     "bottom_title" TEXT,
     "bottom_description" JSONB,
-    "specilisation_merged_desc" JSONB,
+    "specialization_merged_title" TEXT,
+    "specialization_merged_desc" TEXT,
+    "specialization_merged_content" TEXT,
     "salary_graph_title" TEXT,
-    "salary_graph_value" JSONB,
+    "salary_graph_value" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -1347,9 +1350,6 @@ ALTER TABLE "Program" ADD CONSTRAINT "Program_category_id_fkey" FOREIGN KEY ("ca
 
 -- AddForeignKey
 ALTER TABLE "SpecialisationProgram" ADD CONSTRAINT "SpecialisationProgram_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SpecialisationProgram" ADD CONSTRAINT "SpecialisationProgram_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProgramSummary" ADD CONSTRAINT "ProgramSummary_program_id_fkey" FOREIGN KEY ("program_id") REFERENCES "Program"("id") ON DELETE SET NULL ON UPDATE CASCADE;

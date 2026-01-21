@@ -6,4 +6,6 @@ router.get("/compare/courses/:university_id", GetCoursesList);
 router.post('/compare/universities', GetUniversityList); 
 router.get('/compare/clickpick', GetClickPickData);
 
+
+
 module.exports = router; 
