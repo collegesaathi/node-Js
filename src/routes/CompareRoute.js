@@ -1,5 +1,5 @@
 const express = require("express");
-const { GetCoursesList, GetUniversityList, GetClickPickData, compareData } = require("../controllers/CompareController");
+const { GetCoursesList, GetUniversityList, GetClickPickData } = require("../controllers/CompareController");
 const { compare } = require("bcrypt");
 const router = express.Router();
 
