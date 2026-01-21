@@ -445,6 +445,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       semester_fees: req.body.semester_fees || "",
       anuual_fees: req.body.anuual_fees || "",
       tuition_fees: req.body.tuition_fees || "",
+      mode_of_education: req.body.mode_of_education || "",
+      time_frame: req.body.time_frame || "",
       partnersdesc: req.body.partnersdesc || "",
       advantagesname: req.body.advantagesname || "",
       advantagesdescription: req.body.advantagesdescription || "",
@@ -1104,6 +1106,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       about_desc: req.body.about_desc || "",
       tuition_fees: req.body.tuition_fees || "",
       anuual_fees: req.body.anuual_fees || "",
+      mode_of_education: req.body.mode_of_education || "",
+      time_frame: req.body.time_frame || "",
       fees_desc: req.body.fees_desc || "",
       semester_fees: req.body.semester_fees || "",
       approvals_name: req.body.approvals_name || "",
@@ -1188,7 +1192,9 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         icon_alt: finalData.icon_alt || "",
         university_id: Number(finalData.university_id) || "",
         category_id: Number(finalData.category_id) || "",
-        video: req.body.video || ""
+        video: req.body.video || "",
+        mode_of_education: finalData.mode_of_education || "",
+        time_frame: finalData.time_frame || "",
       }
     });
 
