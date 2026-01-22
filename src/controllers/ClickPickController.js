@@ -2,7 +2,44 @@ const { errorResponse, successResponse, validationErrorResponse } = require("../
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 
+const extractFinancialAidFlags = (description = "") => {
+  if (!description) {
+    return {
+      hasScholarships: false,
+      hasEmiOrLoan: false,
+    };
+  }
 
+  // Remove HTML tags safely
+  const plainText = description
+    .replace(/<[^>]*>/g, " ")
+    .toLowerCase();
+
+  return {
+    hasScholarships:
+      plainText.includes("scholarship") ||
+      plainText.includes("scholarships"),
+
+    hasEmiOrLoan:
+      plainText.includes("emi") ||
+      plainText.includes("loan"),
+  };
+};
+
+const calculateTotalCredits = (semesters = []) => {
+  let total = 0;
+
+  semesters.forEach(semester => {
+    semester.subjects?.forEach(subject => {
+      const credit = Number(subject.credit);
+      if (!isNaN(credit)) {
+        total += credit;
+      }
+    });
+  });
+
+  return total;
+};
 const safeParseArray = (data) => {
   try {
     if (!data) return [];
@@ -150,37 +187,37 @@ exports.GetSpecClickpickById = catchAsync(async (req, res) => {
 
 
 exports.ClickPickDelete = catchAsync(async (req, res) => {
-    try {
-            const { id } = req.params;
-            if (!id) {
-                return validationErrorResponse(res, "ClickPick ID is required", 400);
-            }
-            const existingrecord = await prisma.ClickPick.findUnique({
-                where: {
-                    id: parseInt(id),
-                },
-            });
-            if (!existingrecord) {
-                return validationErrorResponse(res, "ClickPick not found", 404);
-            }
-            let updatedRecord;
-            if (existingrecord.deleted_at) {
-                updatedRecord = await prisma.ClickPick.update({
-                    where: { id: parseInt(id) },
-                    data: { deleted_at: null }
-                });
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return validationErrorResponse(res, "ClickPick ID is required", 400);
+    }
+    const existingrecord = await prisma.ClickPick.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+    });
+    if (!existingrecord) {
+      return validationErrorResponse(res, "ClickPick not found", 404);
+    }
+    let updatedRecord;
+    if (existingrecord.deleted_at) {
+      updatedRecord = await prisma.ClickPick.update({
+        where: { id: parseInt(id) },
+        data: { deleted_at: null }
+      });
 
-                return successResponse(res, "ClickPick restored successfully", 200, updatedRecord);
-            }   
-            updatedRecord = await prisma.ClickPick.update({
-                where: { id: parseInt(id) },
-                data: { deleted_at: new Date() }
-            });
+      return successResponse(res, "ClickPick restored successfully", 200, updatedRecord);
+    }
+    updatedRecord = await prisma.ClickPick.update({
+      where: { id: parseInt(id) },
+      data: { deleted_at: new Date() }
+    });
 
-            return successResponse(res, "ClickPick deleted successfully", 200, updatedRecord);
-    } catch (error) {
-        return errorResponse(res, error.message, 500);
-    }       
+    return successResponse(res, "ClickPick deleted successfully", 200, updatedRecord);
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
 });
 
 exports.updateRecord = catchAsync(async (req, res) => {
@@ -254,8 +291,8 @@ exports.updateRecord = catchAsync(async (req, res) => {
 
 
     const updated = await prisma.ClickPick.update({
-        where: { id },
-        data
+      where: { id },
+      data
     });
 
     return successResponse(
@@ -270,118 +307,118 @@ exports.updateRecord = catchAsync(async (req, res) => {
 });
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
-    try {
-        const {
-            category_id,
-            program_id,
-            specialisation_id
-        } = req.query;
+  try {
+    const {
+      category_id,
+      program_id,
+      specialisation_id
+    } = req.query;
 
-        // Build dynamic where condition for ClickPick
-        const whereCondition = {
-            deleted_at: null
-        };
+    // Build dynamic where condition for ClickPick
+    const whereCondition = {
+      deleted_at: null
+    };
 
-        if (category_id) {
-            whereCondition.category_id = Number(category_id);
-        }
-
-        if (program_id) {
-            whereCondition.program_id = Number(program_id);
-        }
-
-        if (specialisation_id) {
-            whereCondition.specialisation_program_id = Number(specialisation_id);
-        }
-
-        // Optional: prevent empty query
-        if (!category_id && !program_id && !specialisation_id) {
-            return errorResponse(
-                res,
-                "At least one ID (category_id, program_id, or specialisation_program_id) is required",
-                400
-            );
-        }
-
-        // Fetch ClickPick record
-        const clickPickRecord = await prisma.ClickPick.findFirst({
-            where: whereCondition,
-            include: {
-                category: true,
-                program: true,
-                specialisationProgram: true
-            },
-            orderBy: {
-                created_at: 'desc'
-            }
-        });
-        // Get university IDs from specialisationProgram
-        let universityIds = [];
-        let universities = [];
-
-        if (clickPickRecord?.specialisationProgram?.university_id) {
-            universityIds = clickPickRecord.specialisationProgram.university_id;
-            // Fetch universities using the IDs from specialisationProgram
-            universities = await prisma.University.findMany({
-                where: {
-                    id: {
-                        in: universityIds.map(id => Number(id))
-                    },
-                    deleted_at: null,
-                },
-                orderBy: {
-                    id: 'asc'
-                }
-            });
-
-            // Sort universities to match the order in university_id array
-            universities.sort((a, b) => {
-                const indexA = universityIds.indexOf(a.id);
-                const indexB = universityIds.indexOf(b.id);
-                return indexA - indexB;
-            });
-        } 
-        // Fallback: if no specialisationProgram but program exists
-        else if (clickPickRecord?.program?.id) {
-             universityIds = clickPickRecord?.program.university_id;
-           universities = await prisma.University.findMany({
-                where: {
-                    id: {
-                        in: universityIds.map(id => Number(id))
-                    },
-                    deleted_at: null,
-                },
-                orderBy: {
-                    id: 'asc'
-                }
-            });
-            
-            universityIds = universities.map(univ => univ.id);
-        }
-
-        // Prepare response data
-        const responseData = {
-            clickPick: {
-                ...clickPickRecord,
-                specialisationProgram: clickPickRecord?.specialisationProgram ? {
-                    ...clickPickRecord.specialisationProgram,
-                    university_id: undefined // Remove if you don't want to send it
-                } : null
-            },
-            universities: universities,
-        };
-
-        return successResponse(
-            res,
-            "Data fetched successfully",
-            200,
-            responseData
-        );
-
-    } catch (error) {
-        console.error("Error in GetClickpickData:", error);
-        return errorResponse(res, error.message, 500);
+    if (category_id) {
+      whereCondition.category_id = Number(category_id);
     }
+
+    if (program_id) {
+      whereCondition.program_id = Number(program_id);
+    }
+
+    if (specialisation_id) {
+      whereCondition.specialisation_program_id = Number(specialisation_id);
+    }
+
+    // Optional: prevent empty query
+    if (!category_id && !program_id && !specialisation_id) {
+      return errorResponse(
+        res,
+        "At least one ID (category_id, program_id, or specialisation_program_id) is required",
+        400
+      );
+    }
+
+    // Fetch ClickPick record
+    const clickPickRecord = await prisma.ClickPick.findFirst({
+      where: whereCondition,
+      include: {
+        category: true,
+        program: true,
+        specialisationProgram: true
+      },
+      orderBy: {
+        created_at: 'desc'
+      }
+    });
+    // Get university IDs from specialisationProgram
+    let universityIds = [];
+    let universities = [];
+
+    if (clickPickRecord?.specialisationProgram?.university_id) {
+      universityIds = clickPickRecord.specialisationProgram.university_id;
+      // Fetch universities using the IDs from specialisationProgram
+      universities = await prisma.University.findMany({
+        where: {
+          id: {
+            in: universityIds.map(id => Number(id))
+          },
+          deleted_at: null,
+        },
+        orderBy: {
+          id: 'asc'
+        }
+      });
+
+      // Sort universities to match the order in university_id array
+      universities.sort((a, b) => {
+        const indexA = universityIds.indexOf(a.id);
+        const indexB = universityIds.indexOf(b.id);
+        return indexA - indexB;
+      });
+    }
+    // Fallback: if no specialisationProgram but program exists
+    else if (clickPickRecord?.program?.id) {
+      universityIds = clickPickRecord?.program.university_id;
+      universities = await prisma.University.findMany({
+        where: {
+          id: {
+            in: universityIds.map(id => Number(id))
+          },
+          deleted_at: null,
+        },
+        orderBy: {
+          id: 'asc'
+        }
+      });
+
+      universityIds = universities.map(univ => univ.id);
+    }
+
+    // Prepare response data
+    const responseData = {
+      clickPick: {
+        ...clickPickRecord,
+        specialisationProgram: clickPickRecord?.specialisationProgram ? {
+          ...clickPickRecord.specialisationProgram,
+          university_id: undefined // Remove if you don't want to send it
+        } : null
+      },
+      universities: universities,
+    };
+
+    return successResponse(
+      res,
+      "Data fetched successfully",
+      200,
+      responseData
+    );
+
+  } catch (error) {
+    console.error("Error in GetClickpickData:", error);
+    return errorResponse(res, error.message, 500);
+  }
 });
 
 
@@ -435,7 +472,7 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
           404
         );
       }
-   
+
 
 
       return successResponse(
@@ -471,8 +508,8 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
           program_id: Number(program_id),
           deleted_at: null
         },
-        orderBy: { 
-          id: "asc" 
+        orderBy: {
+          id: "asc"
         }
       });
 
@@ -495,3 +532,513 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
+
+
+exports.compareData = catchAsync(async (req, res) => {
+  try {
+    const { universities, course_name, specialisation_name } = req.query;
+
+    /* ================= BASIC VALIDATION ================= */
+    if (!universities || !course_name) {
+      return errorResponse(res, "Missing required query parameters", 400);
+    }
+
+    /* ================= HELPERS ================= */
+
+    // slug clean
+    const cleanSlug = (v = "") =>
+      v.toLowerCase().trim().replace(/-+/g, "-").replace(/^-|-$/g, "");
+
+    // SEO remove + hyphen → space
+    const normalizeName = (v = "") =>
+      v
+        .split("--")[0]
+        .toLowerCase()
+        .replace(/-+/g, " ")
+        .trim();
+
+    // 🔥 STRONG COURSE TYPE DETECTOR
+    const extractCourseType = (text = "") => {
+      const types = [
+        "mba",
+        "mca",
+        "bba",
+        "msc",
+        "ba",
+        "bcom",
+        "mcom",
+        "executive mba",
+      ];
+
+      const lower = text.toLowerCase();
+      return types.find(type => lower.includes(type)) || null;
+    };
+
+    const STOP_WORDS = ["updated", "guide", "overview", "details", "2024", "2025"];
+
+    // 🔥 FINAL SAFE FILTER (MBA ≠ BA GUARANTEED)
+const buildSafeANDFilter = (text = "") => {
+  const cleanText = text
+    .toLowerCase()
+    .replace(/-+/g, " ")
+    .trim();
+
+  const words = cleanText
+    .split(" ")
+    .filter(w => w.length >= 2 && !STOP_WORDS.includes(w));
+
+  const courseType = extractCourseType(cleanText);
+
+  const andFilters = [];
+
+  // normal word matching
+  words.forEach(word => {
+    if (word !== courseType) {
+      andFilters.push({
+        name: { contains: word, mode: "insensitive" },
+      });
+    }
+  });
+
+  // strict course type
+  if (courseType) {
+    andFilters.push({
+      name: {
+        contains: courseType,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  // 🔥🔥 MAIN FIX: ONLINE MBA ≠ EXECUTIVE MBA
+  if (
+    courseType === "mba" &&
+    !cleanText.includes("executive")
+  ) {
+    andFilters.push({
+      NOT: {
+        name: {
+          contains: "executive",
+          mode: "insensitive",
+        },
+      },
+    });
+  }
+
+  return andFilters;
+};
+
+
+    /* ================= NORMALIZE INPUT ================= */
+
+    const universitySlugs = cleanSlug(universities).split("-vs-");
+    const courseSearchText = normalizeName(course_name);
+    const specialisationSearchText = specialisation_name
+      ? normalizeName(specialisation_name)
+      : null;
+
+    /* ================= FETCH UNIVERSITIES ================= */
+
+    const universityRecords = await prisma.university.findMany({
+      where: {
+        slug: { in: universitySlugs },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+      },
+    });
+
+    if (!universityRecords.length) {
+      return errorResponse(res, "Universities not found", 404);
+    }
+
+    const universityIds = universityRecords.map(u => u.id);
+
+    /* ======================================================
+       CASE 1️⃣ : UNIVERSITY + COURSE (NO SPECIALISATION)
+    ====================================================== */
+
+    if (!specialisationSearchText) {
+      const courses = await prisma.course.findMany({
+        where: {
+          university_id: { in: universityIds },
+
+          // ✅ FINAL SAFE FILTER
+          AND: buildSafeANDFilter(courseSearchText),
+
+          deleted_at: null,
+        },
+        include: {
+          university: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              icon: true,
+              cover_image: true,
+              rank: true,
+            },
+          },
+          approvals: true,
+          fees: true,
+          financialAid: true,
+          partners: true,
+          eligibilitycriteria: true,
+          curriculum: true,
+        },
+      });
+
+      /* ================= APPROVAL IDS ================= */
+
+      const approvalIdsSet = new Set();
+
+      courses.forEach(course => {
+        course.approvals?.approval_ids?.forEach(id =>
+          approvalIdsSet.add(id)
+        );
+      });
+
+      const approvals = approvalIdsSet.size
+        ? await prisma.approvals.findMany({
+            where: {
+              id: { in: [...approvalIdsSet] },
+              deleted_at: null,
+            },
+            select: { id: true, title: true, image: true },
+          })
+        : [];
+
+      const approvalMap = approvals.reduce((acc, a) => {
+        acc[a.id] = a;
+        return acc;
+      }, {});
+
+      const formattedData = courses.map(course => ({
+        university_id: course.university?.id,
+        university_data: course.university,
+
+        course: {
+          course_data: {
+            id: course.id,
+            name: course.name,
+            slug: course.slug,
+            mode_of_education: course.mode_of_education,
+            time_frame: course.time_frame,
+          },
+
+          approvals: {
+            approval_list:
+              course.approvals?.approval_ids
+                ?.map(id => approvalMap[id])
+                .filter(Boolean) || [],
+          },
+
+          fees: course.fees
+            ? {
+                semester_wise_fees: course.fees.semester_wise_fees,
+                tuition_fees: course.fees.tuition_fees,
+              }
+            : null,
+
+          financialAid: course.financialAid
+            ? extractFinancialAidFlags(course.financialAid.description)
+            : null,
+
+          eligibilitycriteria: course.eligibilitycriteria
+            ? {
+                description: course.eligibilitycriteria.description,
+                IndianCriteria: course.eligibilitycriteria.IndianCriteria,
+                NRICriteria: course.eligibilitycriteria.NRICriteria,
+                notes: course.eligibilitycriteria.notes,
+              }
+            : null,
+
+          curriculum: course.curriculum
+            ? {
+                semesters: course.curriculum.semesters,
+                total_credits: calculateTotalCredits(
+                  course.curriculum.semesters
+                ),
+              }
+            : null,
+        },
+      }));
+
+      return successResponse(
+        res,
+        "Course compare data fetched successfully",
+        200,
+        formattedData
+      );
+    }
+
+    return successResponse(res, "No data", 200, []);
+  } catch (error) {
+    console.error("COMPARE API ERROR:", error);
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+
+
+exports.compareSpeData = catchAsync(async (req, res) => {
+  try {
+    const { universities, course_name ,specialisation_name } = req.query;
+
+    /* ================= BASIC VALIDATION ================= */
+    if (!universities || !course_name) {
+      return errorResponse(res, "Missing required query parameters", 400);
+    }
+
+    /* ================= HELPERS ================= */
+
+    // slug clean
+    const cleanSlug = (v = "") =>
+      v.toLowerCase().trim().replace(/-+/g, "-").replace(/^-|-$/g, "");
+
+    // SEO remove + hyphen → space
+    const normalizeName = (v = "") =>
+      v
+        .split("--")[0]
+        .toLowerCase()
+        .replace(/-+/g, " ")
+        .trim();
+
+    // 🔥 STRONG COURSE TYPE DETECTOR
+    const extractCourseType = (text = "") => {
+      const types = [
+        "mba",
+        "mca",
+        "bba",
+        "msc",
+        "ba",
+        "bcom",
+        "mcom",
+        "executive mba",
+      ];
+
+      const lower = text.toLowerCase();
+      return types.find(type => lower.includes(type)) || null;
+    };
+
+    const STOP_WORDS = ["updated", "guide", "overview", "details", "2024", "2025"];
+
+    // 🔥 FINAL SAFE FILTER (MBA ≠ BA GUARANTEED)
+const buildSafeANDFilter = (text = "") => {
+  const cleanText = text
+    .toLowerCase()
+    .replace(/-+/g, " ")
+    .trim();
+
+  const words = cleanText
+    .split(" ")
+    .filter(w => w.length >= 2 && !STOP_WORDS.includes(w));
+
+  const courseType = extractCourseType(cleanText);
+
+  const andFilters = [];
+
+  // normal word matching
+  words.forEach(word => {
+    if (word !== courseType) {
+      andFilters.push({
+        name: { contains: word, mode: "insensitive" },
+      });
+    }
+  });
+
+  // strict course type
+  if (courseType) {
+    andFilters.push({
+      name: {
+        contains: courseType,
+        mode: "insensitive",
+      },
+    });
+  }
+
+  // 🔥🔥 MAIN FIX: ONLINE MBA ≠ EXECUTIVE MBA
+  if (
+    courseType === "mba" &&
+    !cleanText.includes("executive")
+  ) {
+    andFilters.push({
+      NOT: {
+        name: {
+          contains: "executive",
+          mode: "insensitive",
+        },
+      },
+    });
+  }
+
+  return andFilters;
+};
+
+
+    /* ================= NORMALIZE INPUT ================= */
+
+    const universitySlugs = cleanSlug(universities).split("-vs-");
+    const specialisationSearchText = specialisation_name
+      ? normalizeName(specialisation_name)
+      : null;
+
+    /* ================= FETCH UNIVERSITIES ================= */
+
+    const universityRecords = await prisma.university.findMany({
+      where: {
+        slug: { in: universitySlugs },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+      },
+    });
+
+    if (!universityRecords.length) {
+      return errorResponse(res, "Universities not found", 404);
+    }
+
+    const universityIds = universityRecords.map(u => u.id);
+
+    /* ======================================================
+       CASE 1️⃣ : UNIVERSITY + COURSE (NO SPECIALISATION)
+    ====================================================== */
+
+    if (specialisationSearchText) {
+      const courses = await prisma.Specialisation.findMany({
+        where: {
+          university_id: { in: universityIds },
+
+          // ✅ FINAL SAFE FILTER
+          AND: buildSafeANDFilter(courseSearchText),
+
+          deleted_at: null,
+        },
+        include: {
+          university: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              icon: true,
+              cover_image: true,
+              rank: true,
+            },
+          },
+          approvals: true,
+          fees: true,
+          financialAid: true,
+          partners: true,
+          eligibilitycriteria: true,
+          curriculum: true,
+        },
+      });
+
+      /* ================= APPROVAL IDS ================= */
+
+      const approvalIdsSet = new Set();
+
+      courses.forEach(course => {
+        course.approvals?.approval_ids?.forEach(id =>
+          approvalIdsSet.add(id)
+        );
+      });
+
+      const approvals = approvalIdsSet.size
+        ? await prisma.approvals.findMany({
+            where: {
+              id: { in: [...approvalIdsSet] },
+              deleted_at: null,
+            },
+            select: { id: true, title: true, image: true },
+          })
+        : [];
+
+      const approvalMap = approvals.reduce((acc, a) => {
+        acc[a.id] = a;
+        return acc;
+      }, {});
+
+      const formattedData = courses.map(course => ({
+        university_id: course.university?.id,
+        university_data: course.university,
+
+        course: {
+          course_data: {
+            id: course.id,
+            name: course.name,
+            slug: course.slug,
+            mode_of_education: course.mode_of_education,
+            time_frame: course.time_frame,
+          },
+
+          approvals: {
+            approval_list:
+              course.approvals?.approval_ids
+                ?.map(id => approvalMap[id])
+                .filter(Boolean) || [],
+          },
+
+          fees: course.fees
+            ? {
+                semester_wise_fees: course.fees.semester_wise_fees,
+                tuition_fees: course.fees.tuition_fees,
+              }
+            : null,
+
+          financialAid: course.financialAid
+            ? extractFinancialAidFlags(course.financialAid.description)
+            : null,
+
+          eligibilitycriteria: course.eligibilitycriteria
+            ? {
+                description: course.eligibilitycriteria.description,
+                IndianCriteria: course.eligibilitycriteria.IndianCriteria,
+                NRICriteria: course.eligibilitycriteria.NRICriteria,
+                notes: course.eligibilitycriteria.notes,
+              }
+            : null,
+
+          curriculum: course.curriculum
+            ? {
+                semesters: course.curriculum.semesters,
+                total_credits: calculateTotalCredits(
+                  course.curriculum.semesters
+                ),
+              }
+            : null,
+        },
+      }));
+
+      return successResponse(
+        res,
+        "Course compare data fetched successfully",
+        200,
+        formattedData
+      );
+    }
+
+    return successResponse(res, "No data", 200, []);
+  } catch (error) {
+    console.error("COMPARE API ERROR:", error);
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+
+
+
