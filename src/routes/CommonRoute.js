@@ -6,9 +6,8 @@ router.get("/all/catergoy/university", List);
 
 router.get("/all/search", GlobalSearch); //Route for global search
 
-router.get("/all/university", UniversityList); //Route for global search
-
-
+router.get("/all/university", UniversityList); //Route for University search
+  
 router.get("/compare/university/:slug", CompareUniversity);
 
 router.get("/all/program", AllProgram);
