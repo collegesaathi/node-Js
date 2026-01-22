@@ -444,3 +444,80 @@ exports.GetApprovalUniversity = catchAsync(async (req, res) => {
     );
   }
 });
+
+
+exports.GetSchollarshipList = catchAsync(async (req, res) => {
+  try {
+    const universities = await prisma.university.findMany({
+      where: {
+        deleted_at: null,
+        financialAid: {
+          is: {
+            OR: [
+              {
+                description: {
+                  contains: "Scholarship",
+                  mode: "insensitive",
+                },
+              },
+              {
+                description: {
+                  contains: "Scholarships",
+                  mode: "insensitive",
+                },
+              },
+            ],
+          },
+        },
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+      },
+      orderBy: {
+        position: "asc",
+      },
+    });
+
+    return successResponse(
+      res,
+      "Scholarship universities fetched successfully",
+      200,
+      universities
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+exports.GetPlacementList = catchAsync(async (req, res) => {
+  try {
+    const placements = await prisma.Placements.findMany({ 
+      where: {
+        deleted_at: null,
+      },
+      select: {
+        // id: true,
+        image: true,
+      },    
+      orderBy: {
+        id: "asc",
+      },
+    }); 
+    return successResponse(
+      res,
+      "Placement universities fetched successfully",
+      200,
+      placements
+    );
+  }
+  catch (error) {
+    return errorResponse(res, error.message, 500);
+  } 
+});
+
+
