@@ -111,8 +111,6 @@ exports.GlobalSearch = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.List = catchAsync(async (req, res) => {
   try {
     const CategoryLists = await prisma.Category.findMany({});

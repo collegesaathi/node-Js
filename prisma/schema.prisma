@@ -933,7 +933,7 @@ model Job {
     specialization_merged_desc String?
     specialization_merged_content String?
     salary_graph_title String?
-    salary_graph_value String?
+    salary_graph_value Json?
     category     Category?            @relation(fields: [category_id], references: [id])
     program      Program?            @relation(fields: [program_id], references: [id])
     specialisationProgram     SpecialisationProgram? @relation(fields: [specialisation_program_id], references: [id])
