@@ -52,10 +52,36 @@ exports.allUniversities = catchAsync(async (req, res) => {
   const categories = await prisma.category.findMany({
     orderBy: { id: "asc" },
     include: {
-      courses: { orderBy: { created_at: "asc" } }
+      // courses: { orderBy: { created_at: "asc" } },
+      programs: {
+        where: {
+          deleted_at: null, // optional but recommended
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          id: true,
+          title: true,
+          specialisationPrograms: {
+            where: {
+              deleted_at: null,
+            },
+            orderBy: {
+              createdAt: "asc",
+            },
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      },
     }
   });
 
+  // console.log(categories);
+  
   // If categories failed (rare but possible)
   if (!categories) {
     return errorResponse(res, "Failed to fetch categories", 500);
@@ -94,9 +120,25 @@ exports.allUniversities = catchAsync(async (req, res) => {
   const totalUniversities = finalList.length;
   const totalPages = Math.ceil(totalUniversities / limit);
 
+  // Approvals List 
+  const approvals = await prisma.approvals.findMany({
+    where: {
+      deleted_at: null,
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+    select: {
+      id: true,
+      title: true,
+      // image: true,
+    },
+  });
+
   return successResponse(res, "Universities fetched successfully", 201, {
     categories,
     universities: paginated,
+    approvals,
     pagination: {
       page,
       limit,

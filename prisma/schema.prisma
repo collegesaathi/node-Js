@@ -941,3 +941,32 @@ model Job {
     updated_at       DateTime @updatedAt
     deleted_at          DateTime?
   }
+
+  model leadlearing {
+  id             Int      @id @default(autoincrement())
+  type           String?
+  name           String?
+  email          String?
+  contactno      String?
+  program        String?
+  leadtype       String?
+  admission      String?
+  qualification  String?
+  specialization String?
+  university     String?
+  city           String?
+  ipaddress      String?
+  pin_code       String?
+  source         String?
+  mx_Platform    String?
+  source_campaign String?
+  source_medium  String?
+  utm_term       String?
+  mx_Website_Page String?
+  lp_slug        String?
+  source_url     String?
+  lsq_response   String?
+  created_at     DateTime @default(now())
+   updated_at       DateTime @updatedAt
+    deleted_at          DateTime?
+}

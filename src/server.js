@@ -69,6 +69,7 @@ app.use("/api", require("./routes/ChatRoute"));
 app.use("/api", require("./routes/specialisationprogramRoutes"));
 app.use("/api", require("./routes/SitemapRoutes"));
 app.use("/api", require("./routes/clickpickRoutes"));
+app.use("/api", require("./routes/FiltrationRoutes"));
 
 
 

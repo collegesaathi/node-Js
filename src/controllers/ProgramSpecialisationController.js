@@ -1101,7 +1101,7 @@ Loggers.error(req.body)
           canonical_url: req.body.canonical_url,
         },
       });
-    });
+    }, { timeout: 30000 });
 
     return successResponse(res, "Specialisation Program updated successfully", 200);
 
