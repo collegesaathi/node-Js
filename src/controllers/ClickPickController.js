@@ -1,7 +1,6 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
-const stringSimilarity = require("string-similarity");
 
 const extractFinancialAidFlags = (description = "") => {
   if (!description) {

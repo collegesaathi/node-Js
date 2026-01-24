@@ -12,6 +12,7 @@ const path = require("path");
 app.use(
   cors({
     origin: [
+"http://localhost:3000",
       "https://indiaprograms.com",
       "https://www.indiaprograms.com"
     ],
@@ -20,7 +21,16 @@ app.use(
   })
 );
 
-
+// app.use(
+//   cors({
+//     origin: [
+//       "https://indiaprograms.com",
+//       "https://www.indiaprograms.com"
+//     ],
+//     credentials: true,
+//     methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+//   })
+// );
 
 app.use(express.json({ limit: "500000mb" }));
 app.use(express.urlencoded({ extended: true, limit: "500000mb" }));
