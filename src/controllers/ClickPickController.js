@@ -230,12 +230,20 @@ exports.ClickPickDelete = catchAsync(async (req, res) => {
   }
 });
 
+const toValidIntOrUndefined = (val) => {
+  if (val === undefined || val === null || val === "") return undefined;
+  const num = Number(val);
+  return Number.isInteger(num) && num > 0 ? num : undefined;
+};
+
+
 exports.updateRecord = catchAsync(async (req, res) => {
   try {
     const id = Number(req.body.id);
     if (!id) {
       return errorResponse(res, "ClickPick ID is required", 400);
     }
+
     const existing = await prisma.ClickPick.findUnique({
       where: { id }
     });
@@ -244,10 +252,6 @@ exports.updateRecord = catchAsync(async (req, res) => {
       return errorResponse(res, "ClickPick record not found", 404);
     }
 
-    /**
-     * Build update payload
-     * ONLY include fields that are sent
-     */
     const {
       category_id,
       program_id,
@@ -269,36 +273,57 @@ exports.updateRecord = catchAsync(async (req, res) => {
       specialisation_graph_value,
     } = req.body;
 
-    const data = {
-      category_id: category_id ? Number(category_id) : null,
-      program_id: program_id ? Number(program_id) : null,
-      specialisation_program_id: specialisation_program_id
-        ? Number(specialisation_program_id)
-        : null,
+    const data = {};
 
-      title: title || null,
-      description: description || "",
+    // ✅ FK SAFE ASSIGNMENTS
+    const safeCategoryId = toValidIntOrUndefined(category_id);
+    if (safeCategoryId !== undefined) data.category_id = safeCategoryId;
 
-      graph_title: graph_title || null,
-      graph_value: graph_value ? safeParseArray(graph_value) : null,
+    const safeProgramId = toValidIntOrUndefined(program_id);
+    if (safeProgramId !== undefined) data.program_id = safeProgramId;
 
-      rounded_graph_title: rounded_graph_title || null,
-      rounded_graph_desc: rounded_graph_desc || "",
+    const safeSpecProgramId = toValidIntOrUndefined(specialisation_program_id);
+    if (safeSpecProgramId !== undefined)
+      data.specialisation_program_id = safeSpecProgramId;
 
-      bottom_title: bottom_title || null,
-      bottom_description: bottom_description || "",
+    // ✅ NORMAL FIELDS
+    if (title !== undefined) data.title = title;
+    if (description !== undefined) data.description = description;
 
-      specialization_merged_title: specialization_merged_title || null,
-      specialization_merged_desc: specialization_merged_desc || null,
-      specialization_merged_content: specialization_merged_content || null,
+    if (graph_title !== undefined) data.graph_title = graph_title;
+    if (graph_value !== undefined)
+      data.graph_value = safeParseArray(graph_value);
 
-      salary_graph_title: salary_graph_title || null,
-      salary_graph_value: salary_graph_value || null,
+    if (rounded_graph_title !== undefined)
+      data.rounded_graph_title = rounded_graph_title;
 
-      specialisation_graph_title: specialisation_graph_title || null,
-      specialisation_graph_value: specialisation_graph_value || null,
-    };
+    if (rounded_graph_desc !== undefined)
+      data.rounded_graph_desc = rounded_graph_desc;
 
+    if (bottom_title !== undefined) data.bottom_title = bottom_title;
+    if (bottom_description !== undefined)
+      data.bottom_description = bottom_description;
+
+    if (specialization_merged_title !== undefined)
+      data.specialization_merged_title = specialization_merged_title;
+
+    if (specialization_merged_desc !== undefined)
+      data.specialization_merged_desc = specialization_merged_desc;
+
+    if (specialization_merged_content !== undefined)
+      data.specialization_merged_content = specialization_merged_content;
+
+    if (salary_graph_title !== undefined)
+      data.salary_graph_title = salary_graph_title;
+
+    if (salary_graph_value !== undefined)
+      data.salary_graph_value = salary_graph_value;
+
+    if (specialisation_graph_title !== undefined)
+      data.specialisation_graph_title = specialisation_graph_title;
+
+    if (specialisation_graph_value !== undefined)
+      data.specialisation_graph_value = specialisation_graph_value;
 
     const updated = await prisma.ClickPick.update({
       where: { id },
@@ -312,9 +337,12 @@ exports.updateRecord = catchAsync(async (req, res) => {
       updated
     );
   } catch (error) {
+    console.error(error);
     return errorResponse(res, error.message, 500);
   }
 });
+
+
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {

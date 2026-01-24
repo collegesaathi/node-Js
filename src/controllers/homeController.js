@@ -327,7 +327,6 @@ exports.VideoDelete = catchAsync(async (req, res) => {
   }
 });
 
-
 exports.ExploreUniversities = catchAsync(async (req, res) => {
   
   const topUniversities = await prisma.university.findMany({
