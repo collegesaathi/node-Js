@@ -553,6 +553,49 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
 });
 
 
+exports.GetSpecialisationProgramByUniverty = catchAsync(async (req, res) => {
+  try {
+    const { specialisation_id } = req.query;
+    if (!specialisation_id) {
+      return errorResponse(res, "Spe. Program id is required", 400);
+    }
+
+    const ProgramData = await prisma.SpecialisationProgram.findFirst({
+      where: { id: Number(specialisation_id) },
+    });
+
+    if (!ProgramData) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    const universityIds = ProgramData.university_id;
+
+    // Only University list
+    const universities = await prisma.University.findMany({
+      where: {
+        id: { in: universityIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+      },
+    });
+
+    return successResponse(res, "Universities fetched successfully", 200, universities);
+  } catch (error) {
+    console.error("❌ GetProgramById error", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching program",
+      500
+    );
+  }
+});
+
+
 
 //  Program Specialisation Delete Controller Logic
 exports.specialisationDelete = catchAsync(async (req, res) => {
