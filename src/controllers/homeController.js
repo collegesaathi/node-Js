@@ -66,12 +66,42 @@ exports.home = catchAsync(async (req, res) => {
         created_at: "desc"
       }
     });
+
+    // ✅ LATEST PROGRAMS
+    const latestPrograms = await prisma.program.findMany({
+      where: {
+        deleted_at: null
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 8, // change count as needed
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+        shortDescription: true,
+        duration: true,
+        specialization: true,
+        createdAt: true,
+        category: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      }
+    });
+
     return successResponse(res, "Home Page data fetched successfully", 201, {
       categories,
       universities,
       universities_logo,
       // blogs,
-      videos
+      videos,
+      latestPrograms
     });
 
 
