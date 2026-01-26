@@ -217,6 +217,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       slug: req.body.slug?.trim() || generatedSlug,
       description: req.body.descriptions?.trim() || "",
       bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
+      icon: uploadedFiles["icon"]?.[0] ? toPublicUrl(req, uploadedFiles["icon"][0]) : "",
       bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
       pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
       audio: uploadedFiles["audio"]?.[0] ? toPublicUrl(req, uploadedFiles["audio"][0]) : null,
@@ -754,6 +755,9 @@ Loggers.error(req.body)
           description: req.body.descriptions,
           bannerImage: uploadedFiles.cover_image?.[0]
             ? toPublicUrl(req, uploadedFiles.cover_image[0])
+            : undefined,
+               icon: uploadedFiles.icon?.[0]
+            ? toPublicUrl(req, uploadedFiles.icon[0])
             : undefined,
           pdfdownlaod: uploadedFiles.pdf_download?.[0]
             ? toPublicUrl(req, uploadedFiles.pdf_download[0])

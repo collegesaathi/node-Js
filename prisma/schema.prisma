@@ -6,18 +6,10 @@ datasource db {
   url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
-model Role {
-  id         Int       @id @default(autoincrement())
-  name       String    @unique
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  deleted_at DateTime?
-  users      User[]
-}
 
 model User {
   id                Int                @id @default(autoincrement())
-  role_id           Int
+  role           String
   email             String             @unique
   full_name         String
   password          String
@@ -26,7 +18,6 @@ model User {
   updated_at        DateTime           @updatedAt
   deleted_at        DateTime?
   blacklistedTokens BlacklistedToken[]
-  role              Role               @relation(fields: [role_id], references: [id])
 }
 
 model University {
@@ -364,6 +355,7 @@ model Category {
   name        String
   short_title String?
   icon        String?
+  slug String?
   created_at  DateTime  @default(now())
   updated_at  DateTime  @updatedAt
   deleted_at  DateTime?
@@ -533,6 +525,7 @@ model Program {
   bannerImage         String?
   slug                String    @unique
   bannerImageAlt      String?
+  icon                String?
   pdfdownlaod         String?
   career_growth       String?
   duration            String?
@@ -581,6 +574,7 @@ model SpecialisationProgram {
   title               String
   description         String
   bannerImage         String?
+  icon                String?
   slug                String    @unique
   bannerImageAlt      String?
   pdfdownlaod         String?

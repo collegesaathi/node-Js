@@ -7,7 +7,7 @@ const prisma = require("../config/prisma");
 // Signup / Register
 exports.register = catchAsync(async (req, res) => {
   try {
-    const { full_name, email, password, confirm_password } = req.body;
+    const { full_name, email, password, confirm_password, role } = req.body;
 
     if (!full_name || !email || !password || !confirm_password) {
       return validationErrorResponse(res, "All fields are required", 400);
@@ -19,7 +19,7 @@ exports.register = catchAsync(async (req, res) => {
     }
 
     // Password validation
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{6,}$/;
     if (!passwordRegex.test(password)) {
       return validationErrorResponse(
         res,
@@ -43,7 +43,7 @@ exports.register = catchAsync(async (req, res) => {
 
     // Create user
     const user = await prisma.user.create({
-      data: { full_name, email, password: hashedPassword, role_id: 3 },
+      data: { full_name, email, password: hashedPassword, role },
     });
 
     return successResponse(res, "User registered successfully", 201, {
@@ -52,8 +52,9 @@ exports.register = catchAsync(async (req, res) => {
       email: user.email,
     });
   } catch (error) {
-    return errorResponse(error, "Something went wrong", 400);
-
+    console.log(error);
+    console.log("Chat Get Error:", error);
+    return errorResponse(res, error.message, 500);
   }
 });
 
@@ -78,32 +79,33 @@ exports.login = catchAsync(async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
     );
 
-    return successResponse(res, "Login successful", 200, { user: { id: user.id, full_name: user.full_name, email: user.email }, token });
+    return successResponse(res, "Login successful", 200, {
+      token: token,
+      user: user
+    });
   } catch (error) {
-    return errorResponse(res, "Something went wrong", 400);
-
+    console.log("error", error)
+    return errorResponse(res, error.message, 500);
   }
 });
 
 // Get User Info
 exports.getUser = catchAsync(async (req, res) => {
-  try {
-    const email = req.user?.email;
-    if (!email) return errorResponse(res, "Invalid User", 401);
+  const id = req.user?.id;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, full_name: true, email: true, role_id: true },
-    });
+  if (!id) return errorResponse(res, "Invalid User", 401);
 
-    if (!user) return errorResponse(res, "Invalid User", 401);
+  const user = await prisma.user.findUnique({
+    where: {
+      id: id,
+    },
+  });
 
-    return successResponse(res, "User retrieved successfully", 200, { user });
-  } catch (error) {
-    return errorResponse(error, "Something went wrong", 400);
+  if (!user) return errorResponse(res, "Invalid User", 401);
 
-  }
+  return successResponse(res, "User retrieved successfully", 200, user);
 });
+
 
 // Logout
 exports.logout = catchAsync(async (req, res) => {
@@ -115,7 +117,6 @@ exports.logout = catchAsync(async (req, res) => {
 
     return successResponse(res, "Logged out successfully", 200, {});
   } catch (error) {
-    return errorResponse(error, "Something went wrong", 400);
-
+    return errorResponse(res, error.message, 500);
   }
 });

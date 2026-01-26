@@ -187,6 +187,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           slug: req.body.slug ? req.body.slug : generatedSlug,
           description: req.body.descriptions || "",
           bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]?.[0]) || "",
+          icon: toPublicUrl(req, uploadedFiles["icon"]?.[0]) || "",
           bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
           pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
           audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]),
@@ -645,6 +646,9 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         bannerImage: uploadedFiles.cover_image?.[0]
           ? toPublicUrl(req, uploadedFiles.cover_image[0])
           : existing.bannerImage,
+            icon: uploadedFiles.icon?.[0]
+          ? toPublicUrl(req, uploadedFiles.icon[0])
+          : existing.icon,
         bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
         pdfdownlaod: uploadedFiles.pdf_download?.[0]
           ? toPublicUrl(req, uploadedFiles.pdf_download[0])
