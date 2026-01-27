@@ -691,4 +691,67 @@ exports.GetOtherSpecialisations = catchAsync(async (req, res) => {
 });
 
 
+exports.GetAllSpecialisations = catchAsync(async (req, res) => {
+  try {
+    const { program_slug } = req.query;
+
+    // ------------------ VALIDATION ------------------
+    if (!program_slug) {
+      return errorResponse(res, "program_slug is required", 400);
+    }
+
+    // ------------------ FETCH PROGRAM ------------------
+    const program = await prisma.program.findFirst({
+      where: {
+        slug: program_slug,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!program) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    // ------------------ FETCH ALL SPECIALISATIONS ------------------
+    const specialisations = await prisma.specialisationProgram.findMany({
+      where: {
+        program_id: program.id,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        icon: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+        shortDescription: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    // ------------------ RESPONSE ------------------
+    if (specialisations.length === 0) {
+      return successResponse(res, "No specialisations found", 200, []);
+    }
+
+    return successResponse(
+      res,
+      "All specialisations fetched successfully",
+      200,
+      specialisations
+    );
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+
 
