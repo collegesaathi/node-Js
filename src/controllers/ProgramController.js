@@ -330,7 +330,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
             title: req.body.futuretitle || "",
             description: req.body.futuredesc || "",
             subdesc: req.body.futurebtmdesc || "",
-            monthly: parseArray(req.body.monthlyData),
+            yearly: parseArray(req.body.yearlyData),
             program_id: programId,
           },
         })
@@ -570,7 +570,7 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       summaryJson,
       choose,
       purpuse,
-      monthlyData,
+      yearlyData,
       entranceData,
       durationData,
       vsData
@@ -585,7 +585,7 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
       parseArray(req.body.summary),
       parseArray(req.body.choose),
       parseArray(req.body.purpuse),
-      parseArray(req.body.monthlyData),
+      parseArray(req.body.yearlyData),
       parseArray(req.body.onlines),
       parseArray(req.body.DurationData),
       parseArray(req.body.addvs),
@@ -819,14 +819,14 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         title: req.body.futuretitle,
         description: req.body.futuredesc,
         subdesc: req.body.futurebtmdesc,
-        monthly: monthlyData,
+        yearly: yearlyData,
       },
       create: {
         program_id: programId,
         title: req.body.futuretitle,
         description: req.body.futuredesc,
         subdesc: req.body.futurebtmdesc,
-        monthly: monthlyData,
+        yearly: yearlyData,
       }
     });
 
