@@ -217,6 +217,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       slug: req.body.slug?.trim() || generatedSlug,
       description: req.body.descriptions?.trim() || "",
       bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
+      icon: uploadedFiles["icon"]?.[0] ? toPublicUrl(req, uploadedFiles["icon"][0]) : "",
       bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
       pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
       audio: uploadedFiles["audio"]?.[0] ? toPublicUrl(req, uploadedFiles["audio"][0]) : null,
@@ -553,6 +554,49 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
 });
 
 
+exports.GetSpecialisationProgramByUniverty = catchAsync(async (req, res) => {
+  try {
+    const { specialisation_id } = req.query;
+    if (!specialisation_id) {
+      return errorResponse(res, "Spe. Program id is required", 400);
+    }
+
+    const ProgramData = await prisma.SpecialisationProgram.findFirst({
+      where: { id: Number(specialisation_id) },
+    });
+
+    if (!ProgramData) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    const universityIds = ProgramData.university_id;
+
+    // Only University list
+    const universities = await prisma.University.findMany({
+      where: {
+        id: { in: universityIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+      },
+    });
+
+    return successResponse(res, "Universities fetched successfully", 200, universities);
+  } catch (error) {
+    console.error("❌ GetProgramById error", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching program",
+      500
+    );
+  }
+});
+
+
 
 //  Program Specialisation Delete Controller Logic
 exports.specialisationDelete = catchAsync(async (req, res) => {
@@ -711,6 +755,9 @@ Loggers.error(req.body)
           description: req.body.descriptions,
           bannerImage: uploadedFiles.cover_image?.[0]
             ? toPublicUrl(req, uploadedFiles.cover_image[0])
+            : undefined,
+               icon: uploadedFiles.icon?.[0]
+            ? toPublicUrl(req, uploadedFiles.icon[0])
             : undefined,
           pdfdownlaod: uploadedFiles.pdf_download?.[0]
             ? toPublicUrl(req, uploadedFiles.pdf_download[0])

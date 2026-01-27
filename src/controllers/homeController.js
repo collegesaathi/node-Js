@@ -17,56 +17,8 @@ function toPublicUrl(req, filePath) {
   return BASE_URL + cleanPath;
 }
 
-exports.home = catchAsync(async (req, res) => {
+exports.AllTopProgram = catchAsync(async (req, res) => {
   try {
-    // ✅ CATEGORY WITH COURSES
-    const categories = await prisma.category.findMany({
-      orderBy: { id: "asc" },
-      include: {
-        courses: {
-          orderBy: { created_at: "asc" },
-        }
-      }
-    });
-
-    // ✅ UNIVERSITY LIST
-    const universities = await prisma.university.findMany({
-      where: {
-        deleted_at: null
-      },
-      orderBy: [
-        { position: "asc" },     
-        { created_at: "desc" }
-      ]
-    });
-    // Extract only required fields from universities
-    const universities_logo = universities.map(university => ({
-      name: university.name,
-      slug: university.slug,
-      icon: university.icon,
-      icon_alt: university.icon_alt
-    }));
-
-    // const blogs = await prisma.blog.findMany({
-    //   where: {
-    //     deleted_at: null
-    //   },
-    //   orderBy: {
-    //     created_at: "desc"
-    //   },
-    //   take: 15
-    // });
-
-    // ✅ HOME PAGE VIDEOS
-    const videos = await prisma.homePageVideo.findMany({
-      where: {
-        deleted_at: null
-      },
-      orderBy: {
-        created_at: "desc"
-      }
-    });
-
     // ✅ LATEST PROGRAMS
     const latestPrograms = await prisma.program.findMany({
       where: {
@@ -86,22 +38,52 @@ exports.home = catchAsync(async (req, res) => {
         duration: true,
         specialization: true,
         createdAt: true,
-        category: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
       }
     });
 
+    const laspetestPrograms = await prisma.SpecialisationProgram.findMany({
+      where: {
+        deleted_at: null
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 12, // change count as needed
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+        shortDescription: true,
+        duration: true,
+        specialization: true,
+        createdAt: true,
+      }
+    });
+
+     const LastCertificationPrograms = await prisma.SpecialisationProgram.findMany({
+      where: {
+        deleted_at: null
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 12, // change count as needed
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+        shortDescription: true,
+        duration: true,
+        specialization: true,
+        createdAt: true,
+      }
+    });
     return successResponse(res, "Home Page data fetched successfully", 201, {
-      categories,
-      universities,
-      universities_logo,
-      // blogs,
-      videos,
-      latestPrograms
+      latestPrograms, laspetestPrograms,LastCertificationPrograms
     });
 
 
@@ -137,7 +119,7 @@ exports.AddVideo = catchAsync(async (req, res) => {
         title: req.body.title || "",
         description: req.body.description || "",
         videoUrl: req.body.videoUrl || "",
-        coverimage: toPublicUrl(req, uploadedFiles["coverimage"]) || "", 
+        coverimage: toPublicUrl(req, uploadedFiles["coverimage"]) || "",
       }
     });
 
@@ -356,4 +338,59 @@ exports.VideoDelete = catchAsync(async (req, res) => {
     return errorResponse(res, error.message || "Something went wrong", 500);
   }
 });
+
+exports.ExploreUniversities = catchAsync(async (req, res) => {
+
+  const topUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      position: { gte: 1, lte: 10 },
+    },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      icon: true,
+      position: true
+    },
+    orderBy: {
+      position: 'asc'
+    }
+  });
+  // 2️⃣ Baaki sab ( >10 or NULL )
+  const otherUniversities = await prisma.university.findMany({
+    where: {
+      deleted_at: null,
+      OR: [
+        { position: 0 },        // jinki position set hi nahi hai
+        { position: { gt: 10 } }   // jinki position 10 se zyada hai
+      ]
+    },
+
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      icon: true,
+      position: true
+    },
+    orderBy: [
+      { position: 'asc' },
+      { created_at: 'desc' }
+    ]
+  });
+  // 3️⃣ Merge
+  const finalList = [...topUniversities, ...otherUniversities];
+
+
+  const totalUniversities = finalList.length;
+
+  return successResponse(res, "Universities fetched successfully", 200, {
+    universities: finalList,
+    totalUniversities
+
+  });
+
+});
+
 

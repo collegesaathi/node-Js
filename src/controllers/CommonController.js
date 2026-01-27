@@ -111,8 +111,6 @@ exports.GlobalSearch = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.List = catchAsync(async (req, res) => {
   try {
     const CategoryLists = await prisma.Category.findMany({});
@@ -337,15 +335,18 @@ exports.GetUniversityCategroyList = catchAsync(async (req, res) => {
 
 exports.GetCategroyList = catchAsync(async (req, res) => {
   try {
-    const CategoryLists = await prisma.Category.findMany({});
+    const CategoryLists = await prisma.Category.findMany({
+      orderBy: {
+        id: 'asc', // 🔥 ID ascending order
+      },
+    });
+
     return successResponse(res, "Course list successfully", 200, CategoryLists);
   } catch (error) {
-    if (error.code === 'P2025') {
-      return errorResponse(res, "Course not found", 404);
-    }
     return errorResponse(res, error.message, 500);
   }
-})
+});
+
 
 exports.GetApprovalUniversity = catchAsync(async (req, res) => {
   try {

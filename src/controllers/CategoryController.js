@@ -1,16 +1,17 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
+const deleteUploadedFiles = require("../utils/fileDeleter");
 
 function toPublicUrl(req, filePath) {
-  if (!filePath) return null;
-  const normalized = filePath.replace(/\\/g, "/");
-  const index = normalized.indexOf("/uploads/");
-  if (index === -1) return null;
-  const cleanPath = normalized.substring(index);
-  const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "https";
-  const BASE_URL = `${protocol}://${req.get("host")}`;
-  return BASE_URL + cleanPath;
+    if (!filePath) return null;
+    const normalized = filePath.replace(/\\/g, "/");
+    const index = normalized.indexOf("/uploads/");
+    if (index === -1) return null;
+    const cleanPath = normalized.substring(index);
+    const protocol = req.headers["x-forwarded-proto"] === "https" ? "https" : "https";
+    const BASE_URL = `${protocol}://${req.get("host")}`;
+    return BASE_URL + cleanPath;
 }
 
 
@@ -22,8 +23,26 @@ exports.List = catchAsync(async (req, res) => {
         });
         return successResponse(req, res, "Categories fetched successfully", categories);
     } catch (error) {
-        return errorResponse(req, res, "Failed to fetch categories", error);
-    }   
+        return errorResponse(res, error.message, 500);
+
+    }
+});
+
+exports.ListId = catchAsync(async (req, res) => {
+    try {
+        const categories = await prisma.category.findFirst({
+
+            where: {
+                deleted_at: null,
+                id: Number(req.params.id)
+            },
+            orderBy: { id: 'desc' }
+        });
+        return successResponse(res, "Login successful", 200, categories);
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+
+    }
 });
 
 exports.addCategory = catchAsync(async (req, res) => {
@@ -48,7 +67,7 @@ exports.addCategory = catchAsync(async (req, res) => {
                     equals: name,
                     mode: "insensitive",
                 },
-                deleted_at: null, 
+                deleted_at: null,
             },
         });
 
@@ -75,10 +94,10 @@ exports.addCategory = catchAsync(async (req, res) => {
 
     } catch (error) {
         if (uploadedFiles["icon"]) {
-            fs.unlink(uploadedFiles["icon"], () => {});
+            fs.unlink(uploadedFiles["icon"], () => { });
         }
         console.error("Add Category Error:", error);
-        return errorResponse(res, "Failed to add category", 500, error);
+        return errorResponse(res, error.message, 500);
     }
 });
 
@@ -102,10 +121,9 @@ exports.updateCategory = catchAsync(async (req, res) => {
     let uploadedFiles = {};
 
     try {
-        const { id } = req.params;
-        const { name, short_title } = req.body;
+        const { id } = req.body;
+        const { name, short_title, slug } = req.body;
 
-        // 1️⃣ Fetch existing category
         const existing = await prisma.category.findUnique({
             where: { id: parseInt(id) },
         });
@@ -114,16 +132,16 @@ exports.updateCategory = catchAsync(async (req, res) => {
             return errorResponse(res, "Category not found", 404);
         }
 
-        // 2️⃣ Handle uploaded files
         req.files?.forEach(file => {
             uploadedFiles[file.fieldname] = file.path;
         });
 
-        // 3️⃣ Prepare update data safely (only update provided fields)
         const dataToUpdate = {};
 
         if (name !== undefined) dataToUpdate.name = name;
         if (short_title !== undefined) dataToUpdate.short_title = short_title;
+        if (slug !== undefined) dataToUpdate.slug = slug;
+
 
         let newIcon = existing.icon;
 
@@ -132,13 +150,11 @@ exports.updateCategory = catchAsync(async (req, res) => {
             dataToUpdate.icon = newIcon;
         }
 
-        // 4️⃣ Update category
         const category = await prisma.category.update({
             where: { id: parseInt(id) },
             data: dataToUpdate,
         });
 
-        // 5️⃣ Delete old icon AFTER successful update
         if (uploadedFiles.icon && existing.icon) {
             deleteUploadedFiles([existing.icon]);
         }
@@ -155,7 +171,7 @@ exports.updateCategory = catchAsync(async (req, res) => {
 
         // Cleanup uploaded file if update fails
         if (uploadedFiles.icon) {
-            require("fs").unlink(uploadedFiles.icon, () => {});
+            require("fs").unlink(uploadedFiles.icon, () => { });
         }
 
         return errorResponse(res, "Failed to update category", 500, error);
@@ -163,40 +179,75 @@ exports.updateCategory = catchAsync(async (req, res) => {
 });
 
 exports.deleteCategory = catchAsync(async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!id) {
-      return validationErrorResponse(res, "Category ID is required", 400);
-    }
-    const existingcategory = await prisma.category.findUnique({
-      where: {
-        id: parseInt(id),
-      }
-    });
-    if (!existingcategory) {
-      return validationErrorResponse(res, "Category not found", 404);
-    }
-    let updatedRecord;
-    if (existingcategory.deleted_at) {
-      updatedRecord = await prisma.category.update({
-        where: { id: parseInt(id) },
-        data: { deleted_at: null }
-      });
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return validationErrorResponse(res, "Category ID is required", 400);
+        }
+        const existingcategory = await prisma.category.findUnique({
+            where: {
+                id: parseInt(id),
+            }
+        });
+        if (!existingcategory) {
+            return validationErrorResponse(res, "Category not found", 404);
+        }
+        let updatedRecord;
+        if (existingcategory.deleted_at) {
+            updatedRecord = await prisma.category.update({
+                where: { id: parseInt(id) },
+                data: { deleted_at: null }
+            });
 
-      return successResponse(res, "Category restored successfully", 200, updatedRecord);
-    }
+            return successResponse(res, "Category restored successfully", 200, updatedRecord);
+        }
 
-    updatedRecord = await prisma.category.update({
-      where: { id: parseInt(id) },
-      data: { deleted_at: new Date() }
-    });
+        updatedRecord = await prisma.category.update({
+            where: { id: parseInt(id) },
+            data: { deleted_at: new Date() }
+        });
 
-    return successResponse(res, "Category deleted successfully", 200, updatedRecord);
-  } catch (error) {
-    if (error.code === 'P2025') {
-      return errorResponse(res, "Category not found", 404);
+        return successResponse(res, "Category deleted successfully", 200, updatedRecord);
+    } catch (error) {
+        if (error.code === 'P2025') {
+            return errorResponse(res, "Category not found", 404);
+        }
+        return errorResponse(res, error.message, 500);
     }
-    return errorResponse(res, error.message, 500);
-  }
 });
 
+
+
+exports.listcategroy = catchAsync(async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return validationErrorResponse(res, "Category ID is required", 400);
+        }
+        const existingcategory = await prisma.category.findFirst({
+            where: {
+                slug: id,
+            }
+        });
+        const record = existingcategory.id;
+
+        const program = await prisma.program.findMany({
+            where: {
+                category_id: Number(record)
+            }
+        })
+
+        return successResponse(
+            res,
+            "Category Program List successfully",
+            200,
+            program
+        );
+
+    } catch (error) {
+        if (error.code === 'P2025') {
+            return errorResponse(res, "Category not found", 404);
+        }
+        return errorResponse(res, error.message, 500);
+    }
+})
