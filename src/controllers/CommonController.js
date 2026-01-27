@@ -429,6 +429,8 @@ exports.GetApprovalUniversity = catchAsync(async (req, res) => {
     }
 
 console.log("placementPartners" ,placementPartners)
+console.log("approvalsData" ,approvalsData)
+
     return successResponse(
       res,
       "University fetched successfully",
