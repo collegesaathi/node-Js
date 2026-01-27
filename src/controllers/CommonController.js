@@ -428,7 +428,7 @@ exports.GetApprovalUniversity = catchAsync(async (req, res) => {
       });
     }
 
-
+console.log("placementPartners" ,placementPartners)
     return successResponse(
       res,
       "University fetched successfully",

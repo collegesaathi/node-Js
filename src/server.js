@@ -10,16 +10,16 @@ const path = require("path");
 const corsOptions = {
   origin: "*", // Allowed origins
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  // allowedHeaders: "*", // Allow all headers
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-    "Origin",
-    "Cache-Control",
-    "Pragma"
-  ],
+  allowedHeaders: "*", // Allow all headers
+  // allowedHeaders: [
+  //   "Content-Type",
+  //   "Authorization",
+  //   "X-Requested-With",
+  //   "Accept",
+  //   "Origin",
+  //   "Cache-Control",
+  //   "Pragma"
+  // ],
   credentials: true,
   optionsSuccessStatus: 200, // for legacy browsers
 };
