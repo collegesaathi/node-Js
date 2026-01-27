@@ -7,19 +7,23 @@ const app = express();
 const cors = require("cors");
 const path = require("path");
 // const serverless = require('serverless-http');
-
-
-app.use(
-  cors({
-    origin: [
-"http://localhost:3000",
-      "https://indiaprograms.com",
-      "https://www.indiaprograms.com"
-    ],
-    credentials: true,
-    methods: "GET,POST,PUT,DELETE,PATCH,OPTIONS",
-  })
-);
+const corsOptions = {
+  origin: "*", // Allowed origins
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  // allowedHeaders: "*", // Allow all headers
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
+    "Cache-Control",
+    "Pragma"
+  ],
+  credentials: true,
+  optionsSuccessStatus: 200, // for legacy browsers
+};
+app.use(cors(corsOptions));
 
 // app.use(
 //   cors({
