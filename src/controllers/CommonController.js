@@ -521,4 +521,172 @@ exports.GetPlacementList = catchAsync(async (req, res) => {
   } 
 });
 
+exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
+  try {
+    const { program_slug, program_specialisation_slug } = req.query;
+
+    if (!program_slug && !program_specialisation_slug) {
+      return errorResponse(
+        res,
+        "Either program_slug or program_specialisation_slug is required",
+        400
+      );
+    }
+
+    let universityIds = [];
+
+    /* -------------------------------------------------
+       CASE 1: PROGRAM SLUG
+    --------------------------------------------------*/
+    if (program_slug) {
+      const program = await prisma.program.findFirst({
+        where: {
+          slug: program_slug,
+          deleted_at: null,
+        },
+        select: {
+          university_id: true,
+        },
+      });
+
+      if (!program) {
+        return errorResponse(res, "Program not found", 404);
+      }
+
+      universityIds = program.university_id || [];
+    }
+
+    /* -------------------------------------------------
+       CASE 2: SPECIALISATION PROGRAM SLUG
+    --------------------------------------------------*/
+    if (program_specialisation_slug) {
+      const specialisation = await prisma.specialisationProgram.findFirst({
+        where: {
+          slug: program_specialisation_slug,
+          deleted_at: null,
+        },
+        select: {
+          university_id: true,
+        },
+      });
+
+      if (!specialisation) {
+        return errorResponse(res, "Specialisation program not found", 404);
+      }
+
+      universityIds = specialisation.university_id || [];
+    }
+
+    /* -------------------------------------------------
+       VALIDATE UNIVERSITY IDS
+    --------------------------------------------------*/
+    if (!Array.isArray(universityIds) || universityIds.length === 0) {
+      return successResponse(res, "No universities found", 200, []);
+    }
+
+    /* -------------------------------------------------
+       FETCH UNIVERSITIES
+    --------------------------------------------------*/
+    const universities = await prisma.university.findMany({
+      where: {
+        id: {
+          in: universityIds.map(Number),
+        },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        icon_alt: true,
+        cover_image_alt: true,
+      },
+      orderBy: {
+        position: "asc",
+      },
+    });
+
+    return successResponse(res, "Similar universities fetched successfully", 200, universities);
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+exports.GetOtherSpecialisations = catchAsync(async (req, res) => {
+  try {
+    const { program_slug, program_specialisation_slug } = req.query;
+
+    // ------------------ VALIDATION ------------------
+    if (!program_slug || !program_specialisation_slug) {
+      return errorResponse(
+        res,
+        "program_slug & program_specialisation_slug is required",
+        400
+      );
+    }
+
+    // ------------------ FETCH PROGRAM ------------------
+    const program = await prisma.program.findFirst({
+      where: {
+        slug: program_slug,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!program) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    // ------------------ FETCH OTHER SPECIALISATIONS ------------------
+    const otherSpecialisations = await prisma.specialisationProgram.findMany({
+      where: {
+        program_id: program.id,
+        slug: {
+          not: program_specialisation_slug, // ✅ skip current specialisation
+        },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        icon: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+        shortDescription: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    // ------------------ RESPONSE ------------------
+    if (otherSpecialisations.length === 0) {
+      return successResponse(
+        res,
+        "No other specialisations found",
+        200,
+        []
+      );
+    }
+
+    return successResponse(
+      res,
+      "Other specialisations fetched successfully",
+      200,
+      otherSpecialisations
+    );
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
 
