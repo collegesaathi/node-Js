@@ -83,35 +83,35 @@ exports.AddClickPick = catchAsync(async (req, res) => {
       specialisation_graph_value,
     } = req.body;
 
- const data = {
-  category_id: category_id ? Number(category_id) : undefined,
-  program_id: program_id ? Number(program_id) : undefined,
-  specialisation_program_id: specialisation_program_id
-    ? Number(specialisation_program_id)
-    : undefined,
+    const data = {
+      category_id: category_id ? Number(category_id) : undefined,
+      program_id: program_id ? Number(program_id) : undefined,
+      specialisation_program_id: specialisation_program_id
+        ? Number(specialisation_program_id)
+        : undefined,
 
-  title: title || undefined,
-  description: description || "",
+      title: title || undefined,
+      description: description || "",
 
-  graph_title: graph_title || undefined,
-  graph_value: graph_value ? safeParseArray(graph_value) : undefined,
+      graph_title: graph_title || undefined,
+      graph_value: graph_value ? safeParseArray(graph_value) : undefined,
 
-  rounded_graph_title: rounded_graph_title || undefined,
-  rounded_graph_desc: rounded_graph_desc || "",
+      rounded_graph_title: rounded_graph_title || undefined,
+      rounded_graph_desc: rounded_graph_desc || "",
 
-  bottom_title: bottom_title || undefined,
-  bottom_description: bottom_description || "",
+      bottom_title: bottom_title || undefined,
+      bottom_description: bottom_description || "",
 
-  specialization_merged_title: specialization_merged_title || undefined,
-  specialization_merged_desc: specialization_merged_desc || undefined,
-  specialization_merged_content: specialization_merged_content || undefined,
+      specialization_merged_title: specialization_merged_title || undefined,
+      specialization_merged_desc: specialization_merged_desc || undefined,
+      specialization_merged_content: specialization_merged_content || undefined,
 
-  salary_graph_title: salary_graph_title || undefined,
-  salary_graph_value: salary_graph_value || undefined,
+      salary_graph_title: salary_graph_title || undefined,
+      salary_graph_value: salary_graph_value || undefined,
 
-  specialisation_graph_title: specialisation_graph_title || undefined,
-  specialisation_graph_value: specialisation_graph_value || undefined,
-};
+      specialisation_graph_title: specialisation_graph_title || undefined,
+      specialisation_graph_value: specialisation_graph_value || undefined,
+    };
 
 
     /* ================= DB INSERT ================= */
@@ -346,118 +346,117 @@ exports.updateRecord = catchAsync(async (req, res) => {
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
-    const {
-      category_id,
-      program_id,
-      specialisation_id
-    } = req.query;
-    // Build dynamic where condition for ClickPick
-    const whereCondition = {
-      deleted_at: null
-    };
+    const { category_id, program_id, specialisation_id } = req.query;
+
+    // ----------------------------
+    // 1️⃣ Build OR condition
+    // ----------------------------
+    const orConditions = [];
 
     if (category_id) {
-      whereCondition.category_id = Number(category_id);
+      orConditions.push({
+        category_id: Number(category_id)
+      });
     }
 
     if (program_id) {
-      whereCondition.program_id = Number(program_id);
+      orConditions.push({
+        program_id: Number(program_id)
+      });
     }
 
     if (specialisation_id) {
-      whereCondition.specialisation_program_id = Number(specialisation_id);
+      orConditions.push({
+        specialisation_program_id: Number(specialisation_id)
+      });
     }
 
-    // Optional: prevent empty query
-    if (!category_id && !program_id && !specialisation_id) {
+    if (orConditions.length === 0) {
       return errorResponse(
         res,
-        "At least one ID (category_id, program_id, or specialisation_program_id) is required",
+        "category_id or program_id or specialisation_id is required",
         400
       );
     }
 
-    // Fetch ClickPick record
+
+    // ----------------------------
+    // 2️⃣ Fetch ClickPick
+    // ----------------------------
     const clickPickRecord = await prisma.ClickPick.findFirst({
-      where: whereCondition,
+      where: {
+        deleted_at: null,
+        OR: orConditions
+      },
       include: {
         category: true,
         program: true,
         specialisationProgram: true
       },
       orderBy: {
-        created_at: 'desc'
+        created_at: "desc"
       }
     });
+
+
+    if (!clickPickRecord) {
+      return errorResponse(res, "No ClickPick data found", 404);
+    }
+
+
+
+
+    // ----------------------------
+    // 3️⃣ University fetch logic
+    // ----------------------------
     let universityIds = [];
     let universities = [];
 
-
-    if (clickPickRecord?.specialisationProgram?.university_id) {
+    // Priority 1️⃣ Specialisation
+    if (
+      clickPickRecord.specialisationProgram?.university_id &&
+      Array.isArray(clickPickRecord.specialisationProgram.university_id)
+    ) {
       universityIds = clickPickRecord.specialisationProgram.university_id;
-      // Fetch universities using the IDs from specialisationProgram
+    }
+
+    // Priority 2️⃣ Program
+    else if (
+      clickPickRecord.program?.university_id &&
+      Array.isArray(clickPickRecord.program.university_id)
+    ) {
+      universityIds = clickPickRecord.program.university_id;
+    }
+
+    if (universityIds.length > 0) {
       universities = await prisma.University.findMany({
         where: {
-          id: {
-            in: universityIds.map(id => Number(id))
-          },
-          deleted_at: null,
-        },
-        orderBy: {
-          id: 'asc'
+          id: { in: universityIds.map(Number) },
+          deleted_at: null
         }
       });
 
-      // Sort universities to match the order in university_id array
-      universities.sort((a, b) => {
-        const indexA = universityIds.indexOf(a.id);
-        const indexB = universityIds.indexOf(b.id);
-        return indexA - indexB;
-      });
-    }
-    // Fallback: if no specialisationProgram but program exists
-    else if (clickPickRecord?.program?.id) {
-      universityIds = clickPickRecord?.program.university_id;
-
-      universities = await prisma.University.findMany({
-        where: {
-          id: {
-            in: universityIds.map(id => Number(id))
-          },
-          deleted_at: null,
-        },
-        orderBy: {
-          id: 'asc'
-        }
-      });
-
-      universityIds = universities.map(univ => univ.id);
+      // Maintain order
+      universities.sort(
+        (a, b) => universityIds.indexOf(a.id) - universityIds.indexOf(b.id)
+      );
     }
 
-    // Prepare response data
-    const responseData = {
-      clickPick: {
-        ...clickPickRecord,
-        specialisationProgram: clickPickRecord?.specialisationProgram ? {
-          ...clickPickRecord?.specialisationProgram,
-          university_id: undefined // Remove if you don't want to send it
-        } : null
-      },
-      universities: universities,
-    };
-
-    return successResponse(
-      res,
-      "Data fetched successfully",
-      200,
-      responseData
-    );
+    // ----------------------------
+    // 4️⃣ Final response
+    // ----------------------------
+    return successResponse(res, "Data fetched successfully", 200, {
+      clickPick: clickPickRecord,
+      universities
+    });
 
   } catch (error) {
-    console.error("Error in GetClickpickData:", error);
+    console.error("GetClickpickData error:", error);
     return errorResponse(res, error.message, 500);
   }
 });
+
+
 
 
 
@@ -1190,12 +1189,12 @@ exports.compareSpeData = catchAsync(async (req, res) => {
 
           approvals: university.approvals
             ? {
-                approval_ids: university.approvals.approval_ids || [],
-                approval_list:
-                  university.approvals.approval_ids
-                    ?.map(id => approvalMap[id])
-                    .filter(Boolean) || [],
-              }
+              approval_ids: university.approvals.approval_ids || [],
+              approval_list:
+                university.approvals.approval_ids
+                  ?.map(id => approvalMap[id])
+                  .filter(Boolean) || [],
+            }
             : null,
 
           pdf_download: university.pdf_download,
@@ -1204,63 +1203,63 @@ exports.compareSpeData = catchAsync(async (req, res) => {
 
         course: matchedCourse
           ? {
-              course_data: {
-                id: matchedCourse.id,
-                name: matchedCourse.name,
-                slug: matchedCourse.slug,
-              },
+            course_data: {
+              id: matchedCourse.id,
+              name: matchedCourse.name,
+              slug: matchedCourse.slug,
+            },
 
-              specialisation: matchedSpec
-                ? {
-                    id: matchedSpec.id,
-                    name: matchedSpec.name,
-                    slug: matchedSpec.slug,
-                    description: matchedSpec.description,
-                    mode_of_education: matchedSpec.mode_of_education,
-                    time_frame: matchedSpec.time_frame,
+            specialisation: matchedSpec
+              ? {
+                id: matchedSpec.id,
+                name: matchedSpec.name,
+                slug: matchedSpec.slug,
+                description: matchedSpec.description,
+                mode_of_education: matchedSpec.mode_of_education,
+                time_frame: matchedSpec.time_frame,
 
-                    approvals: {
-                      approval_ids: matchedSpec.approvals?.approval_ids || [],
-                      approval_list:
-                        matchedSpec.approvals?.approval_ids
-                          ?.map(id => approvalMap[id])
-                          .filter(Boolean) || [],
-                    },
+                approvals: {
+                  approval_ids: matchedSpec.approvals?.approval_ids || [],
+                  approval_list:
+                    matchedSpec.approvals?.approval_ids
+                      ?.map(id => approvalMap[id])
+                      .filter(Boolean) || [],
+                },
 
-                    fees: matchedSpec.fees
-                      ? {
-                          semester_wise_fees: matchedSpec.fees.semester_wise_fees,
-                          tuition_fees: matchedSpec.fees.tuition_fees,
-                        }
-                      : null,
-
-                    financialAid: matchedSpec.financialAid
-                      ? extractFinancialAidFlags(matchedSpec.financialAid.description)
-                      : null,
-
-                    partners: {
-                      placement_partners:
-                        matchedSpec.partners?.placement_partner_id?.length > 0,
-                    },
-
-                    eligibilitycriteria: matchedSpec.eligibilitycriteria
-                      ? {
-                          description: matchedSpec.eligibilitycriteria.description,
-                          IndianCriteria: matchedSpec.eligibilitycriteria.IndianCriteria,
-                          NRICriteria: matchedSpec.eligibilitycriteria.NRICriteria,
-                          notes: matchedSpec.eligibilitycriteria.notes,
-                        }
-                      : null,
-
-                    curriculum: matchedSpec.curriculum
-                      ? {
-                          semesters: matchedSpec.curriculum.semesters,
-                          total_credits: calculateTotalCredits(matchedSpec.curriculum.semesters),
-                        }
-                      : null,
+                fees: matchedSpec.fees
+                  ? {
+                    semester_wise_fees: matchedSpec.fees.semester_wise_fees,
+                    tuition_fees: matchedSpec.fees.tuition_fees,
                   }
-                : null,
-            }
+                  : null,
+
+                financialAid: matchedSpec.financialAid
+                  ? extractFinancialAidFlags(matchedSpec.financialAid.description)
+                  : null,
+
+                partners: {
+                  placement_partners:
+                    matchedSpec.partners?.placement_partner_id?.length > 0,
+                },
+
+                eligibilitycriteria: matchedSpec.eligibilitycriteria
+                  ? {
+                    description: matchedSpec.eligibilitycriteria.description,
+                    IndianCriteria: matchedSpec.eligibilitycriteria.IndianCriteria,
+                    NRICriteria: matchedSpec.eligibilitycriteria.NRICriteria,
+                    notes: matchedSpec.eligibilitycriteria.notes,
+                  }
+                  : null,
+
+                curriculum: matchedSpec.curriculum
+                  ? {
+                    semesters: matchedSpec.curriculum.semesters,
+                    total_credits: calculateTotalCredits(matchedSpec.curriculum.semesters),
+                  }
+                  : null,
+              }
+              : null,
+          }
           : null,
       };
     });

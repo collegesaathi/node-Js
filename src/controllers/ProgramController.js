@@ -204,7 +204,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           conclusion: req.body.conclusion || "",
           specialisationtitle: req.body.specialisationtitle || "",
           specialisationdesc: req.body.specialisationdesc || "",
-          category_id: Number(req.body.category_id) || 1,
+          category_id: Number(req.body.category_id) || "",
         },
       });
 
