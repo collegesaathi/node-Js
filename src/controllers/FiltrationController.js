@@ -347,40 +347,30 @@ exports.ApprovalFilter = catchAsync(async (req, res) => {
 
 exports.GetFilterApprovalbyuniversity = catchAsync(async (req, res) => {
     try {
-        const { selectedApproval } = req.query;
-        console.log(selectedApproval)
+        let { selectedApproval } = req.query;
 
-        const programs = await prisma.SpecialisationProgram.findFirst({
-            where: {
-                id: Number(specialisation_program_id),
-                deleted_at: null
-            },
-            select: {
-                university_id: true,
-            },
-            orderBy: {
-                id: 'asc'
-            }
-        });
-
-        let universityIds = programs.university_id || [];
-
-        /* -------------------------------------------------
-      VALIDATE UNIVERSITY IDS
-   --------------------------------------------------*/
-        if (!Array.isArray(universityIds) || universityIds.length === 0) {
-            return successResponse(res, "No universities found", 200, []);
+        if (!selectedApproval) {
+            return successResponse(res, "No approval selected", 200, []);
         }
 
-        /* -------------------------------------------------
-           FETCH UNIVERSITIES
-        --------------------------------------------------*/
+        const approvalIds = Array.isArray(selectedApproval)
+            ? selectedApproval.map(Number)
+            : [Number(selectedApproval)];
+
+        /* ----------------------------------
+           FETCH UNIVERSITIES BY APPROVAL
+        ---------------------------------- */
         const universities = await prisma.university.findMany({
             where: {
-                id: {
-                    in: universityIds.map(Number),
-                },
                 deleted_at: null,
+
+                approvals: {
+                    is: {
+                        approval_ids: {
+                            array_contains: approvalIds, // ✅ JSON ARRAY MATCH
+                        },
+                    },
+                },
             },
             select: {
                 id: true,
@@ -392,19 +382,21 @@ exports.GetFilterApprovalbyuniversity = catchAsync(async (req, res) => {
                 cover_image_alt: true,
             },
             orderBy: {
-                position: "asc",
+                name: "asc",
             },
         });
 
-
         return successResponse(
             res,
-            "Specializations fetched successfully with universities",
+            "Universities fetched successfully by approval",
             200,
             universities
         );
     } catch (error) {
-        console.error("Error in GetClickPickListData:", error);
+        console.error("GetFilterApprovalbyuniversity Error:", error);
         return errorResponse(res, error.message, 500);
     }
 });
+
+
+

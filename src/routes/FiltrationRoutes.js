@@ -11,7 +11,7 @@ router.get("/filtration/SpecialisationPrograms", GetFilterSpelizationbyuniversit
 
 router.get("/filtration/Approval", ApprovalFilter);
 
-router.get("/filtration/university/", GetFilterApprovalbyuniversity);
+router.get("/filtration/university", GetFilterApprovalbyuniversity);
 
 
 

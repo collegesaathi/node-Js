@@ -1018,7 +1018,7 @@ exports.ProgramDelete = catchAsync(async (req, res) => {
 // All Programs Controller Logic
 exports.AllPrograms = catchAsync(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = 9;
+  const limit = 100;
   const skip = (page - 1) * limit;
 
 
