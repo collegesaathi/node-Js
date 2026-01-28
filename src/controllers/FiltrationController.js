@@ -44,7 +44,7 @@ exports.GetFiltrationList = catchAsync(async (req, res) => {
             });
 
             universityIds = normalizeIds(specialization?.university_id);
-        } 
+        }
         else if (program_id) {
             const program = await prisma.program.findFirst({
                 where: {
@@ -159,3 +159,252 @@ exports.GetFiltrationList = catchAsync(async (req, res) => {
 });
 
 
+
+
+
+exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
+    try {
+        const { category_id } = req.query;
+
+
+        const programs = await prisma.Program.findMany({
+            where: {
+                category_id: Number(category_id),
+                deleted_at: null
+            },
+            orderBy: {
+                id: 'asc'
+            }
+        });
+
+        if (!programs.length) {
+            return errorResponse(
+                res,
+                "No programs found for this category",
+                404
+            );
+        }
+
+        return successResponse(
+            res,
+            "Specializations fetched successfully with universities",
+            200,
+            programs
+        );
+    } catch (error) {
+        console.error("Error in GetClickPickListData:", error);
+        return errorResponse(res, error.message, 500);
+    }
+});
+
+
+exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
+    try {
+        const { program_id } = req.query;
+
+        const programs = await prisma.Program.findFirst({
+            where: {
+                id: Number(program_id),
+                deleted_at: null
+            },
+            select: {
+                university_id: true,
+            },
+            orderBy: {
+                id: 'asc'
+            }
+        });
+
+        let universityIds = programs.university_id || [];
+        /* -------------------------------------------------
+      VALIDATE UNIVERSITY IDS
+   --------------------------------------------------*/
+        if (!Array.isArray(universityIds) || universityIds.length === 0) {
+            return successResponse(res, "No universities found", 200, []);
+        }
+
+        /* -------------------------------------------------
+           FETCH UNIVERSITIES
+        --------------------------------------------------*/
+        const universities = await prisma.university.findMany({
+            where: {
+                id: {
+                    in: universityIds.map(Number),
+                },
+                deleted_at: null,
+            },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                icon: true,
+                cover_image: true,
+                icon_alt: true,
+                cover_image_alt: true,
+            },
+            orderBy: {
+                position: "asc",
+            },
+        });
+
+        const SpecialisationPrograms = await prisma.SpecialisationProgram.findMany({
+            where: {
+                program_id: Number(program_id),
+                deleted_at: null
+            },
+            orderBy: {
+                id: 'asc'
+            }
+        });
+
+
+        return successResponse(
+            res,
+            "Specializations fetched successfully with universities",
+            200,
+            {
+                SpecialisationPrograms, universities
+            }
+        );
+    } catch (error) {
+        console.error("Error in GetClickPickListData:", error);
+        return errorResponse(res, error.message, 500);
+    }
+});
+
+
+exports.GetFilterSpelizationbyuniversity = catchAsync(async (req, res) => {
+    try {
+        const { specialisation_program_id } = req.query;
+
+        const programs = await prisma.SpecialisationProgram.findFirst({
+            where: {
+                id: Number(specialisation_program_id),
+                deleted_at: null
+            },
+            select: {
+                university_id: true,
+            },
+            orderBy: {
+                id: 'asc'
+            }
+        });
+
+        let universityIds = programs.university_id || [];
+
+        /* -------------------------------------------------
+      VALIDATE UNIVERSITY IDS
+   --------------------------------------------------*/
+        if (!Array.isArray(universityIds) || universityIds.length === 0) {
+            return successResponse(res, "No universities found", 200, []);
+        }
+
+        /* -------------------------------------------------
+           FETCH UNIVERSITIES
+        --------------------------------------------------*/
+        const universities = await prisma.university.findMany({
+            where: {
+                id: {
+                    in: universityIds.map(Number),
+                },
+                deleted_at: null,
+            },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                icon: true,
+                cover_image: true,
+                icon_alt: true,
+                cover_image_alt: true,
+            },
+            orderBy: {
+                position: "asc",
+            },
+        });
+
+
+        return successResponse(
+            res,
+            "Specializations fetched successfully with universities",
+            200,
+            universities
+        );
+    } catch (error) {
+        console.error("Error in GetClickPickListData:", error);
+        return errorResponse(res, error.message, 500);
+    }
+});
+
+exports.ApprovalFilter = catchAsync(async (req, res) => {
+    // --- Fetch Approvals ---
+    let approvals = await prisma.approvals.findMany({
+        orderBy: { created_at: "asc" },
+    });
+
+    return successResponse(res, "Admin university data fetched successfully", 200, approvals);
+});
+
+exports.GetFilterApprovalbyuniversity = catchAsync(async (req, res) => {
+    try {
+        const { selectedApproval } = req.query;
+        console.log(selectedApproval)
+
+        const programs = await prisma.SpecialisationProgram.findFirst({
+            where: {
+                id: Number(specialisation_program_id),
+                deleted_at: null
+            },
+            select: {
+                university_id: true,
+            },
+            orderBy: {
+                id: 'asc'
+            }
+        });
+
+        let universityIds = programs.university_id || [];
+
+        /* -------------------------------------------------
+      VALIDATE UNIVERSITY IDS
+   --------------------------------------------------*/
+        if (!Array.isArray(universityIds) || universityIds.length === 0) {
+            return successResponse(res, "No universities found", 200, []);
+        }
+
+        /* -------------------------------------------------
+           FETCH UNIVERSITIES
+        --------------------------------------------------*/
+        const universities = await prisma.university.findMany({
+            where: {
+                id: {
+                    in: universityIds.map(Number),
+                },
+                deleted_at: null,
+            },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                icon: true,
+                cover_image: true,
+                icon_alt: true,
+                cover_image_alt: true,
+            },
+            orderBy: {
+                position: "asc",
+            },
+        });
+
+
+        return successResponse(
+            res,
+            "Specializations fetched successfully with universities",
+            200,
+            universities
+        );
+    } catch (error) {
+        console.error("Error in GetClickPickListData:", error);
+        return errorResponse(res, error.message, 500);
+    }
+});
