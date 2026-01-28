@@ -83,35 +83,36 @@ exports.AddClickPick = catchAsync(async (req, res) => {
       specialisation_graph_value,
     } = req.body;
 
-    const data = {
-      category_id: category_id ? Number(category_id) : null,
-      program_id: program_id ? Number(program_id) : null,
-      specialisation_program_id: specialisation_program_id
-        ? Number(specialisation_program_id)
-        : null,
+ const data = {
+  category_id: category_id ? Number(category_id) : undefined,
+  program_id: program_id ? Number(program_id) : undefined,
+  specialisation_program_id: specialisation_program_id
+    ? Number(specialisation_program_id)
+    : undefined,
 
-      title: title || null,
-      description: description || "",
+  title: title || undefined,
+  description: description || "",
 
-      graph_title: graph_title || null,
-      graph_value: graph_value ? safeParseArray(graph_value) : null,
+  graph_title: graph_title || undefined,
+  graph_value: graph_value ? safeParseArray(graph_value) : undefined,
 
-      rounded_graph_title: rounded_graph_title || null,
-      rounded_graph_desc: rounded_graph_desc || "",
+  rounded_graph_title: rounded_graph_title || undefined,
+  rounded_graph_desc: rounded_graph_desc || "",
 
-      bottom_title: bottom_title || null,
-      bottom_description: bottom_description || "",
+  bottom_title: bottom_title || undefined,
+  bottom_description: bottom_description || "",
 
-      specialization_merged_title: specialization_merged_title || null,
-      specialization_merged_desc: specialization_merged_desc || null,
-      specialization_merged_content: specialization_merged_content || null,
+  specialization_merged_title: specialization_merged_title || undefined,
+  specialization_merged_desc: specialization_merged_desc || undefined,
+  specialization_merged_content: specialization_merged_content || undefined,
 
-      salary_graph_title: salary_graph_title || null,
-      salary_graph_value: salary_graph_value || null,
+  salary_graph_title: salary_graph_title || undefined,
+  salary_graph_value: salary_graph_value || undefined,
 
-      specialisation_graph_title: specialisation_graph_title || null,
-      specialisation_graph_value: specialisation_graph_value || null,
-    };
+  specialisation_graph_title: specialisation_graph_title || undefined,
+  specialisation_graph_value: specialisation_graph_value || undefined,
+};
+
 
     /* ================= DB INSERT ================= */
     const record = await prisma.ClickPick.create({
