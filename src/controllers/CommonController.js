@@ -753,5 +753,101 @@ exports.GetAllSpecialisations = catchAsync(async (req, res) => {
 });
 
 
+exports.GetPopupUniversityData = catchAsync(async (req, res) => {
+  try {
+    const { university_slug } = req.query;
+
+    if (!university_slug) {
+      return errorResponse(res, "university_slug is required", 400);
+    }
+
+    // 1️⃣ Fetch University with relations
+    const university = await prisma.university.findUnique({
+      where: {
+        slug: university_slug,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        rank: true,
+
+        // Courses
+        courses: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+
+        // Campus
+        universityCampuses: {
+          select: {
+            campus: true,
+            campusInternationList: true,
+          },
+        },
+
+        // Approvals Management
+        approvals: {
+          select: {
+            title: true,
+            description: true,
+            approval_ids: true,
+          },
+        },
+      },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    // 2️⃣ Fetch approvals data using approval_ids
+    let approvalsData = [];
+
+    if (
+      university.approvals &&
+      Array.isArray(university.approvals.approval_ids)
+    ) {
+      approvalsData = await prisma.approvals.findMany({
+        where: {
+          id: {
+            in: university.approvals.approval_ids,
+          },
+        },
+        select: {
+          id: true,
+          title: true,
+          image: true,
+        },
+      });
+    }
+
+    // 3️⃣ Final response
+    return successResponse(res, "Popup university data fetched", {
+      name: university.name,
+      description: university.description,
+      rank: university.rank,
+
+      approvals: {
+        title: university.approvals?.title || null,
+        description: university.approvals?.description || null,
+        items: approvalsData,
+      },
+
+      courses: university.courses,
+
+      campuses: university.universityCampuses,
+    });
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+
 
 

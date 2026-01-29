@@ -56,6 +56,7 @@ model University {
   rankings           Rankings?
   services           Services?
   seo                Seo?
+  reviews            Review[]
 }
 
 
@@ -963,4 +964,39 @@ model Job {
   created_at     DateTime @default(now())
    updated_at       DateTime @updatedAt
     deleted_at          DateTime?
+}
+
+model Review {
+  id                                        Int         @id @default(autoincrement())
+  university_id                             Int?
+  random_string                             String?
+  name                                      String?
+  email                                     String?
+
+  review_title                              String?
+  review_description                        String?
+  average_rating                            Int?
+
+  infrastructure_rating                     Int?
+  infrastructure_rating_titile              String?
+  infrastructure_rating_description         String?
+
+  course_curriculum                         Int?
+  course_curriculum_title                   String?
+  course_curriculum_description             String?
+
+  value_for_money                           Int?
+  value_for_money_title                     String?
+  value_for_money_description               String?
+
+  status                                    Int?          @default(0)
+  is_anonymous                              Int?          @default(0) 
+  is_approved                               Int?          @default(0)
+  is_approved_date                          DateTime? 
+
+  created_at                                DateTime      @default(now())
+  updated_at                                DateTime      @updatedAt
+  deleted_at                                DateTime?
+
+  university        University? @relation(fields: [university_id], references: [id])
 }
