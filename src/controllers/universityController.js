@@ -765,7 +765,7 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       uploadedFiles[file.fieldname] = file.path;
     });
 
-    Loggers.silly(req.body)
+    Loggers.silly(uploadedFiles)
 
     // Parse arrays
     let services = parseArray(req.body.services);
@@ -839,11 +839,9 @@ exports.updateUniversity = catchAsync(async (req, res) => {
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
 
-      pdf_download:
-        uploadedFiles["pdf_download"]
-          ? (deleteUploadedFiles([existing?.cover_image]),
-            toPublicUrl(req, uploadedFiles["pdf_download"]))
-          : existing?.pdf_download || null,
+       pdf_download: uploadedFiles.pdf_download?.[0]
+          ? toPublicUrl(req, uploadedFiles.pdf_download[0])
+          : existing.pdf_download,
 
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
