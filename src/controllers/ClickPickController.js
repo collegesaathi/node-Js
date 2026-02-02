@@ -2,6 +2,41 @@ const { errorResponse, successResponse, validationErrorResponse } = require("../
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 
+
+function levenshteinDistance(a, b) {
+  if (!a) return b.length;
+  if (!b) return a.length;
+
+  const matrix = Array.from({ length: b.length + 1 }, () =>
+    Array(a.length + 1).fill(0)
+  );
+
+  for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+  for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+
+  for (let j = 1; j <= b.length; j++) {
+    for (let i = 1; i <= a.length; i++) {
+      if (a[i - 1] === b[j - 1]) {
+        matrix[j][i] = matrix[j - 1][i - 1];
+      } else {
+        matrix[j][i] = Math.min(
+          matrix[j - 1][i] + 1,     // deletion
+          matrix[j][i - 1] + 1,     // insertion
+          matrix[j - 1][i - 1] + 1  // substitution
+        );
+      }
+    }
+  }
+
+  return matrix[b.length][a.length];
+}
+
+
+function similarityScore(a, b) {
+  if (!a || !b) return 0;
+  return 1 - levenshteinDistance(a, b) / Math.max(a.length, b.length);
+}
+
 const extractFinancialAidFlags = (description = "") => {
   if (!description) {
     return {
@@ -342,8 +377,6 @@ exports.updateRecord = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id, specialisation_id } = req.query;
@@ -379,7 +412,6 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
       );
     }
 
-
     // ----------------------------
     // 2️⃣ Fetch ClickPick
     // ----------------------------
@@ -398,13 +430,25 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
       }
     });
 
-
     if (!clickPickRecord) {
       return errorResponse(res, "No ClickPick data found", 404);
     }
 
+    // ----------------------------
+    // 2.5️⃣ Specialisation Check Flag (NEW)
+    // ----------------------------
+    let spec = false;
 
+    if (program_id) {
+      const specCheck = await prisma.SpecialisationProgram.findFirst({
+        where: {
+          program_id: Number(program_id),
+          deleted_at: null
+        }
+      });
 
+      spec = specCheck ? true : false;
+    }
 
     // ----------------------------
     // 3️⃣ University fetch logic
@@ -446,6 +490,7 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
     // 4️⃣ Final response
     // ----------------------------
     return successResponse(res, "Data fetched successfully", 200, {
+      spec,                 // ✅ true / false
       clickPick: clickPickRecord,
       universities
     });
@@ -455,10 +500,6 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
-
-
-
-
 
 
 exports.GetClickPickListData = catchAsync(async (req, res) => {
@@ -502,13 +543,13 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
         }
       });
 
-      if (!programs.length) {
-        return errorResponse(
-          res,
-          "No programs found for this category",
-          404
-        );
-      }
+      // if (!programs.length) {
+      //   return errorResponse(
+      //     res,
+      //     "No programs found for this category",
+      //     404
+      //   );
+      // }
 
 
 
@@ -550,13 +591,13 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
         }
       });
 
-      if (!specialisations.length) {
-        return errorResponse(
-          res,
-          "No specializations found for this program",
-          404
-        );
-      }
+      // if (!specialisations.length) {
+      //   return errorResponse(
+      //     res,
+      //     "No specializations found for this program",
+      //     404
+      //   );
+      // }
       return successResponse(
         res,
         "Specializations fetched successfully with universities",
@@ -571,114 +612,107 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
 });
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exports.compareData = catchAsync(async (req, res) => {
   try {
-    const { universities, course_name, specialisation_name } = req.query;
+    const { universities, course_name } = req.query;
 
-    /* ================= BASIC VALIDATION ================= */
+    /* ================= VALIDATION ================= */
     if (!universities || !course_name) {
       return errorResponse(res, "Missing required query parameters", 400);
     }
 
     /* ================= HELPERS ================= */
 
-    // slug clean
+    function normalizeSlug(str) {
+      if (!str) return "";
 
-    // SEO remove + hyphen → space
-    const normalizeName = (v = "") =>
-      v
-        .split("--")[0]
-        .toLowerCase()
-        .replace(/-+/g, " ")
+      return cleanSlug(str)
+        .replace(/dr-/g, "")          
+        .replace(/d-y-/g, "dy-")      
+        .replace(/dypatil/g, "dy-patil")
+        .replace(/dy--patil/g, "dy-patil")
+        .replace(/university/g, "")
+        .replace(/college/g, "")
+        .replace(/institute/g, "")
+        .replace(/of/g, "")
+        .replace(/the/g, "")
+        .replace(/--+/g, "-")
         .trim();
+    }
 
-    // 🔥 STRONG COURSE TYPE DETECTOR
-    const extractCourseType = (text = "") => {
-      const types = [
-        "mba",
-        "mca",
-        "bba",
-        "msc",
-        "ba",
-        "bcom",
-        "mcom",
-        "executive mba",
-      ];
+    function smartTokenSimilarity(a, b) {
+      const na = normalizeSlug(a).split("-").filter(Boolean);
+      const nb = normalizeSlug(b).split("-").filter(Boolean);
 
-      const lower = text.toLowerCase();
-      return types.find(type => lower.includes(type)) || null;
-    };
-
-    const STOP_WORDS = ["updated", "guide", "overview", "details", "2024", "2025"];
-
-    // 🔥 FINAL SAFE FILTER (MBA ≠ BA GUARANTEED)
-    const buildSafeANDFilter = (text = "") => {
-      const cleanText = text
-        .toLowerCase()
-        .replace(/-+/g, " ")
-        .trim();
-
-      const words = cleanText
-        .split(" ")
-        .filter(w => w.length >= 2 && !STOP_WORDS.includes(w));
-
-      const courseType = extractCourseType(cleanText);
-
-      const andFilters = [];
-
-      // normal word matching
-      words.forEach(word => {
-        if (word !== courseType) {
-          andFilters.push({
-            name: { contains: word, mode: "insensitive" },
-          });
-        }
+      let match = 0;
+      na.forEach(t => {
+        if (nb.includes(t)) match++;
       });
 
-      // strict course type
-      if (courseType) {
-        andFilters.push({
-          name: {
-            contains: courseType,
-            mode: "insensitive",
-          },
-        });
+      return match / Math.max(na.length, nb.length); // 0 → 1
+    }
+
+    function levenshteinDistance(a, b) {
+      if (!a) return b.length;
+      if (!b) return a.length;
+
+      const matrix = Array.from({ length: b.length + 1 }, () =>
+        Array(a.length + 1).fill(0)
+      );
+
+      for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
+      for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
+
+      for (let j = 1; j <= b.length; j++) {
+        for (let i = 1; i <= a.length; i++) {
+          if (a[i - 1] === b[j - 1]) {
+            matrix[j][i] = matrix[j - 1][i - 1];
+          } else {
+            matrix[j][i] = Math.min(
+              matrix[j - 1][i] + 1,     // delete
+              matrix[j][i - 1] + 1,     // insert
+              matrix[j - 1][i - 1] + 1  // replace
+            );
+          }
+        }
       }
 
-      // 🔥🔥 MAIN FIX: ONLINE MBA ≠ EXECUTIVE MBA
-      if (
-        courseType === "mba" &&
-        !cleanText.includes("executive")
-      ) {
-        andFilters.push({
-          NOT: {
-            name: {
-              contains: "executive",
-              mode: "insensitive",
-            },
-          },
-        });
-      }
+      return matrix[b.length][a.length];
+    }
 
-      return andFilters;
-    };
+    function similarityScore(a, b) {
+      if (!a || !b) return 0;
+      const d = levenshteinDistance(a, b);
+      return 1 - d / Math.max(a.length, b.length); // 0–1
+    }
 
+    /* ================= INPUT ================= */
+    const inputUniversitySlugs = cleanSlug(universities).split("-vs-");
+    const courseSlugInputRaw = cleanSlug(course_name);
+    const courseSlugInput = normalizeSlug(courseSlugInputRaw);
 
-    /* ================= NORMALIZE INPUT ================= */
-
-    const universitySlugs = cleanSlug(universities).split("-vs-");
-    const courseSearchText = normalizeName(course_name);
-    const specialisationSearchText = specialisation_name
-      ? normalizeName(specialisation_name)
-      : null;
-
-    /* ================= FETCH UNIVERSITIES ================= */
-
-    const universityRecords = await prisma.university.findMany({
-      where: {
-        slug: { in: universitySlugs },
-        deleted_at: null,
-      },
+    /* ================= FETCH ALL UNIVERSITIES ================= */
+    const allUniversities = await prisma.university.findMany({
+      where: { deleted_at: null },
       select: {
         id: true,
         name: true,
@@ -687,147 +721,233 @@ exports.compareData = catchAsync(async (req, res) => {
         cover_image: true,
         rank: true,
         pdf_download: true,
+        approvals: true,
+        partners: true,
       },
     });
 
-    if (!universityRecords.length) {
-      return errorResponse(res, "Universities not found", 404);
+    if (!allUniversities.length) {
+      return errorResponse(res, "No universities found in DB", 404);
     }
 
-    const universityIds = universityRecords.map(u => u.id);
+    /* ================= UNIVERSITY MATCHING ================= */
+    const matchedUniversities = [];
 
+    inputUniversitySlugs.forEach(inputSlugRaw => {
+      const inputSlug = normalizeSlug(inputSlugRaw);
 
-    /* ======================================================
-       CASE 1️⃣ : UNIVERSITY + COURSE (NO SPECIALISATION)
-    ====================================================== */
+      let bestMatch = null;
+      let bestScore = 0;
 
-    if (!specialisationSearchText) {
-      const courses = await prisma.course.findMany({
-        where: {
-          university_id: { in: universityIds },
+      allUniversities.forEach(dbUni => {
+        const dbSlug = normalizeSlug(dbUni.slug);
 
-          // ✅ FINAL SAFE FILTER
-          AND: buildSafeANDFilter(courseSearchText),
+        const charScore = similarityScore(inputSlug, dbSlug);
+        const tokenScore = smartTokenSimilarity(inputSlug, dbSlug);
+        const finalScore = Math.max(charScore, tokenScore);
 
-          deleted_at: null,
-        },
-        include: {
-          university: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              icon: true,
-              cover_image: true,
-              rank: true,
-              approvals: true,
-              partners: true,
-              pdf_download: true,
-            },
+        if (finalScore > bestScore) {
+          bestScore = finalScore;
+          bestMatch = dbUni;
+        }
+      });
+
+      if (bestMatch && bestScore >= 0.6) {   // 60% threshold
+        matchedUniversities.push(bestMatch);
+      }
+    });
+
+    if (!matchedUniversities.length) {
+      return errorResponse(res, "No matching universities found", 404);
+    }
+
+    const universityIds = matchedUniversities.map(u => u.id);
+
+    /* ================= FETCH COURSES ================= */
+    const allCourses = await prisma.course.findMany({
+      where: {
+        university_id: { in: universityIds },
+        deleted_at: null,
+      },
+      include: {
+        university: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            icon: true,
+            cover_image: true,
+            rank: true,
+            approvals: true,
+            partners: true,
+            pdf_download: true,
           },
-          approvals: true,
-          fees: true,
-          financialAid: true,
-          partners: true,
-          eligibilitycriteria: true,
-          curriculum: true,
         },
-      });
-      /* ================= APPROVAL IDS ================= */
+        approvals: true,
+        fees: true,
+        financialAid: true,
+        partners: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+      },
+    });
 
+    if (!allCourses.length) {
+      return successResponse(res, "No courses found for matched universities", 200, []);
+    }
 
-      const approvalIdsSet = new Set();
+    /* ================= SMART COURSE MATCHING ================= */
 
-      courses.forEach(course => {
-        course.university?.approvals?.approval_ids?.forEach(id => {
-          approvalIdsSet.add(id);
+    const matchedCourses = [];
+
+    allCourses.forEach(course => {
+      const dbSlug = normalizeSlug(cleanSlug(course.slug));
+      const dbName = normalizeSlug(course.name);
+      const inputSlug = courseSlugInput;
+
+      const slugScore = similarityScore(dbSlug, inputSlug);
+      const nameScore = similarityScore(dbName, inputSlug);
+
+      const tokenScore = smartTokenSimilarity(dbSlug, inputSlug);
+
+      const score = Math.max(slugScore, nameScore, tokenScore);
+      const percent = Math.round(score * 100);
+
+      if (percent >= 30) { // 🎯 minimum 30%
+        matchedCourses.push({
+          course,
+          percent,
+          match_type:
+            percent >= 80 ? "strong" :
+            percent >= 50 ? "medium" :
+            "low"
         });
-      });
+      }
+    });
 
+    /* ================= BEST COURSE PER UNIVERSITY ================= */
 
-      const approvals = approvalIdsSet.size
-        ? await prisma.approvals.findMany({
+    const bestCourseMap = {};
+
+    matchedCourses.forEach(obj => {
+      const uniId = obj.course.university_id;
+
+      if (!bestCourseMap[uniId] || bestCourseMap[uniId].percent < obj.percent) {
+        bestCourseMap[uniId] = obj;
+      }
+    });
+
+    const finalCourses = Object.values(bestCourseMap).map(e => e.course);
+
+    if (!finalCourses.length) {
+      return successResponse(res, "No matching courses found", 200, []);
+    }
+
+    /* ================= APPROVALS ================= */
+
+    const approvalIdsSet = new Set();
+
+    finalCourses.forEach(course => {
+      course.university?.approvals?.approval_ids?.forEach(id => approvalIdsSet.add(id));
+      course.approvals?.approval_ids?.forEach(id => approvalIdsSet.add(id));
+    });
+
+    const approvals = approvalIdsSet.size
+      ? await prisma.approvals.findMany({
           where: {
             id: { in: [...approvalIdsSet] },
             deleted_at: null,
           },
           select: { id: true, title: true, image: true },
         })
-        : [];
+      : [];
 
-      const approvalMap = approvals.reduce((acc, a) => {
-        acc[a.id] = a;
-        return acc;
-      }, {});
+    const approvalMap = approvals.reduce((acc, a) => {
+      acc[a.id] = a;
+      return acc;
+    }, {});
 
-      const formattedData = courses.map(course => ({
-        university_id: course.university?.id,
-        university_data: {
-          ...course.university,
-          approvals: {
-            approval_list:
-              course.university?.approvals?.approval_ids
-                ?.map(id => approvalMap[id])
-                .filter(Boolean) || [],
-          },
+    /* ================= FORMAT RESPONSE ================= */
+
+    const formattedData = finalCourses.map(course => ({
+      university_id: course.university?.id,
+
+      university_data: {
+        id: course.university?.id,
+        name: course.university?.name,
+        slug: course.university?.slug,
+        icon: course.university?.icon,
+        cover_image: course.university?.cover_image,
+        rank: course.university?.rank,
+        pdf_download: course.university?.pdf_download,
+        approvals: {
+          approval_list:
+            course.university?.approvals?.approval_ids
+              ?.map(id => approvalMap[id])
+              .filter(Boolean) || [],
+        },
+        partners: course.university?.partners || [],
+      },
+
+      course: {
+        course_data: {
+          id: course.id,
+          name: course.name,
+          slug: course.slug,
+          mode_of_education: course.mode_of_education,
+          time_frame: course.time_frame,
         },
 
-        course: {
-          course_data: {
-            id: course.id,
-            name: course.name,
-            slug: course.slug,
-            mode_of_education: course.mode_of_education,
-            time_frame: course.time_frame,
-          },
+        match_info: {
+          // extra debug info if needed
+          // percent & type already filtered
+        },
 
-          approvals: {
-            approval_list:
-              course.approvals?.approval_ids
-                ?.map(id => approvalMap[id])
-                .filter(Boolean) || [],
-          },
+        approvals: {
+          approval_list:
+            course.approvals?.approval_ids
+              ?.map(id => approvalMap[id])
+              .filter(Boolean) || [],
+        },
 
-          fees: course.fees
-            ? {
+        fees: course.fees
+          ? {
               semester_wise_fees: course.fees.semester_wise_fees,
               tuition_fees: course.fees.tuition_fees,
             }
-            : null,
+          : null,
 
-          financialAid: course.financialAid
-            ? extractFinancialAidFlags(course.financialAid.description)
-            : null,
+        financialAid: course.financialAid
+          ? extractFinancialAidFlags(course.financialAid.description)
+          : null,
 
-          eligibilitycriteria: course.eligibilitycriteria
-            ? {
+        eligibilitycriteria: course.eligibilitycriteria
+          ? {
               description: course.eligibilitycriteria.description,
               IndianCriteria: course.eligibilitycriteria.IndianCriteria,
               NRICriteria: course.eligibilitycriteria.NRICriteria,
               notes: course.eligibilitycriteria.notes,
             }
-            : null,
+          : null,
 
-          curriculum: course.curriculum
-            ? {
+        curriculum: course.curriculum
+          ? {
               semesters: course.curriculum.semesters,
-              total_credits: calculateTotalCredits(
-                course.curriculum.semesters
-              ),
+              total_credits: calculateTotalCredits(course.curriculum.semesters),
             }
-            : null,
-        },
-      }));
+          : null,
+      },
+    }));
 
-      return successResponse(
-        res,
-        "Course compare data fetched successfully",
-        200,
-        formattedData
-      );
-    }
+    /* ================= FINAL RESPONSE ================= */
 
-    return successResponse(res, "No data", 200, []);
+    return successResponse(
+      res,
+      "Smart course compare data fetched successfully",
+      200,
+      formattedData
+    );
+
   } catch (error) {
     console.error("COMPARE API ERROR:", error);
     return errorResponse(res, error.message, 500);
@@ -1045,218 +1165,193 @@ const normalizeText = (text = "") =>
 
 /* ================= SPECIALISATION CLEANER ================= */
 // removes course & SEO noise words
-const normalizeSpecialisation = (text = "") => {
-  return text
-    .toLowerCase()
-    .replace(
-      /\b(online|distance|degree|program|course|in|of|the|and|bba|mba|bcom|mcom|ba|msc|mca)\b/g,
-      ""
-    )
-    .replace(/[^\w\s]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-};
+
 
 /* ================= COURSE TYPE DETECTOR ================= */
 
-const extractCourseType = (text = "") => {
-  const types = ["bba", "mba", "bcom", "mcom", "ba", "msc", "mca"];
-  const lower = text.toLowerCase();
-  return types.find(t => lower.includes(t)) || null;
-};
+
 
 /* ================= FUZZY MATCH ================= */
 
-const similarity = (a, b) => {
-  if (!a || !b) return 0;
-  const longer = a.length > b.length ? a : b;
-  const shorter = a.length > b.length ? b : a;
-  if (longer.length === 0) return 1;
-  return (
-    (longer.length - editDistance(longer, shorter)) /
-    longer.length
-  );
-};
 
-const editDistance = (a, b) => {
-  const matrix = Array.from({ length: b.length + 1 }, () =>
-    Array(a.length + 1).fill(0)
-  );
-
-  for (let i = 0; i <= b.length; i++) matrix[i][0] = i;
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b[i - 1] === a[j - 1]) matrix[i][j] = matrix[i - 1][j - 1];
-      else {
-        matrix[i][j] =
-          Math.min(
-            matrix[i - 1][j - 1] + 1,
-            matrix[i][j - 1] + 1,
-            matrix[i - 1][j] + 1
-          );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-};
-
-const isSimilar = (a, b, threshold = 0.75) =>
-  similarity(a, b) >= threshold;
+// Speaclizatipn  
 
 
 
 exports.compareSpeData = catchAsync(async (req, res) => {
   try {
-    const { universities, course_name, specialisation_name } = req.query;
+    const { universities, specialisation_name } = req.query;
 
-    if (!universities || !course_name || !specialisation_name) {
+    if (!universities || !specialisation_name) {
       return errorResponse(res, "Missing parameters", 400);
     }
 
     /* ================= INPUT CLEAN ================= */
     const universitySlugs = cleanSlug(universities).split("-vs-");
-    const inputCourse = normalizeText(course_name);
     const inputSpec = normalizeText(specialisation_name);
-    const courseType = extractCourseType(inputCourse);
 
-    /* ================= DB FETCH ================= */
+    /* ================= GET UNIVERSITY DATA ================= */
     const universitiesData = await prisma.university.findMany({
       where: {
         slug: { in: universitySlugs },
         deleted_at: null,
       },
-      include: {
-        approvals: true, // ✅ University approvals included
-        courses: {
-          where: { deleted_at: null },
-          include: {
-            specialisation: {
-              where: { deleted_at: null },
-              include: {
-                approvals: true,
-                fees: true,
-                financialAid: true,
-                partners: true,
-                eligibilitycriteria: true,
-                curriculum: true,
-              },
-            },
-          },
-        },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+        pdf_download: true,
+        approvals: true,   // contains approval_ids
       },
     });
 
-    /* ================= MATCH PER UNIVERSITY ================= */
+    if (!universitiesData.length) {
+      return successResponse(res, "No universities found", 200, []);
+    }
+
+    const universityIds = universitiesData.map(u => u.id);
+
+    /* ================= GET SPECIALISATIONS ================= */
+    const specialisations = await prisma.specialisation.findMany({
+      where: {
+        university_id: { in: universityIds },
+        deleted_at: null,
+      },
+      include: {
+        approvals: true,
+        fees: true,
+        financialAid: true,
+        partners: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+      },
+    });
+
+    /* ================= GET APPROVAL MASTER ================= */
+    const approvalsData = await prisma.approvals.findMany({
+      where: { deleted_at: null },
+    });
+
+    /* ================= CREATE APPROVAL MAP ================= */
+    const approvalMap = {};
+    approvalsData.forEach(a => {
+      approvalMap[a.id] = a;
+    });
+
+    /* ================= MATCHING LOGIC ================= */
     const result = universitiesData.map(university => {
-      let matchedCourse = null;
-      let matchedSpec = null;
 
-      matchedCourse = university.courses.find(c => {
-        const courseName = normalizeText(c.name);
-        if (courseType && !courseName.includes(courseType)) return false;
+      const uniSpecs = specialisations.filter(
+        sp => sp.university_id === university.id
+      );
 
-        return (
-          courseName.includes(inputCourse) ||
-          isSimilar(courseName, inputCourse, 0.5) // 🔥 70% similarity
-        );
-      });
+      let bestMatch = null;
+      let bestScore = 0;
 
-      if (matchedCourse) {
-        matchedSpec = matchedCourse.specialisation.find(sp => {
-          const spName = normalizeText(sp.name);
-          const spSlug = normalizeText(sp.slug || "");
+      for (const sp of uniSpecs) {
+        const spName = normalizeText(sp.name || "");
+        const spSlug = normalizeText(sp.slug || "");
 
-          return (
-            spName.includes(inputSpec) ||
-            inputSpec.includes(spName) ||
-            spSlug.includes(inputSpec) ||
-            isSimilar(spName, inputSpec, 0.5) || // 🔥 70% similarity
-            isSimilar(spSlug, inputSpec, 0.5)     // 🔥 70% similarity
-          );
-        });
+        const nameScore = similarityScore(spName, inputSpec); // 0–1
+        const slugScore = similarityScore(spSlug, inputSpec); // 0–1
+
+        const score = Math.max(nameScore, slugScore);
+        const percent = Math.round(score * 100);
+
+        if (percent >= 30 && percent > bestScore) {
+          bestScore = percent;
+          bestMatch = {
+            ...sp,
+            match_percentage: percent,
+            match_type:
+              percent >= 80 ? "strong" :
+                percent >= 50 ? "medium" :
+                  "low"
+          };
+        }
       }
 
-      /* ===== RETURN EVEN IF NOT MATCHED ===== */
+      /* ================= RESPONSE FORMAT ================= */
       return {
         university_id: university.id,
+
         university_data: {
           name: university.name,
           slug: university.slug,
           icon: university.icon,
           cover_image: university.cover_image,
+          rank: university.rank,
+          pdf_download: university.pdf_download,
 
           approvals: university.approvals
             ? {
               approval_ids: university.approvals.approval_ids || [],
-              approval_list:
-                university.approvals.approval_ids
-                  ?.map(id => approvalMap[id])
-                  .filter(Boolean) || [],
+              approval_list: Array.isArray(university.approvals.approval_ids)
+                ? university.approvals.approval_ids
+                  .map(id => approvalMap[id] || null)
+                  .filter(Boolean)
+                : [],
             }
             : null,
-
-          pdf_download: university.pdf_download,
-          rank: university.rank,
         },
 
-        course: matchedCourse
+        specialisation: bestMatch
           ? {
-            course_data: {
-              id: matchedCourse.id,
-              name: matchedCourse.name,
-              slug: matchedCourse.slug,
+            id: bestMatch.id,
+            name: bestMatch.name,
+            slug: bestMatch.slug,
+            description: bestMatch.description,
+            mode_of_education: bestMatch.mode_of_education,
+            time_frame: bestMatch.time_frame,
+
+            match_percentage: bestMatch.match_percentage,
+            match_type: bestMatch.match_type,
+
+            approvals: university.approvals
+              ? {
+                approval_ids: university.approvals.approval_ids || [],
+                approval_list: Array.isArray(university.approvals.approval_ids)
+                  ? university.approvals.approval_ids
+                    .map(id => approvalMap[id] || null)
+                    .filter(Boolean)
+                  : [],
+              }
+              : null,
+
+            fees: bestMatch.fees
+              ? {
+                semester_wise_fees: bestMatch.fees.semester_wise_fees,
+                tuition_fees: bestMatch.fees.tuition_fees,
+              }
+              : null,
+
+            financialAid: bestMatch.financialAid
+              ? extractFinancialAidFlags(bestMatch.financialAid.description)
+              : null,
+
+            partners: {
+              placement_partners:
+                bestMatch.partners?.placement_partner_id?.length > 0,
             },
 
-            specialisation: matchedSpec
+            eligibilitycriteria: bestMatch.eligibilitycriteria
               ? {
-                id: matchedSpec.id,
-                name: matchedSpec.name,
-                slug: matchedSpec.slug,
-                description: matchedSpec.description,
-                mode_of_education: matchedSpec.mode_of_education,
-                time_frame: matchedSpec.time_frame,
+                description: bestMatch.eligibilitycriteria.description,
+                IndianCriteria: bestMatch.eligibilitycriteria.IndianCriteria,
+                NRICriteria: bestMatch.eligibilitycriteria.NRICriteria,
+                notes: bestMatch.eligibilitycriteria.notes,
+              }
+              : null,
 
-                approvals: {
-                  approval_ids: matchedSpec.approvals?.approval_ids || [],
-                  approval_list:
-                    matchedSpec.approvals?.approval_ids
-                      ?.map(id => approvalMap[id])
-                      .filter(Boolean) || [],
-                },
-
-                fees: matchedSpec.fees
-                  ? {
-                    semester_wise_fees: matchedSpec.fees.semester_wise_fees,
-                    tuition_fees: matchedSpec.fees.tuition_fees,
-                  }
-                  : null,
-
-                financialAid: matchedSpec.financialAid
-                  ? extractFinancialAidFlags(matchedSpec.financialAid.description)
-                  : null,
-
-                partners: {
-                  placement_partners:
-                    matchedSpec.partners?.placement_partner_id?.length > 0,
-                },
-
-                eligibilitycriteria: matchedSpec.eligibilitycriteria
-                  ? {
-                    description: matchedSpec.eligibilitycriteria.description,
-                    IndianCriteria: matchedSpec.eligibilitycriteria.IndianCriteria,
-                    NRICriteria: matchedSpec.eligibilitycriteria.NRICriteria,
-                    notes: matchedSpec.eligibilitycriteria.notes,
-                  }
-                  : null,
-
-                curriculum: matchedSpec.curriculum
-                  ? {
-                    semesters: matchedSpec.curriculum.semesters,
-                    total_credits: calculateTotalCredits(matchedSpec.curriculum.semesters),
-                  }
-                  : null,
+            curriculum: bestMatch.curriculum
+              ? {
+                semesters: bestMatch.curriculum.semesters,
+                total_credits: calculateTotalCredits(
+                  bestMatch.curriculum.semesters
+                ),
               }
               : null,
           }
@@ -1268,9 +1363,280 @@ exports.compareSpeData = catchAsync(async (req, res) => {
     return successResponse(res, "Specialisation compare success", 200, result);
 
   } catch (error) {
+    console.log("COMPARE ERROR:", error);
     return errorResponse(res, error.message, 500);
   }
 });
 
+/* =========================================================
+   PROGRAM FAMILY DETECTOR
+========================================================= */
+function extractProgramFamily(str) {
+  if (!str) return "other";
+  const s = str.toLowerCase();
 
+  // UG Programs
+  if (s.includes("bba")) return "bba";
+  if (s.includes("bca")) return "bca";
+  if (s.includes("ba")) return "ba";
+  if (s.includes("bcom")) return "bcom";
+  if (s.includes("bsc")) return "bsc";
+  if (s.includes("btech")) return "btech";
+
+  // PG Programs
+  if (s.includes("mba")) {
+    if (s.includes("executive")) return "executive-mba";
+    return "mba";
+  }
+  if (s.includes("mca")) return "mca";
+  if (s.includes("mcom")) return "mcom";
+  if (s.includes("msc")) return "msc";
+
+  // Diploma / Certificate
+  if (s.includes("diploma")) return "diploma";
+  if (s.includes("certificate")) return "certificate";
+
+  return "other";
+}
+
+/* =========================================================
+   PROGRAM COMPATIBILITY CHECK
+========================================================= */
+function isCompatibleProgram(inputStr, courseSlug, courseName) {
+  const inputFamily = extractProgramFamily(inputStr);
+  const courseFamily = extractProgramFamily(
+    (courseSlug || "") + " " + (courseName || "")
+  );
+
+  // Allow unknown input
+  if (inputFamily === "other") return true;
+
+  // Exact family match
+  if (inputFamily === courseFamily) return true;
+
+  // Loosened match: check if inputFamily exists anywhere in course name or slug
+  const combined = ((courseSlug || "") + " " + (courseName || "")).toLowerCase();
+  if (combined.includes(inputFamily)) return true;
+
+  return false;
+}
+
+
+/* =========================================================
+   CLEAN PROGRAM TEXT
+========================================================= */
+function cleanProgramText(str) {
+  if (!str) return "";
+  return normalizeText(str)
+    .replace(/\b(program|degree|course|online|distance|learning)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/* =========================================================
+   TOKEN SIMILARITY
+========================================================= */
+function tokenSimilarity(a, b) {
+  const ta = a.split(" ").filter(Boolean);
+  const tb = b.split(" ").filter(Boolean);
+
+  let match = 0;
+  ta.forEach(t => {
+    if (tb.includes(t)) match++;
+  });
+
+  return match / Math.max(ta.length, tb.length);
+}
+
+/* =========================================================
+   MAIN CONTROLLER
+========================================================= */
+exports.compareCourseData = catchAsync(async (req, res) => {
+  try {
+    const { universities, course_name } = req.query;
+
+    if (!universities || !course_name) {
+      return errorResponse(res, "Missing parameters", 400);
+    }
+
+    /* ================= INPUT CLEAN ================= */
+    const universitySlugs = cleanSlug(universities).split("-vs-");
+    const inputCourse = normalizeText(course_name);
+    const inputClean = cleanProgramText(inputCourse); // ❗ defined here
+
+    /* ================= GET UNIVERSITY DATA ================= */
+    const universitiesData = await prisma.university.findMany({
+      where: {
+        slug: { in: universitySlugs },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        rank: true,
+        pdf_download: true,
+        approvals: true,
+      },
+    });
+
+    if (!universitiesData.length) {
+      return successResponse(res, "No universities found", 200, []);
+    }
+
+    const universityIds = universitiesData.map(u => u.id);
+
+    /* ================= GET COURSES ================= */
+    const courses = await prisma.course.findMany({
+      where: {
+        university_id: { in: universityIds },
+        deleted_at: null,
+      },
+      include: {
+        approvals: true,
+        fees: true,
+        financialAid: true,
+        partners: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+      },
+    });
+
+    /* ================= GET APPROVAL MASTER ================= */
+    const approvalsData = await prisma.approvals.findMany({
+      where: { deleted_at: null },
+    });
+
+    const approvalMap = {};
+    approvalsData.forEach(a => {
+      approvalMap[a.id] = a;
+    });
+
+    /* ================= MATCHING LOGIC ================= */
+    const result = universitiesData.map(university => {
+      const uniCourses = courses.filter(c => c.university_id === university.id);
+
+      let bestMatch = null;
+      let bestScore = 0;
+
+      uniCourses.forEach(c => {
+        const cName = cleanProgramText(c.name || "");
+        const cSlug = cleanProgramText(c.slug || "");
+
+        if (!isCompatibleProgram(inputCourse, cSlug, cName)) return; // skip incompatible
+
+        const nameScore = similarityScore(cName, inputClean);
+        const slugScore = similarityScore(cSlug, inputClean);
+        const tokenScore = tokenSimilarity(cName, inputClean);
+
+        const score = Math.max(nameScore, slugScore, tokenScore);
+        const percent = Math.round(score * 100);
+
+        if (percent >= 45 && percent > bestScore) {
+          bestScore = percent;
+          bestMatch = {
+            ...c,
+            match_percentage: percent,
+            match_type:
+              percent >= 80 ? "fast" :
+              percent >= 70 ? "medium" :
+              "slow"
+          };
+        }
+      });
+
+      /* ================= RESPONSE FORMAT ================= */
+      return {
+        university_id: university.id,
+
+        university_data: {
+          name: university.name,
+          slug: university.slug,
+          icon: university.icon,
+          cover_image: university.cover_image,
+          rank: university.rank,
+          pdf_download: university.pdf_download,
+
+          approvals: university.approvals
+            ? {
+                approval_ids: university.approvals.approval_ids || [],
+                approval_list: Array.isArray(university.approvals.approval_ids)
+                  ? university.approvals.approval_ids
+                      .map(id => approvalMap[id] || null)
+                      .filter(Boolean)
+                  : [],
+              }
+            : null,
+        },
+
+        course: bestMatch
+          ? {
+              id: bestMatch.id,
+              name: bestMatch.name,
+              slug: bestMatch.slug,
+              description: bestMatch.description,
+              mode_of_education: bestMatch.mode_of_education,
+              time_frame: bestMatch.time_frame,
+
+              match_percentage: bestMatch.match_percentage,
+              match_type: bestMatch.match_type,
+
+              approvals: bestMatch.approvals
+                ? {
+                    approval_ids: bestMatch.approvals.approval_ids || [],
+                    approval_list: Array.isArray(bestMatch.approvals.approval_ids)
+                      ? bestMatch.approvals.approval_ids
+                          .map(id => approvalMap[id] || null)
+                          .filter(Boolean)
+                      : [],
+                  }
+                : null,
+
+              fees: bestMatch.fees
+                ? {
+                    semester_wise_fees: bestMatch.fees.semester_wise_fees,
+                    tuition_fees: bestMatch.fees.tuition_fees,
+                  }
+                : null,
+
+              financialAid: bestMatch.financialAid
+                ? extractFinancialAidFlags(bestMatch.financialAid.description)
+                : null,
+
+              partners: {
+                placement_partners:
+                  bestMatch.partners?.placement_partner_id?.length > 0,
+              },
+
+              eligibilitycriteria: bestMatch.eligibilitycriteria
+                ? {
+                    description: bestMatch.eligibilitycriteria.description,
+                    IndianCriteria: bestMatch.eligibilitycriteria.IndianCriteria,
+                    NRICriteria: bestMatch.eligibilitycriteria.NRICriteria,
+                    notes: bestMatch.eligibilitycriteria.notes,
+                  }
+                : null,
+
+              curriculum: bestMatch.curriculum
+                ? {
+                    semesters: bestMatch.curriculum.semesters,
+                    total_credits: calculateTotalCredits(
+                      bestMatch.curriculum.semesters
+                    ),
+                  }
+                : null,
+            }
+          : null,
+      };
+    });
+
+    /* ================= SUCCESS ================= */
+    return successResponse(res, "Course compare success", 200, result);
+  } catch (error) {
+    console.log("COMPARE ERROR:", error);
+    return errorResponse(res, error.message, 500);
+  }
+});
 
