@@ -81,7 +81,7 @@ exports.allUniversities = catchAsync(async (req, res) => {
   });
 
   // console.log(categories);
-  
+
   // If categories failed (rare but possible)
   if (!categories) {
     return errorResponse(res, "Failed to fetch categories", 500);
@@ -422,6 +422,23 @@ function toPublicUrl(req, filePath) {
   return BASE_URL + cleanPath;
 }
 
+
+function resolveFile(req, file, existing) {
+  if (!file) return existing || "";
+
+  // If array (multer.fields case)
+  if (Array.isArray(file)) {
+    return file[0] ? toPublicUrl(req, file[0]) : existing || "";
+  }
+
+  // If string (single file path)
+  if (typeof file === "string") {
+    return toPublicUrl(req, file) || existing || "";
+  }
+
+  return existing || "";
+}
+
 // Parse JSON safely (returns array or empty array)
 function parseArray(jsonString) {
   if (!jsonString) return [];
@@ -574,7 +591,7 @@ exports.addUniversity = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
-        slug:  req.body.slug ? req.body.slug : generatedSlug,
+        slug: req.body.slug ? req.body.slug : generatedSlug,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
         rank: finalData.rank,
@@ -838,11 +855,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
           ? (deleteUploadedFiles([existing?.cover_image]),
             toPublicUrl(req, uploadedFiles["cover_image"]))
           : existing?.cover_image || null,
-
-       pdf_download: uploadedFiles.pdf_download?.[0]
-          ? toPublicUrl(req, uploadedFiles.pdf_download[0])
-          : existing.pdf_download,
-
       servicedesc: req.body.servicedesc || "",
       servicetitle: req.body.servicetitle || "",
       cover_image_alt: req.body.cover_image_alt || "",
@@ -870,6 +882,9 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       rankings_description: req.body.rankings_description || "",
     };
 
+    console.log("uploadedFiles =", uploadedFiles);
+    console.log("pdf_download =", uploadedFiles?.pdf_download);
+
     const updatedUniversity = await prisma.University.update({
       where: { id: universityId },
       data: {
@@ -884,10 +899,17 @@ exports.updateUniversity = catchAsync(async (req, res) => {
         cover_image_alt: finalData.cover_image_alt || "",
         icon_alt: finalData.icon_alt || "",
         rank: finalData.rank || "",
+        pdf_download: resolveFile(
+          req,
+          uploadedFiles?.pdf_download,
+          existing?.pdf_download
+        ),
+
         video: req.body.video || ""
       }
     });
 
+    console.log("updatedUniversity", updatedUniversity)
     // UPDATE RELATIONS (UPSERTS)
     await prisma.About.upsert({
       where: { university_id: universityId },
@@ -1106,9 +1128,9 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
         deleted_at: null,
       },
       select: {
-        services: true, 
-        rankings :true,
-        examPatterns :true,
+        services: true,
+        rankings: true,
+        examPatterns: true,
       },
     });
     if (!university) {
@@ -1119,7 +1141,7 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
       res,
       "University services fetched successfully",
       200,
-   {  university}
+      { university }
     );
   } catch (error) {
     console.error("GetServicesUniversityById error:", error);
