@@ -1398,7 +1398,6 @@ function extractProgramFamily(str) {
 
   return "other";
 }
-
 /* =========================================================
    PROGRAM COMPATIBILITY CHECK
 ========================================================= */
