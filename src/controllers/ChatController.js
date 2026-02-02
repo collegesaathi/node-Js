@@ -141,7 +141,6 @@ exports.ChatGet = catchAsync(async (req, res) => {
   }
 });
 
-
 exports.ChatUserGet = catchAsync(async (req, res) => {
   try {
     const chat = await prisma.chat.findMany({
