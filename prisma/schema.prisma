@@ -22,7 +22,7 @@ model User {
 
 model University {
   id                 Int                          @id @default(autoincrement())
-  slug               String                       @unique
+  slug               String                       
   name               String
   pdf_download       String?
   fees_notes         String?
@@ -63,7 +63,7 @@ model University {
 model Course {
   id           Int                 @id @default(autoincrement())
   category_id  Int
-  slug         String              @unique
+  slug         String            
   name         String
   icon         String?
    time_frame         String? 
@@ -107,7 +107,7 @@ model Specialisation {
   id            Int       @id @default(autoincrement())
   university_id      Int?   
   course_id Int
-  slug          String    @unique
+  slug          String    
   name          String
   icon          String?
   video          String?
@@ -379,7 +379,7 @@ model Blog {
   id            Int         @id @default(autoincrement())
   university_id Int?
   title         String
-  slug          String      @unique
+  slug          String     
   image         String?
   description   String?
   author        String?
@@ -524,7 +524,7 @@ model Program {
   title               String
   description         String
   bannerImage         String?
-  slug                String    @unique
+  slug                String    
   bannerImageAlt      String?
   icon                String?
   pdfdownlaod         String?
@@ -576,7 +576,7 @@ model SpecialisationProgram {
   description         String
   bannerImage         String?
   icon                String?
-  slug                String    @unique
+  slug                String  
   bannerImageAlt      String?
   pdfdownlaod         String?
   career_growth       String?

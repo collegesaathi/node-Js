@@ -15,28 +15,45 @@ const makeSlug = (text) => {
     .replace(/--+/g, "-");
 };
 
+// const generateUniqueSlug = async (prisma, title) => {
+//   let baseSlug = makeSlug(title);
+//   let slug = baseSlug;
+//   let counter = 1;
+
+//   // Already existing slugs load
+//   const existingSlugs = await prisma.Course.findMany({
+//     where: {
+//       slug: {
+//         startsWith: baseSlug,
+//       },
+//     },
+//     select: { slug: true },
+//   });
+
+//   // Unique slug find karna
+//   while (existingSlugs.some((item) => item.slug === slug)) {
+//     slug = `${baseSlug}-${counter}`;
+//     counter++;
+//   }
+
+//   return slug;
+// };
+
+
 const generateUniqueSlug = async (prisma, title) => {
   let baseSlug = makeSlug(title);
-  let slug = baseSlug;
-  let counter = 1;
 
-  // Already existing slugs load
-  const existingSlugs = await prisma.Course.findMany({
-    where: {
-      slug: {
-        startsWith: baseSlug,
-      },
-    },
+  const existing = await prisma.Course.findFirst({
+    where: { slug: baseSlug },
     select: { slug: true },
   });
 
-  // Unique slug find karna
-  while (existingSlugs.some((item) => item.slug === slug)) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
+  // Agar same slug already hai → return same slug (allow duplicate)
+  if (existing) {
+    return baseSlug;
   }
 
-  return slug;
+  return baseSlug;
 };
 
 
