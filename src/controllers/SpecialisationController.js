@@ -14,27 +14,44 @@ const makeSlug = (text) => {
     .replace(/--+/g, "-");
 };
 
-const generateUniqueSlug = async (prisma, rawSlugOrTitle) => {
-  let baseSlug = makeSlug(rawSlugOrTitle);
-  let slug = baseSlug;
-  let counter = 1;
 
-  const existingSlugs = await prisma.Specialisation.findMany({
-    where: {
-      slug: {
-        startsWith: baseSlug,
-      },
-    },
+const generateUniqueSlug = async (prisma, title) => {
+  let baseSlug = makeSlug(title);
+
+  const existing = await prisma.Specialisation.findFirst({
+    where: { slug: baseSlug },
     select: { slug: true },
   });
 
-  while (existingSlugs.some(item => item.slug === slug)) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
+  // Agar same slug already hai → return same slug (allow duplicate)
+  if (existing) {
+    return baseSlug;
   }
 
-  return slug;
+  return baseSlug;
 };
+
+// const generateUniqueSlug = async (prisma, rawSlugOrTitle) => {
+//   let baseSlug = makeSlug(rawSlugOrTitle);
+//   let slug = baseSlug;
+//   let counter = 1;
+
+//   const existingSlugs = await prisma.Specialisation.findMany({
+//     where: {
+//       slug: {
+//         startsWith: baseSlug,
+//       },
+//     },
+//     select: { slug: true },
+//   });
+
+//   while (existingSlugs.some(item => item.slug === slug)) {
+//     slug = `${baseSlug}-${counter}`;
+//     counter++;
+//   }
+
+//   return slug;
+// };
 
 
 

@@ -27,7 +27,7 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
       orderBy: {
         createdAt: "desc"
       },
-      take: 8, // change count as needed
+      take: 8,
       select: {
         id: true,
         title: true,
@@ -38,17 +38,69 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
         duration: true,
         specialization: true,
         createdAt: true,
+
+        // 👇 category table ka data
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
       }
     });
+   const laspetestPrograms = await prisma.SpecialisationProgram.findMany({
+  where: {
+    deleted_at: null
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  take: 12,
+  select: {
+    id: true,
+    title: true,
+    slug: true,
+    bannerImage: true,
+    bannerImageAlt: true,
+    shortDescription: true,
+    duration: true,
+    specialization: true,
+    createdAt: true,
 
-    const laspetestPrograms = await prisma.SpecialisationProgram.findMany({
+    // 👇 Program table
+    program: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        bannerImage: true,
+        bannerImageAlt: true,
+
+        // 👇 Program ke andar category
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
+      }
+    }
+  }
+});
+
+
+
+    const LastCertificationPrograms = await prisma.program.findMany({
       where: {
-        deleted_at: null
+        deleted_at: null,
+        category_id: 4
       },
       orderBy: {
         createdAt: "desc"
       },
-      take: 12, // change count as needed
+      take: 8,
       select: {
         id: true,
         title: true,
@@ -59,31 +111,20 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
         duration: true,
         specialization: true,
         createdAt: true,
+
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
+        }
       }
     });
 
-     const LastCertificationPrograms = await prisma.SpecialisationProgram.findMany({
-      where: {
-        deleted_at: null
-      },
-      orderBy: {
-        createdAt: "desc"
-      },
-      take: 12, // change count as needed
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        bannerImage: true,
-        bannerImageAlt: true,
-        shortDescription: true,
-        duration: true,
-        specialization: true,
-        createdAt: true,
-      }
-    });
+
     return successResponse(res, "Home Page data fetched successfully", 201, {
-      latestPrograms, laspetestPrograms,LastCertificationPrograms
+      latestPrograms, laspetestPrograms, LastCertificationPrograms
     });
 
 

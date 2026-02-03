@@ -166,36 +166,57 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
     try {
         const { category_id } = req.query;
 
-
         const programs = await prisma.Program.findMany({
             where: {
                 category_id: Number(category_id),
                 deleted_at: null
             },
             orderBy: {
-                id: 'asc'
-            }
+                id: "asc"
+            },
         });
 
         if (!programs.length) {
-            return errorResponse(
-                res,
-                "No programs found for this category",
-                404
-            );
+            return errorResponse(res, "No programs found for this category", 404);
         }
+
+        // sab program ids nikal lo
+        const programIds = programs.map(p => p.id);
+
+        // specialisation table se matching records lao
+        const specialisations = await prisma.specialisationProgram.findMany({
+            where: {
+                program_id: {
+                    in: programIds
+                }
+            },
+            select: {
+                program_id: true
+            }
+        });
+
+        // set bana lo fast lookup ke liye
+        const specSet = new Set(specialisations.map(s => s.program_id));
+
+        // final response mapping
+        const finalData = programs.map(p => ({
+            ...p,
+            hasSpecialization: specSet.has(p.id)   // true / false
+        }));
 
         return successResponse(
             res,
-            "Specializations fetched successfully with universities",
+            "Programs fetched with specialization flag",
             200,
-            programs
+            finalData
         );
+
     } catch (error) {
-        console.error("Error in GetClickPickListData:", error);
+        console.error("Error in GetFilterCategroybyuniversity:", error);
         return errorResponse(res, error.message, 500);
     }
 });
+
 
 
 exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
@@ -253,9 +274,20 @@ exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
                 deleted_at: null
             },
             orderBy: {
-                id: 'asc'
+                id: "asc"
             }
         });
+
+        // ✅ flag auto add
+        const finalData = SpecialisationPrograms.map(sp => ({
+            ...sp,
+            hasSpecialization: true
+        }));
+
+        const responseData = {
+            data: finalData
+        };
+
 
 
         return successResponse(
@@ -263,7 +295,7 @@ exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
             "Specializations fetched successfully with universities",
             200,
             {
-                SpecialisationPrograms, universities
+                SpecialisationPrograms: responseData, universities
             }
         );
     } catch (error) {

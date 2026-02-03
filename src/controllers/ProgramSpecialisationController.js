@@ -15,28 +15,46 @@ const makeSlug = (text) => {
     .replace(/--+/g, "-");
 };
 
+
+
+// const generateUniqueSlug = async (prisma, title) => {
+//   let baseSlug = makeSlug(title);
+//   let slug = baseSlug;
+//   let counter = 1;
+
+//   // Already existing slugs load
+//   const existingSlugs = await prisma.Program.findMany({
+//     where: {
+//       slug: {
+//         startsWith: baseSlug,
+//       },
+//     },
+//     select: { slug: true },
+//   });
+
+//   // Unique slug find karna
+//   while (existingSlugs.some((item) => item.slug === slug)) {
+//     slug = `${baseSlug}-${counter}`;
+//     counter++;
+//   }
+
+//   return slug;
+// };
+
 const generateUniqueSlug = async (prisma, title) => {
   let baseSlug = makeSlug(title);
-  let slug = baseSlug;
-  let counter = 1;
 
-  // Already existing slugs load
-  const existingSlugs = await prisma.Program.findMany({
-    where: {
-      slug: {
-        startsWith: baseSlug,
-      },
-    },
+  const existing = await prisma.SpecialisationProgram.findFirst({
+    where: { slug: baseSlug },
     select: { slug: true },
   });
 
-  // Unique slug find karna
-  while (existingSlugs.some((item) => item.slug === slug)) {
-    slug = `${baseSlug}-${counter}`;
-    counter++;
+  // Agar same slug already hai → return same slug (allow duplicate)
+  if (existing) {
+    return baseSlug;
   }
 
-  return slug;
+  return baseSlug;
 };
 
 // Convert Windows Path to Public URL
@@ -216,11 +234,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       title: req.body.name?.trim() || "",
       slug: req.body.slug?.trim() || generatedSlug,
       description: req.body.descriptions?.trim() || "",
-      bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
-      icon: uploadedFiles["icon"]?.[0] ? toPublicUrl(req, uploadedFiles["icon"][0]) : "",
       bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
-      pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
-      audio: uploadedFiles["audio"]?.[0] ? toPublicUrl(req, uploadedFiles["audio"][0]) : null,
       career_growth: req.body.career_growth?.trim() || "",
       duration: req.body.duration?.trim() || "",
       specialization: req.body.specialization?.trim() || "",
@@ -238,7 +252,11 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       notes_title: req.body.note_title?.trim() || "",
       notes_desc: req.body.notes_descriptions?.trim() || "",
       demand_desc: req.body.demand_desc?.trim() || "",
-      demand_title: req.body.demand_title?.trim() || ""
+      demand_title: req.body.demand_title?.trim() || "",
+      bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
+      icon: uploadedFiles["icon"]?.[0] ? toPublicUrl(req, uploadedFiles["icon"][0]) : "",
+      pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
+      audio: uploadedFiles["audio"]?.[0] ? toPublicUrl(req, uploadedFiles["audio"][0]) : null,
     };
 
     // 8. TRANSACTION WITH ALL CREATIONS
@@ -256,15 +274,15 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
           data: {
             title: req.body.academictitle?.trim() || "",
             description: req.body.academicdesc?.trim() || "",
-            Image: uploadedFiles["academic_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["academic_cover_image"][0]) : "",
             image_alt: req.body.academic_image_alt?.trim() || "",
             entra_title: req.body.entracetitle?.trim() || "",
             entra_desc: req.body.entracedesc?.trim() || "",
-            entra_image: uploadedFiles["entrace_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["entrace_cover_image"][0]) : "",
             entra_image_alt: req.body.entra_image_alt?.trim() || req.body.entracetitle?.trim() || "",
             specialisation_program_id: programId,
             notes_title: req.body.degree_title?.trim() || "",
             notes_desc: req.body.degree_desc?.trim() || "",
+            Image: uploadedFiles["academic_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["academic_cover_image"][0]) : "",
+            entra_image: uploadedFiles["entrace_cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["entrace_cover_image"][0]) : "",
           },
         }),
 
@@ -667,7 +685,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
     if (!programId) {
       return errorResponse(res, "Specialisation Program ID is required", 400);
     }
-Loggers.error(req.body)
+    Loggers.error(req.body)
     const existingProgram = await prisma.SpecialisationProgram.findUnique({
       where: { id: programId },
     });
@@ -752,11 +770,32 @@ Loggers.error(req.body)
         data: {
           title: req.body.name,
           slug: req.body.slug,
-          description: req.body.descriptions,
+          title: req.body.name?.trim() || "",
+          slug: req.body.slug?.trim() || generatedSlug,
+          description: req.body.descriptions?.trim() || "",
+          bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
+          career_growth: req.body.career_growth?.trim() || "",
+          duration: req.body.duration?.trim() || "",
+          specialization: req.body.specialization?.trim() || "",
+          subtitle: req.body.subtitle?.trim() || "",
+          shortDescription: req.body.shortDescription?.trim() || "",
+          video: req.body.video?.trim() || "",
+          universitytitle: req.body.universitytitle?.trim() || "",
+          universitydesc: req.body.universitydesc?.trim() || "",
+          universitybtmdesc: req.body.universitybtmdesc?.trim() || "",
+          university_id: universityIds || [],
+          conclusion: req.body.conclusion?.trim() || "",
+          specialisationtitle: req.body.specialisationtitle?.trim() || "",
+          specialisationdesc: req.body.specialisationdesc?.trim() || "",
+          program_id: Number(req.body.program_id) || 1,
+          notes_title: req.body.note_title?.trim() || "",
+          notes_desc: req.body.notes_descriptions?.trim() || "",
+          demand_desc: req.body.demand_desc?.trim() || "",
+          demand_title: req.body.demand_title?.trim() || "",
           bannerImage: uploadedFiles.cover_image?.[0]
             ? toPublicUrl(req, uploadedFiles.cover_image[0])
             : undefined,
-               icon: uploadedFiles.icon?.[0]
+          icon: uploadedFiles.icon?.[0]
             ? toPublicUrl(req, uploadedFiles.icon[0])
             : undefined,
           pdfdownlaod: uploadedFiles.pdf_download?.[0]
@@ -765,10 +804,6 @@ Loggers.error(req.body)
           audio: uploadedFiles.audio?.[0]
             ? toPublicUrl(req, uploadedFiles.audio[0])
             : undefined,
-          duration: req.body.duration,
-          specialization: req.body.specialization,
-          university_id: universityIds,
-          conclusion: req.body.conclusion,
         },
       });
 
@@ -776,17 +811,30 @@ Loggers.error(req.body)
       await tx.ProgramAcademic.upsert({
         where: { specialisation_program_id: programId },
         update: {
-          title: req.body.academictitle,
-          description: req.body.academicdesc,
+          title: req.body.academictitle?.trim() || "",
+          description: req.body.academicdesc?.trim() || "",
+          image_alt: req.body.academic_image_alt?.trim() || "",
+          entra_title: req.body.entracetitle?.trim() || "",
+          entra_desc: req.body.entracedesc?.trim() || "",
+          entra_image_alt: req.body.entra_image_alt?.trim() || req.body.entracetitle?.trim() || "",
+          specialisation_program_id: programId,
+          notes_title: req.body.degree_title?.trim() || "",
+          notes_desc: req.body.degree_desc?.trim() || "",
           Image: uploadedFiles.academic_cover_image?.[0]
             ? toPublicUrl(req, uploadedFiles.academic_cover_image[0])
             : undefined,
-          image_alt: req.body.academic_image_alt,
         },
         create: {
           specialisation_program_id: programId,
-          title: req.body.academictitle,
-          description: req.body.academicdesc,
+          title: req.body.academictitle?.trim() || "",
+          description: req.body.academicdesc?.trim() || "",
+          image_alt: req.body.academic_image_alt?.trim() || "",
+          entra_title: req.body.entracetitle?.trim() || "",
+          entra_desc: req.body.entracedesc?.trim() || "",
+          entra_image_alt: req.body.entra_image_alt?.trim() || req.body.entracetitle?.trim() || "",
+          specialisation_program_id: programId,
+          notes_title: req.body.degree_title?.trim() || "",
+          notes_desc: req.body.degree_desc?.trim() || "",
           Image: uploadedFiles.academic_cover_image?.[0]
             ? toPublicUrl(req, uploadedFiles.academic_cover_image[0])
             : "",
@@ -848,21 +896,21 @@ Loggers.error(req.body)
         },
       });
 
-  await tx.ProgramGraph.upsert({
+      await tx.ProgramGraph.upsert({
         where: { specialisation_program_id: programId },
         update: {
-       title: req.body.futuretitle?.trim() || "",
-            description: req.body.futuredesc?.trim() || "",
-            subdesc: req.body.futurebtmdesc?.trim() || "",
-            yearly:      safeParseArray(req.body.yearlyData)|| [],
-            specialisation_program_id: programId,
+          title: req.body.futuretitle?.trim() || "",
+          description: req.body.futuredesc?.trim() || "",
+          subdesc: req.body.futurebtmdesc?.trim() || "",
+          yearly: safeParseArray(req.body.yearlyData) || [],
+          specialisation_program_id: programId,
         },
         create: {
-        title: req.body.futuretitle?.trim() || "",
-            description: req.body.futuredesc?.trim() || "",
-            subdesc: req.body.futurebtmdesc?.trim() || "",
-            yearly: safeParseArray(req.body.yearlyData) || [],
-            specialisation_program_id: programId,
+          title: req.body.futuretitle?.trim() || "",
+          description: req.body.futuredesc?.trim() || "",
+          subdesc: req.body.futurebtmdesc?.trim() || "",
+          yearly: safeParseArray(req.body.yearlyData) || [],
+          specialisation_program_id: programId,
         },
       });
       /* ---------- PLACEMENT ---------- */
@@ -909,24 +957,24 @@ Loggers.error(req.body)
       await tx.SpecialisationProgramCareer.upsert({
         where: { specialisation_program_id: programId },
         update: {
-         title: req.body.opp_name?.trim() || "",
-            description: req.body.opp_desc?.trim() || "",
-            sub_title: req.body.financialname?.trim() || "",
-            sub_description: req.body.financialdescription?.trim() || "",
-            Career: finalCareer || [],
-            sector_title: req.body.sector_name?.trim() || "",
-            sector_description: req.body.sector_desc?.trim() || "",
-            specialisation_program_id: programId,
+          title: req.body.opp_name?.trim() || "",
+          description: req.body.opp_desc?.trim() || "",
+          sub_title: req.body.financialname?.trim() || "",
+          sub_description: req.body.financialdescription?.trim() || "",
+          Career: finalCareer || [],
+          sector_title: req.body.sector_name?.trim() || "",
+          sector_description: req.body.sector_desc?.trim() || "",
+          specialisation_program_id: programId,
         },
         create: {
-         title: req.body.opp_name?.trim() || "",
-            description: req.body.opp_desc?.trim() || "",
-            sub_title: req.body.financialname?.trim() || "",
-            sub_description: req.body.financialdescription?.trim() || "",
-            Career: finalCareer || [],
-            sector_title: req.body.sector_name?.trim() || "",
-            sector_description: req.body.sector_desc?.trim() || "",
-            specialisation_program_id: programId,
+          title: req.body.opp_name?.trim() || "",
+          description: req.body.opp_desc?.trim() || "",
+          sub_title: req.body.financialname?.trim() || "",
+          sub_description: req.body.financialdescription?.trim() || "",
+          Career: finalCareer || [],
+          sector_title: req.body.sector_name?.trim() || "",
+          sector_description: req.body.sector_desc?.trim() || "",
+          specialisation_program_id: programId,
         },
       });
 
@@ -1009,125 +1057,127 @@ Loggers.error(req.body)
         },
       });
 
-       // ProgramEntrance
+      // ProgramEntrance
 
-         await tx.ProgramEntrance.upsert({
+      await tx.ProgramEntrance.upsert({
         where: { specialisation_program_id: programId },
-        update: {  icon: uploadedFiles["entrance_icon"]?.[0] ? toPublicUrl(req, uploadedFiles["entrance_icon"][0]) : "",
-            title: req.body.onlinetitle?.trim() || "",
-            description: req.body.onlinedesc?.trim() || "",
-            Entrance: onlines || [],
-            specialisation_program_id: programId, },
+        update: {
+          icon: uploadedFiles["entrance_icon"]?.[0] ? toPublicUrl(req, uploadedFiles["entrance_icon"][0]) : "",
+          title: req.body.onlinetitle?.trim() || "",
+          description: req.body.onlinedesc?.trim() || "",
+          Entrance: onlines || [],
+          specialisation_program_id: programId,
+        },
         create: {
           icon: uploadedFiles["entrance_icon"]?.[0] ? toPublicUrl(req, uploadedFiles["entrance_icon"][0]) : "",
-            title: req.body.onlinetitle?.trim() || "",
-            description: req.body.onlinedesc?.trim() || "",
-            Entrance: onlines || [],
-            specialisation_program_id: programId,
+          title: req.body.onlinetitle?.trim() || "",
+          description: req.body.onlinedesc?.trim() || "",
+          Entrance: onlines || [],
+          specialisation_program_id: programId,
         },
       });
-// ProgramDurationFees
+      // ProgramDurationFees
 
       await tx.ProgramDurationFees.upsert({
         where: { specialisation_program_id: programId },
         update: {
-           title: req.body.durationtitle?.trim() || "",
-            description: req.body.durationdesc?.trim() || "",
-            duration: safeParseArray(req.body.DurationData) || [],
-            specialisation_program_id: programId,
+          title: req.body.durationtitle?.trim() || "",
+          description: req.body.durationdesc?.trim() || "",
+          duration: safeParseArray(req.body.DurationData) || [],
+          specialisation_program_id: programId,
         },
         create: {
-            title: req.body.durationtitle?.trim() || "",
-            description: req.body.durationdesc?.trim() || "",
-            duration: safeParseArray(req.body.DurationData) || [],
-            specialisation_program_id: programId,
+          title: req.body.durationtitle?.trim() || "",
+          description: req.body.durationdesc?.trim() || "",
+          duration: safeParseArray(req.body.DurationData) || [],
+          specialisation_program_id: programId,
         },
       });
       await tx.ProgramCurriculum.upsert({
         where: { specialisation_program_id: programId },
         update: {
-            title: req.body.semesters_title?.trim() || "",
-            description: req.body.semesters_notes?.trim() || "",
-            curriculum_id: semesters || [],
-            specialisation_program_id: programId,
+          title: req.body.semesters_title?.trim() || "",
+          description: req.body.semesters_notes?.trim() || "",
+          curriculum_id: semesters || [],
+          specialisation_program_id: programId,
         },
         create: {
-             title: req.body.semesters_title?.trim() || "",
-            description: req.body.semesters_notes?.trim() || "",
-            curriculum_id: semesters || [],
-            specialisation_program_id: programId,
+          title: req.body.semesters_title?.trim() || "",
+          description: req.body.semesters_notes?.trim() || "",
+          curriculum_id: semesters || [],
+          specialisation_program_id: programId,
         },
       });
 
-         await tx.ProgramInstitutes.upsert({
+      await tx.ProgramInstitutes.upsert({
         where: { specialisation_program_id: programId },
         update: {
-      title: req.body.instututitle?.trim() || "",
-            description: req.body.instutudesc?.trim() || "",
-            Institutes:  safeParseArray(req.body.institutes ) || [],
-            specialisation_program_id: programId,
+          title: req.body.instututitle?.trim() || "",
+          description: req.body.instutudesc?.trim() || "",
+          Institutes: safeParseArray(req.body.institutes) || [],
+          specialisation_program_id: programId,
         },
         create: {
-            title: req.body.instututitle?.trim() || "",
-            description: req.body.instutudesc?.trim() || "",
-            Institutes: safeParseArray(req.body.institutes ) || [],
-            specialisation_program_id: programId,
+          title: req.body.instututitle?.trim() || "",
+          description: req.body.instutudesc?.trim() || "",
+          Institutes: safeParseArray(req.body.institutes) || [],
+          specialisation_program_id: programId,
         },
       });
 
 
-      
-       await tx.SpecialisationSalary.upsert({
+
+      await tx.SpecialisationSalary.upsert({
         where: { specialisation_program_id: programId },
         update: {
-             title: req.body.salarytitle?.trim() || "",
-            description: req.body.salarydesc?.trim() || "",
-            notes: req.body.salarynote?.trim() || "",
-            salary: salary || [],
-            specialisation_program_id: programId,
+          title: req.body.salarytitle?.trim() || "",
+          description: req.body.salarydesc?.trim() || "",
+          notes: req.body.salarynote?.trim() || "",
+          salary: salary || [],
+          specialisation_program_id: programId,
         },
         create: {
-                title: req.body.salarytitle?.trim() || "",
-            description: req.body.salarydesc?.trim() || "",
-            notes: req.body.salarynote?.trim() || "",
-            salary: salary || [],
-            specialisation_program_id: programId,
+          title: req.body.salarytitle?.trim() || "",
+          description: req.body.salarydesc?.trim() || "",
+          notes: req.body.salarynote?.trim() || "",
+          salary: salary || [],
+          specialisation_program_id: programId,
         },
       });
-     
 
 
 
-   
-        await tx.SpecialisationAdmission.upsert({
+
+
+      await tx.SpecialisationAdmission.upsert({
         where: { specialisation_program_id: programId },
         update: {
-     title: req.body.admission_title?.trim() || "",
-            description: req.body.admission_desc?.trim() || "",
-            subtitle: req.body.admission_sub_title?.trim() || "",
-            subdesc: req.body.admission_sub_desc?.trim() || "",
-            notes: req.body.adminssion_notes?.trim() || "",
-            doc_title: req.body.doc_title?.trim() || "",
-            doc_des: req.body.doc_des?.trim() || "",
-            entrance_title: req.body.entrance_title?.trim() || "",
-            entrance_des: req.body.entrance_des?.trim() || "",
-            direct_title: req.body.direct_title?.trim() || "",
-            direct_desc: req.body.direct_desc?.trim() || "",
-            specialisation_program_id: programId,
+          title: req.body.admission_title?.trim() || "",
+          description: req.body.admission_desc?.trim() || "",
+          subtitle: req.body.admission_sub_title?.trim() || "",
+          subdesc: req.body.admission_sub_desc?.trim() || "",
+          notes: req.body.adminssion_notes?.trim() || "",
+          doc_title: req.body.doc_title?.trim() || "",
+          doc_des: req.body.doc_des?.trim() || "",
+          entrance_title: req.body.entrance_title?.trim() || "",
+          entrance_des: req.body.entrance_des?.trim() || "",
+          direct_title: req.body.direct_title?.trim() || "",
+          direct_desc: req.body.direct_desc?.trim() || "",
+          specialisation_program_id: programId,
         },
         create: {
-            title: req.body.admission_title?.trim() || "",
-            description: req.body.admission_desc?.trim() || "",
-            subtitle: req.body.admission_sub_title?.trim() || "",
-            subdesc: req.body.admission_sub_desc?.trim() || "",
-            notes: req.body.adminssion_notes?.trim() || "",
-            doc_title: req.body.doc_title?.trim() || "",
-            doc_des: req.body.doc_des?.trim() || "",
-            entrance_title: req.body.entrance_title?.trim() || "",
-            entrance_des: req.body.entrance_des?.trim() || "",
-            direct_title: req.body.direct_title?.trim() || "",
-            direct_desc: req.body.direct_desc?.trim() || "",
-            specialisation_program_id: programId,
+          title: req.body.admission_title?.trim() || "",
+          description: req.body.admission_desc?.trim() || "",
+          subtitle: req.body.admission_sub_title?.trim() || "",
+          subdesc: req.body.admission_sub_desc?.trim() || "",
+          notes: req.body.adminssion_notes?.trim() || "",
+          doc_title: req.body.doc_title?.trim() || "",
+          doc_des: req.body.doc_des?.trim() || "",
+          entrance_title: req.body.entrance_title?.trim() || "",
+          entrance_des: req.body.entrance_des?.trim() || "",
+          direct_title: req.body.direct_title?.trim() || "",
+          direct_desc: req.body.direct_desc?.trim() || "",
+          specialisation_program_id: programId,
         },
       });
 
@@ -1157,4 +1207,7 @@ Loggers.error(req.body)
     return errorResponse(res, "Internal server error", 500);
   }
 });
+
+
+
 

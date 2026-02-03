@@ -771,6 +771,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
         name: true,
         description: true,
         rank: true,
+        icon:true,
 
         // Courses
         courses: {
@@ -778,6 +779,8 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
             id: true,
             name: true,
             slug: true,
+            icon:true,
+            time_frame:true,
           },
         },
 
@@ -830,6 +833,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
       name: university.name,
       description: university.description,
       rank: university.rank,
+      icons:university.icon,
 
       approvals: {
         title: university.approvals?.title || null,
