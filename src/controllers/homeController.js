@@ -154,12 +154,12 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
       where: {
         deleted_at: null,
         category_id: 4, // Certificate category
-        OR: allowedCertificates.map(p => ({
-          title: {
-            contains: p,
-            mode: "insensitive", // case-insensitive
-          },
-        })),
+        // OR: allowedCertificates.map(p => ({
+        //   title: {
+        //     contains: p,
+        //     mode: "insensitive", // case-insensitive
+        //   },
+        // })),
       },
       orderBy: {
         createdAt: "desc",
