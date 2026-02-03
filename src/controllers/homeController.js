@@ -507,7 +507,6 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
     const trendingExecutives = await prisma.specialisationProgram.findMany({
       where: {
         program_id: programId,
-        deleted_at: null, // optional but recommended if you soft-delete
       },
       orderBy: {
         createdAt: 'desc', // optional (remove if not needed)
@@ -521,6 +520,7 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
       // }
     });
 
+
     if (!trendingExecutives || trendingExecutives.length === 0) {
       return errorResponse(res, "Trending executives not found", 404);
     }
@@ -528,8 +528,8 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
     return successResponse(
       res,
       "Trending executives fetched successfully",
+      200,
       trendingExecutives,
-      200
     );
   } catch (error) {
     Logger.error("GetTrendingExecutives Error:", error);
