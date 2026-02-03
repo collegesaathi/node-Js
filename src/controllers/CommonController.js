@@ -140,7 +140,7 @@ exports.UniversityList = catchAsync(async (req, res) => {
       "List fetched successfully",
       200,
       universities
-     
+
     );
   } catch (error) {
     return errorResponse(res, error.message, 500);
@@ -163,7 +163,7 @@ exports.CompareUniversity = catchAsync(async (req, res) => {
             approvals: true,
             rankings: true,
             financialAid: true,
-            examPatterns: true, 
+            examPatterns: true,
           },
         })
       )
@@ -175,9 +175,9 @@ exports.CompareUniversity = catchAsync(async (req, res) => {
       res,
       "Compare University List fetched successfully",
       200,
-      { 
-        universities: validUniversities, 
-        count: validUniversities.length 
+      {
+        universities: validUniversities,
+        count: validUniversities.length
       }
     );
   } catch (error) {
@@ -311,7 +311,6 @@ exports.PopUniversityApi = catchAsync(async (req, res) => {
 
 exports.GetUniversityCategroyList = catchAsync(async (req, res) => {
   const { id } = req.params;
-  console.log("id" ,id)
   if (!id) {
     return errorResponse(res, "University id is required", 400);
   }
@@ -429,14 +428,12 @@ exports.GetApprovalUniversity = catchAsync(async (req, res) => {
       });
     }
 
-console.log("placementPartners" ,placementPartners)
-console.log("approvalsData" ,approvalsData)
 
     return successResponse(
       res,
       "University fetched successfully",
       200,
-      {approvalsData, placementPartners }
+      { approvalsData, placementPartners }
     );
   } catch (error) {
     console.error("getUniversityById error:", error);
@@ -500,18 +497,18 @@ exports.GetSchollarshipList = catchAsync(async (req, res) => {
 
 exports.GetPlacementList = catchAsync(async (req, res) => {
   try {
-    const placements = await prisma.Placements.findMany({ 
+    const placements = await prisma.Placements.findMany({
       where: {
         deleted_at: null,
       },
       select: {
         // id: true,
         image: true,
-      },    
+      },
       orderBy: {
         id: "asc",
       },
-    }); 
+    });
     return successResponse(
       res,
       "Placement universities fetched successfully",
@@ -521,7 +518,7 @@ exports.GetPlacementList = catchAsync(async (req, res) => {
   }
   catch (error) {
     return errorResponse(res, error.message, 500);
-  } 
+  }
 });
 
 exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
@@ -772,7 +769,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
         name: true,
         description: true,
         rank: true,
-        icon:true,
+        icon: true,
 
         // Courses
         courses: {
@@ -780,8 +777,8 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
             id: true,
             name: true,
             slug: true,
-            icon:true,
-            time_frame:true,
+            icon: true,
+            time_frame: true,
           },
         },
 
@@ -834,7 +831,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
       name: university.name,
       description: university.description,
       rank: university.rank,
-      icons:university.icon,
+      icons: university.icon,
 
       approvals: {
         title: university.approvals?.title || null,
@@ -854,8 +851,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
 
 exports.GetReviews = catchAsync(async (req, res) => {
   try {
-    const { university_slug } = req.query;
-    
+    const { university_slug } = req.params;
     if (!university_slug) {
       return errorResponse(res, "university_slug is required", 400);
     }
@@ -870,7 +866,8 @@ exports.GetReviews = catchAsync(async (req, res) => {
         id: true,
       },
     });
-    
+
+
     if (!university) {
       return errorResponse(res, "University not found", 404);
     }
@@ -878,18 +875,17 @@ exports.GetReviews = catchAsync(async (req, res) => {
     const reviews = await prisma.review.findMany({
       where: {
         university_id: university.id,
-        deleted_at: null,
         // is_approved: 1, // optional: only approved reviews
       },
       orderBy: {
         created_at: "asc",
       },
     });
-    
+
     if (!reviews || reviews.length === 0) {
       return errorResponse(res, "No reviews found for this university", 404);
     }
-    
+
     return successResponse(
       res,
       "Reviews fetched successfully",

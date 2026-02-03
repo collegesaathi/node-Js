@@ -32,6 +32,6 @@ router.get('/all-specilisations', GetAllSpecialisations);
 
 router.get('/pop-up', GetPopupUniversityData);
 
-router.get('/getReviews', GetReviews);
+router.get('/getReviews/:university_slug', GetReviews);
 
 module.exports = router;
