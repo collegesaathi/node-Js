@@ -1,6 +1,7 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
+const { log } = require("winston");
 
 exports.GlobalSearch = catchAsync(async (req, res) => {
   try {
@@ -851,7 +852,54 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
   }
 });
 
+exports.GetReviews = catchAsync(async (req, res) => {
+  try {
+    const { university_slug } = req.query;
+    
+    if (!university_slug) {
+      return errorResponse(res, "university_slug is required", 400);
+    }
 
+    // 1️⃣ Find university by slug
+    const university = await prisma.university.findFirst({
+      where: {
+        slug: university_slug,
+        deleted_at: null, // optional (recommended)
+      },
+      select: {
+        id: true,
+      },
+    });
+    
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+    // 2️⃣ Fetch reviews by university_id
+    const reviews = await prisma.review.findMany({
+      where: {
+        university_id: university.id,
+        deleted_at: null,
+        // is_approved: 1, // optional: only approved reviews
+      },
+      orderBy: {
+        created_at: "asc",
+      },
+    });
+    
+    if (!reviews || reviews.length === 0) {
+      return errorResponse(res, "No reviews found for this university", 404);
+    }
+    
+    return successResponse(
+      res,
+      "Reviews fetched successfully",
+      200,
+      reviews,
+    );
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
 
 
 
