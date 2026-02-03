@@ -25,7 +25,10 @@ const dynamicUpload = (folderName) => {
       },
     }),
 
-    limits: { fileSize: 100  * 1024 * 1024 },
+     limits: {
+    fileSize: 50 * 1024 * 1024,
+    fieldSize: 50 * 1024 * 1024
+  }
   });
 };
 

@@ -44,10 +44,10 @@ const upload = multer({
         // Reject unsupported types without throwing
         return cb(null, false);
     },
-
-    limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
-    },
+  limits: {
+    fileSize: 50 * 1024 * 1024,
+    fieldSize: 50 * 1024 * 1024
+  }
 });
 
 // ✅ Upload Function
