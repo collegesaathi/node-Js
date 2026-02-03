@@ -1,18 +1,7 @@
 -- CreateTable
-CREATE TABLE "Role" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "deleted_at" TIMESTAMP(3),
-
-    CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
-    "role_id" INTEGER NOT NULL,
+    "role" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "full_name" TEXT NOT NULL,
     "password" TEXT NOT NULL,
@@ -304,6 +293,7 @@ CREATE TABLE "Category" (
     "name" TEXT NOT NULL,
     "short_title" TEXT,
     "icon" TEXT,
+    "slug" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -476,6 +466,7 @@ CREATE TABLE "Program" (
     "bannerImage" TEXT,
     "slug" TEXT NOT NULL,
     "bannerImageAlt" TEXT,
+    "icon" TEXT,
     "pdfdownlaod" TEXT,
     "career_growth" TEXT,
     "duration" TEXT,
@@ -506,6 +497,7 @@ CREATE TABLE "SpecialisationProgram" (
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "bannerImage" TEXT,
+    "icon" TEXT,
     "slug" TEXT NOT NULL,
     "bannerImageAlt" TEXT,
     "pdfdownlaod" TEXT,
@@ -864,7 +856,7 @@ CREATE TABLE "ClickPick" (
     "specialization_merged_desc" TEXT,
     "specialization_merged_content" TEXT,
     "salary_graph_title" TEXT,
-    "salary_graph_value" TEXT,
+    "salary_graph_value" JSONB,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
@@ -904,20 +896,38 @@ CREATE TABLE "leadlearing" (
     CONSTRAINT "leadlearing_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "Role_name_key" ON "Role"("name");
+-- CreateTable
+CREATE TABLE "Review" (
+    "id" SERIAL NOT NULL,
+    "university_id" INTEGER,
+    "random_string" TEXT,
+    "name" TEXT,
+    "email" TEXT,
+    "review_title" TEXT,
+    "review_description" TEXT,
+    "average_rating" INTEGER,
+    "infrastructure_rating" INTEGER,
+    "infrastructure_rating_titile" TEXT,
+    "infrastructure_rating_description" TEXT,
+    "course_curriculum" INTEGER,
+    "course_curriculum_title" TEXT,
+    "course_curriculum_description" TEXT,
+    "value_for_money" INTEGER,
+    "value_for_money_title" TEXT,
+    "value_for_money_description" TEXT,
+    "status" INTEGER DEFAULT 0,
+    "is_anonymous" INTEGER DEFAULT 0,
+    "is_approved" INTEGER DEFAULT 0,
+    "is_approved_date" TIMESTAMP(3),
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "deleted_at" TIMESTAMP(3),
+
+    CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "University_slug_key" ON "University"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Course_slug_key" ON "Course"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Specialisation_slug_key" ON "Specialisation"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Fees_course_id_key" ON "Fees"("course_id");
@@ -1049,9 +1059,6 @@ CREATE UNIQUE INDEX "Facts_specialisation_id_key" ON "Facts"("specialisation_id"
 CREATE UNIQUE INDEX "UniversityCampus_university_id_key" ON "UniversityCampus"("university_id");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Blog_slug_key" ON "Blog"("slug");
-
--- CreateIndex
 CREATE UNIQUE INDEX "BlacklistedToken_token_key" ON "BlacklistedToken"("token");
 
 -- CreateIndex
@@ -1089,12 +1096,6 @@ CREATE UNIQUE INDEX "EligibilityCriteria_course_id_key" ON "EligibilityCriteria"
 
 -- CreateIndex
 CREATE UNIQUE INDEX "EligibilityCriteria_specialisation_id_key" ON "EligibilityCriteria"("specialisation_id");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Program_slug_key" ON "Program"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "SpecialisationProgram_slug_key" ON "SpecialisationProgram"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProgramSummary_program_id_key" ON "ProgramSummary"("program_id");
@@ -1179,9 +1180,6 @@ CREATE UNIQUE INDEX "ProgramChoose_specialisation_program_id_key" ON "ProgramCho
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProgramExperience_program_id_key" ON "ProgramExperience"("program_id");
-
--- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Course" ADD CONSTRAINT "Course_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1479,3 +1477,6 @@ ALTER TABLE "ClickPick" ADD CONSTRAINT "ClickPick_program_id_fkey" FOREIGN KEY (
 
 -- AddForeignKey
 ALTER TABLE "ClickPick" ADD CONSTRAINT "ClickPick_specialisation_program_id_fkey" FOREIGN KEY ("specialisation_program_id") REFERENCES "SpecialisationProgram"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Review" ADD CONSTRAINT "Review_university_id_fkey" FOREIGN KEY ("university_id") REFERENCES "University"("id") ON DELETE SET NULL ON UPDATE CASCADE;
