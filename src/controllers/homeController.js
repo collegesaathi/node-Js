@@ -435,3 +435,45 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
 });
 
 
+exports.GetTrendingExecutives = catchAsync(async (req, res) => {
+  try {
+    const programId = 44; // static program_id
+
+    const trendingExecutives = await prisma.specialisationProgram.findMany({
+      where: {
+        program_id: programId,
+        deleted_at: null, // optional but recommended if you soft-delete
+      },
+      orderBy: {
+        createdAt: 'desc', // optional (remove if not needed)
+      },
+      // select: {        // use this if you want limited fields
+      //   id: true,
+      //   title: true,
+      //   slug: true,
+      //   bannerImage: true,
+      //   shortDescription: true,
+      // }
+    });
+
+    if (!trendingExecutives || trendingExecutives.length === 0) {
+      return errorResponse(res, "Trending executives not found", 404);
+    }
+
+    return successResponse(
+      res,
+      "Trending executives fetched successfully",
+      trendingExecutives,
+      200
+    );
+  } catch (error) {
+    Logger.error("GetTrendingExecutives Error:", error);
+
+    if (error.code === "P2025") {
+      return errorResponse(res, "Trending executives not found", 404);
+    }
+
+    return errorResponse(res, error.message || "Something went wrong", 500);
+  }
+});
+
