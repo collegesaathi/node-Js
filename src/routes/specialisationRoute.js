@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const dynamicUpload = require("../utils/dynamicUpload");
-const { adminaddSpecialisation, updateSpecialisation, Allspecialisation, SpecialisationDelete, GetBySpecialisationId, GetSpecialisationCourseList, DeleteSpecialisationBySlug } = require("../controllers/SpecialisationController");
+const { adminaddSpecialisation, updateSpecialisation, Allspecialisation, SpecialisationDelete, GetBySpecialisationId, GetSpecialisationCourseList, DeleteSpecialisationBySlug, GetAllSpecialisationsdata } = require("../controllers/SpecialisationController");
 
 router.get("/specialisations/:slug", GetBySpecialisationId);
 
@@ -21,6 +21,9 @@ router.get("/specialisation/delete/:id", SpecialisationDelete)
 router.delete("/specialisation/slug/:slug",
   DeleteSpecialisationBySlug
 );
+
+router.get("/all/data/spe" , GetAllSpecialisationsdata)
+
 
 
 module.exports = router;

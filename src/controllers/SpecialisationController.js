@@ -1253,3 +1253,30 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
     );
   }
 });
+
+
+exports.GetAllSpecialisationsdata = catchAsync(async (req, res) => {
+  try {
+    // Fetch all courses including related data (optional: limit fields for performance)
+    const courses = await prisma.Specialisation.findMany({
+      where: {
+        deleted_at: null,
+      },
+      include: {
+        university: true,
+        approvals: true,
+        partners: true,
+        fees: true,
+        rankings: true,
+        eligibilitycriteria: true,
+      },
+    });
+
+    
+
+    return successResponse(res, "All courses fetched successfully", 200, courses);
+  } catch (error) {
+    console.error("GetAllCourses error:", error);
+    return errorResponse(res, error.message || "Something went wrong fetching courses", 500, error);
+  }
+});

@@ -857,20 +857,58 @@ exports.CoursesDelete = catchAsync(async (req, res) => {
 });
 
 
-exports.GetCourseById = catchAsync(async (req, res) => {
+exports.GetAllCourses = catchAsync(async (req, res) => {
   try {
-    const { slug } = req.params;
-    if (!slug) {
-      return errorResponse(res, "Course slug is required", 400);
-    }
-    const CourseData = await prisma.Course.findFirst({
+    // Fetch all courses including related data (optional: limit fields for performance)
+    const courses = await prisma.Course.findMany({
       where: {
-        slug: slug,
         deleted_at: null,
       },
       include: {
-        about: true,
         university: true,
+        approvals: true,
+        partners: true,
+        fees: true,
+        rankings: true,
+        eligibilitycriteria: true,
+      },
+    });
+
+    
+
+    return successResponse(res, "All courses fetched successfully", 200, courses);
+  } catch (error) {
+    console.error("GetAllCourses error:", error);
+    return errorResponse(res, error.message || "Something went wrong fetching courses", 500, error);
+  }
+});
+
+
+exports.GetCourseById = catchAsync(async (req, res) => {
+  try {
+    const { univ, slug } = req.params;
+
+    if (!univ) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+    if (!slug) {
+      return errorResponse(res, "Course slug is required", 400);
+    }
+
+    // 1️⃣ Fetch university by slug
+    const university = await prisma.University.findFirst({
+      where: { slug: univ, deleted_at: null },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    // 2️⃣ Fetch course by slug AND university_id
+    const CourseData = await prisma.Course.findFirst({
+      where: { slug: slug, university_id: university.id, deleted_at: null },
+      include: {
+        about: true,
         fees: true,
         approvals: true,
         rankings: true,
@@ -887,25 +925,26 @@ exports.GetCourseById = catchAsync(async (req, res) => {
         faq: true,
         seo: true,
         advantages: true,
+        university: true, // optional but keeps university data in response
       },
     });
 
+    console.log("CourseData" , CourseData)
+
     if (!CourseData) {
-      return errorResponse(res, "CourseData not found", 404);
+      return errorResponse(res, "Course not found for this university", 404);
     }
 
+    // Helper to normalize arrays
     const toArray = (val) => {
       if (!val && val !== 0) return [];
       return Array.isArray(val) ? val : [val];
     };
 
-    // ----------- Extract partner IDs (defensively) -----------
+    // -------- Extract partner IDs --------
     let placementPartnerIds = [];
-
-    const partnersRaw = CourseData.partners;
-    if (partnersRaw) {
-      const partnersArr = toArray(partnersRaw);
-      placementPartnerIds = partnersArr.flatMap((p) => {
+    if (CourseData.partners) {
+      placementPartnerIds = toArray(CourseData.partners).flatMap((p) => {
         if (!p) return [];
         if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
         if (p.placement_partner_id) return [p.placement_partner_id];
@@ -926,13 +965,10 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       });
     }
 
-    // ----------- Extract approval IDs (defensively) -----------
+    // -------- Extract approval IDs --------
     let approvalIds = [];
-
-    const approvalsRaw = CourseData.approvals;
-    if (approvalsRaw) {
-      const approvalsArr = toArray(approvalsRaw);
-      approvalIds = approvalsArr.flatMap((a) => {
+    if (CourseData.approvals) {
+      approvalIds = toArray(CourseData.approvals).flatMap((a) => {
         if (!a) return [];
         if (Array.isArray(a.approval_ids)) return a.approval_ids;
         if (a.approval_ids) return [a.approval_ids];
@@ -953,23 +989,22 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       });
     }
 
-
-    return successResponse(
-      res,
-      "Course fetched successfully",
-      200,
-      { CourseData, approvalsData, placementPartners }
-    );
+    return successResponse(res, "Course fetched successfully", 200, {
+      CourseData,
+      approvalsData,
+      placementPartners,
+    });
   } catch (error) {
-    console.error("getUniversityById error:", error);
+    console.error("GetCourseById error:", error);
     return errorResponse(
       res,
-      error.message || "Something went wrong while fetching university",
+      error.message || "Something went wrong while fetching course",
       500,
       error
     );
   }
 });
+
 
 
 exports.GetUniversityCourseList = catchAsync(async (req, res) => {
