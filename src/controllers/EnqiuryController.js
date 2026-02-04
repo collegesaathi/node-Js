@@ -41,20 +41,22 @@ async function sendLeadToLSQ({
     const apiURL = `https://api-in21.leadsquared.com/v2/LeadManagement.svc/Lead.Capture?accessKey=${LSQ_ACCESS_KEY}&secretKey=${LSQ_SECRET_KEY}`;
 
     const payload = [
-      { Attribute: "FirstName", Value: name },       
-      { Attribute: "EmailAddress", Value: email },
-      { Attribute: "Phone", Value: phone_number },
-      { Attribute: "mx_Specialization", Value: "" },
-      { Attribute: "mx_Course_Applying_For", Value: unv_co || "" },
-      { Attribute: "mx_City", Value: city || "" },
-      { Attribute: "from_fb", Value: false },
-      { Attribute: "Source", Value: "Website" },
-      { Attribute: "mx_Opportunity_source", Value: "Opportunity source" },
-      { Attribute: "SourceCampaign", Value: unv_nm || "" },
-      { Attribute: "SourceMedium", Value: "Website" },
-      { Attribute: "mx_University_Name", Value: (unv_nm || "").trim() },    
-      { Attribute: "SearchBy", Value: "Phone" }
-    ];
+  { Attribute: "FirstName", Value: name || "NA" },
+  { Attribute: "LastName", Value: "" },
+  { Attribute: "EmailAddress", Value: email || "" },
+  { Attribute: "Phone", Value: phone_number || "" },
+  { Attribute: "mx_Specialization", Value: "" },
+  { Attribute: "mx_Course_Applying_For", Value: unv_co || "" },
+  { Attribute: "mx_City", Value: city || "" },
+  { Attribute: "from_fb", Value: false },
+  { Attribute: "Source", Value: "Website" },
+  { Attribute: "mx_Opportunity_source", Value: "Opportunity source" },
+  { Attribute: "SourceCampaign", Value: unv_nm || "" },
+  { Attribute: "SourceMedium", Value: "Website" },
+  { Attribute: "mx_University_Name", Value: (unv_nm || "").trim() },
+  { Attribute: "SearchBy", Value: "Phone" }
+];
+
 
     await axios.post(apiURL, payload, {
       headers: {
