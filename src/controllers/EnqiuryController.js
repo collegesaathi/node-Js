@@ -29,8 +29,8 @@ function getClientIP(req) {
 
 const axios = require("axios");
 
-const LSQ_ACCESS_KEY = "u$r286e34b975a130c5c265ade41e030d10";
-const LSQ_SECRET_KEY = "a4f03869c860afeef6d2439f1ca209b30eec1881";
+const LSQ_ACCESS_KEY = process.env.LSQ_ACCESS_KEY;
+const LSQ_SECRET_KEY = process.env.LSQ_SECRET_KEY;
 
 async function sendLeadToLSQ({
   name,
