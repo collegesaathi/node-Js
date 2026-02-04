@@ -1554,3 +1554,102 @@ exports.DeleteCourseBySlug = catchAsync(async (req, res) => {
     );
   }
 });
+
+
+exports.GetCourseDetails = catchAsync(async (req, res) => {
+  try {
+    const { university_slug, course_slug } = req.params;
+    // 1️⃣ Validate params
+    if (!university_slug || !course_slug) {
+      return errorResponse(res, "University slug and Course slug are required", 400);
+    }
+    // 2️⃣ Find University by slug
+    const university = await prisma.university.findFirst({
+      where: {
+        slug: university_slug,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    // 3️⃣ Find Course using university_id + course_slug
+    const course = await prisma.course.findFirst({
+      where: {
+        slug: course_slug,
+        university_id: university.id,
+        deleted_at: null,
+      },
+      include: {
+        about: true,
+        fees: true,
+        seo: true,
+        approvals: true,
+        rankings: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+        certificates: true,
+        skills: true,
+        examPatterns: true,
+        financialAid: true,
+        career: true,
+        partners: true,
+        services: true,
+        admissionprocess: true,
+        faq: true,
+        advantages: true,
+        facts: true,
+        specialisation: {
+          where: { deleted_at: null },
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      
+    });
+    let approvalDetails = [];
+    if (
+      course?.approvals?.approval_ids &&
+      Array.isArray(course.approvals.approval_ids)
+    ) {
+      approvalDetails = await prisma.approvals.findMany({
+        where: {
+          id: {
+            in: course.approvals.approval_ids,
+          },
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          image: true,
+        },
+      });
+    }
+    if (!course) {
+      return errorResponse(res, "Course not found for this university", 404);
+    }
+
+    // 4️⃣ Success Response
+    return res.status(200).json({
+      success: true,
+      data: {
+        university,
+        course: {
+          ...course,
+          approval_list: approvalDetails, // ✅ actual approval data
+        },
+      },
+    });
+  } catch (error) {
+    return errorResponse(res, "Something went wrong", 500);
+  }
+});

@@ -1253,3 +1253,120 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
     );
   }
 });
+
+
+exports.GetspecialisationDetails = catchAsync(async (req, res) => {
+  try {
+    const { university_slug, course_slug, specialisation_slug } = req.params;
+
+    // 1️⃣ Validate params
+    if (!university_slug || !course_slug || !specialisation_slug) {
+      return errorResponse(res, "All slugs are required", 400);
+    }
+
+    // 2️⃣ Fetch University
+    const university = await prisma.university.findFirst({
+      where: {
+        slug: university_slug,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
+    }
+
+    // 3️⃣ Fetch Course (belongs to university)
+    const course = await prisma.course.findFirst({
+      where: {
+        slug: course_slug,
+        university_id: university.id,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!course) {
+      return errorResponse(res, "Course not found for this university", 404);
+    }
+
+    // 4️⃣ Fetch Specialisation (belongs to university + course)
+    const specialisation = await prisma.specialisation.findFirst({
+      where: {
+        slug: specialisation_slug,
+        university_id: university.id,
+        course_id: course.id,
+        deleted_at: null,
+      },
+      include: {
+        about: true,
+        fees: true,
+        approvals: true,
+        rankings: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+        certificates: true,
+        skills: true,
+        examPatterns: true,
+        financialAid: true,
+        career: true,
+        partners: true,
+        services: true,
+        admissionprocess: true,
+        faq: true,
+        seo: true,
+        advantages: true,
+        facts: true,
+      },
+    });
+
+    if (!specialisation) {
+      return errorResponse(res, "Specialisation not found", 404);
+    }
+
+    // 5️⃣ Resolve approval_ids → Approvals table (same as before)
+    let approvalList = [];
+
+    if (
+      specialisation.approvals?.approval_ids &&
+      Array.isArray(specialisation.approvals.approval_ids)
+    ) {
+      approvalList = await prisma.approvals.findMany({
+        where: {
+          id: {
+            in: specialisation.approvals.approval_ids,
+          },
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          image: true,
+        },
+      });
+    }
+
+    // 6️⃣ Final response
+    return successResponse(
+      res,
+      "Specialisation details fetched successfully",
+      200,
+      {
+        university,
+        course,
+        specialisation: {
+          ...specialisation,
+          approval_list: approvalList,
+        },
+      }
+    );
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Something went wrong", 500);
+  }
+});
