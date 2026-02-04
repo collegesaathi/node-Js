@@ -130,9 +130,6 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
   }
 });
 
-
-
-
 exports.LeadsGet = catchAsync(async (req, res) => {
   try {
     let leads = await prisma.leads.findMany({
