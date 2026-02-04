@@ -26,6 +26,50 @@ function getClientIP(req) {
 
 const axios = require("axios");
 
+const LSQ_ACCESS_KEY = 'u$r286e34b975a130c5c265ade41e030d10';
+const LSQ_SECRET_KEY = 'a4f03869c860afeef6d2439f1ca209b30eec1881';
+
+async function sendLeadToLSQ({
+  name,
+  email,
+  phone_number,
+  city,
+  unv_nm,
+  unv_co
+}) {
+  try {
+    const apiURL = `https://api-in21.leadsquared.com/v2/LeadManagement.svc/Lead.Capture?accessKey=${LSQ_ACCESS_KEY}&secretKey=${LSQ_SECRET_KEY}`;
+
+    const payload = [
+      { Attribute: "FirstName", Value: name },      
+      { Attribute: "EmailAddress", Value: email },
+      { Attribute: "Phone", Value: phone_number },
+      { Attribute: "mx_Specialization", Value: "" },
+      { Attribute: "mx_Course_Applying_For", Value: unv_co || "" },
+      { Attribute: "mx_City", Value: city || "" },
+      { Attribute: "from_fb", Value: false },
+      { Attribute: "Source", Value: "Website" },
+      { Attribute: "mx_Opportunity_source", Value: "Opportunity source" },
+      { Attribute: "SourceCampaign", Value: unv_nm || "" },
+      { Attribute: "SourceMedium", Value: "Website" },
+      { Attribute: "mx_University_Name", Value: (unv_nm || "").trim() },    
+      { Attribute: "SearchBy", Value: "Phone" }
+    ];
+
+    await axios.post(apiURL, payload, {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      timeout: 5000
+    });
+
+    console.log("LSQ lead sent");
+  } catch (error) {
+    console.error("LSQ Error:", error.response?.data || error.message);
+  }
+}
+
 async function getGeoFromIP(ip) {
   try {
     // 🚫 Skip localhost & private IPs
@@ -120,7 +164,14 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
     }
 
     const record = await prisma.leads.create({ data });
-
+sendLeadToLSQ({
+  name,
+  email,
+  phone_number,
+  city,
+  unv_nm: page_name,   // or university name
+  unv_co: content      // or course name
+});
 
 
     return successResponse(res, "Leads added successfully", 201, record);
