@@ -41,7 +41,7 @@ async function sendLeadToLSQ({
     const apiURL = `https://api-in21.leadsquared.com/v2/LeadManagement.svc/Lead.Capture?accessKey=${LSQ_ACCESS_KEY}&secretKey=${LSQ_SECRET_KEY}`;
 
     const payload = [
-      { Attribute: "FirstName", Value: name },      
+      { Attribute: "FirstName", Value: name },       
       { Attribute: "EmailAddress", Value: email },
       { Attribute: "Phone", Value: phone_number },
       { Attribute: "mx_Specialization", Value: "" },
