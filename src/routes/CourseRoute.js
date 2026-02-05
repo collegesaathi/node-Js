@@ -10,11 +10,6 @@ router.get("/university-course/:id", GetUniversityCourseList)
 router.get("/course_name/:id", GetCourseByName)
 router.post("/admin/course/update", dynamicUpload("universities").any(), UpdateCourse)
 
-
-
-
-
-
 // user Side 
 router.get("/all/data/course" , GetAllCourses)
 router.get("/course/:univ/:slug", GetCourseById)

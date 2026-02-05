@@ -861,6 +861,15 @@ exports.GetCourseById = catchAsync(async (req, res) => {
     // 1️⃣ Fetch university by slug
     const university = await prisma.University.findFirst({
       where: { slug: univ, deleted_at: null },
+      include :{
+        rankings: true,
+         services:true,
+         examPatterns :true,
+         admissionProcess : true,
+         reviews :true,
+         partners : true,
+         approvals : true
+      }
     });
 
     if (!university) {
@@ -888,10 +897,12 @@ exports.GetCourseById = catchAsync(async (req, res) => {
         faq: true,
         seo: true,
         advantages: true,
-        university: true, 
       },
     });
 
+    const specialisation    =  await prisma.Specialisation.findMany({
+      where: { course_id: CourseData?.id || 0, deleted_at: null },
+    })
 
     if (!CourseData) {
       return errorResponse(res, "Course not found for this university", 404);
@@ -905,8 +916,8 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 
     // -------- Extract partner IDs --------
     let placementPartnerIds = [];
-    if (CourseData.partners) {
-      placementPartnerIds = toArray(CourseData.partners).flatMap((p) => {
+    if (university.partners) {
+      placementPartnerIds = toArray(university.partners).flatMap((p) => {
         if (!p) return [];
         if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
         if (p.placement_partner_id) return [p.placement_partner_id];
@@ -929,8 +940,8 @@ exports.GetCourseById = catchAsync(async (req, res) => {
 
     // -------- Extract approval IDs --------
     let approvalIds = [];
-    if (CourseData.approvals) {
-      approvalIds = toArray(CourseData.approvals).flatMap((a) => {
+    if (university.approvals) {
+      approvalIds = toArray(university.approvals).flatMap((a) => {
         if (!a) return [];
         if (Array.isArray(a.approval_ids)) return a.approval_ids;
         if (a.approval_ids) return [a.approval_ids];
@@ -955,6 +966,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       CourseData,
       approvalsData,
       placementPartners,
+      university ,specialisation
     });
   } catch (error) {
     console.error("GetCourseById error:", error);
