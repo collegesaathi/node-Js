@@ -16,7 +16,6 @@ router.delete("/specialisation/slug/:slug",
 
 router.get("/all/data/spe" , GetAllSpecialisationsdata)
 
-
 //Admin Router 
 router.get("/admin/specialisation-get/:id/:slug", AdminGetSpecialisationById );
 router.get("/specialisation-course/:course_id", GetSpecialisationCourseList)
