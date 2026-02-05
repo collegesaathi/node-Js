@@ -341,8 +341,19 @@ exports.getUniversityById = catchAsync(async (req, res) => {
         rankings: true,
         services: true,
         seo: true,
+        reviews : true
       },
     });
+
+ const course = await prisma.Course.findMany({
+  where: {
+    university_id: Number(university?.id)
+  },
+  include: {
+    fees: true  
+  }
+});
+
 
     if (!university) {
       return errorResponse(res, "University not found", 404);
@@ -407,12 +418,12 @@ exports.getUniversityById = catchAsync(async (req, res) => {
       });
     }
 
-
+console.log("course" ,course)
     return successResponse(
       res,
       "University fetched successfully",
       200,
-      { university, approvalsData, placementPartners }
+      { university, approvalsData, placementPartners ,course }
     );
   } catch (error) {
     console.error("getUniversityById error:", error);
@@ -1172,40 +1183,111 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
 });
 
 
-exports.DeleteUniversityBySlug = catchAsync(async (req, res) => {
+
+exports.AdminGetUniversityById = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
-
     if (!slug) {
       return errorResponse(res, "University slug is required", 400);
     }
-
-    // Find university
     const university = await prisma.University.findFirst({
-      where: { slug },
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
+      include: {
+        about: true,
+        admissionProcess: true,
+        advantages: true,
+        approvals: true,
+        universityCampuses: true,
+        certificates: true,
+        examPatterns: true,
+        facts: true,
+        faq: true,
+        financialAid: true,
+        partners: true,
+        rankings: true,
+        services: true,
+        seo: true,
+      },
     });
 
     if (!university) {
       return errorResponse(res, "University not found", 404);
     }
 
-    // 🔥 PERMANENT DELETE
-    await prisma.University.delete({
-      where: {
-        id: university.id,
-      },
-    });
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+
+    // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
+
+    const partnersRaw = university.partners;
+    if (partnersRaw) {
+      const partnersArr = toArray(partnersRaw);
+      placementPartnerIds = partnersArr.flatMap((p) => {
+        if (!p) return [];
+        if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
+        if (p.placement_partner_id) return [p.placement_partner_id];
+        if (Array.isArray(p.partner_id)) return p.partner_id;
+        if (p.partner_id) return [p.partner_id];
+        if (p.id) return [p.id];
+        return [];
+      });
+      placementPartnerIds = Array.from(new Set(placementPartnerIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: { id: { in: placementPartnerIds } },
+      });
+    }
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = university.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
 
     return successResponse(
       res,
-      "University permanently deleted successfully",
-      200
+      "University fetched successfully",
+      200,
+      { university, approvalsData, placementPartners }
     );
   } catch (error) {
-    console.error("DeleteUniversityBySlug error:", error);
+    console.error("getUniversityById error:", error);
     return errorResponse(
       res,
-      error.message || "Error deleting university",
+      error.message || "Something went wrong while fetching university",
       500,
       error
     );

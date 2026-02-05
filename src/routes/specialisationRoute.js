@@ -5,14 +5,7 @@ const { adminaddSpecialisation, updateSpecialisation, Allspecialisation, Special
 
 router.get("/specialisations/:slug", GetBySpecialisationId);
 
-router.post("/admin/specialisation/add", dynamicUpload("specialisation").any(), adminaddSpecialisation);
-
 router.get("/all/specialisation", Allspecialisation);
-
-router.post("/admin/specialisation/update", dynamicUpload("specialisation").any(), updateSpecialisation)
-
-
-
 
 router.get("/specialisation/delete/:id", SpecialisationDelete)
 
@@ -26,7 +19,8 @@ router.get("/all/data/spe" , GetAllSpecialisationsdata)
 
 //Admin Router 
 router.get("/admin/specialisation-get/:id/:slug", AdminGetSpecialisationById );
-
 router.get("/specialisation-course/:course_id", GetSpecialisationCourseList)
+router.post("/admin/specialisation/update", dynamicUpload("specialisation").any(), updateSpecialisation)
+router.post("/admin/specialisation/add", dynamicUpload("specialisation").any(), adminaddSpecialisation);
 
 module.exports = router;

@@ -79,9 +79,7 @@ app.use("/api", require("./routes/SitemapRoutes"));
 app.use("/api", require("./routes/clickpickRoutes"));
 app.use("/api", require("./routes/FiltrationRoutes"));
 app.use("/api", require("./routes/categoryRoutes"));
-
-
-
+app.use("/api", require("./routes/AllDeleteRoute"));
 
 
 // const { PrismaClient } = require('@prisma/client');
