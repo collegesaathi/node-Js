@@ -3,7 +3,6 @@ const router = express.Router();
 const dynamicUpload = require("../utils/dynamicUpload");
 const { adminaddSpecialisation, updateSpecialisation, Allspecialisation, SpecialisationDelete, GetBySpecialisationId, GetSpecialisationCourseList, DeleteSpecialisationBySlug, GetAllSpecialisationsdata, AdminGetSpecialisationById } = require("../controllers/SpecialisationController");
 
-router.get("/specialisations/:slug", GetBySpecialisationId);
 
 router.get("/all/specialisation", Allspecialisation);
 
@@ -13,8 +12,9 @@ router.get("/specialisation/delete/:id", SpecialisationDelete)
 router.delete("/specialisation/slug/:slug",
   DeleteSpecialisationBySlug
 );
-
-router.get("/all/data/spe" , GetAllSpecialisationsdata)
+//user router 
+router.get("/all/data/specialization" , GetAllSpecialisationsdata);
+router.get("/specialisations/:univ/:courseslug/:slug", GetBySpecialisationId);
 
 //Admin Router 
 router.get("/admin/specialisation-get/:id/:slug", AdminGetSpecialisationById );

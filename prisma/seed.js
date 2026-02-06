@@ -27,8 +27,6 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('Seeding database...')
-  
   // Add your seed data here
   // Example:
   // await prisma.user.create({
@@ -38,7 +36,6 @@ async function main() {
   //   }
   // })
   
-  console.log('Seeding completed!')
 }
 
 main()

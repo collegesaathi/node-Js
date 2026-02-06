@@ -20,7 +20,7 @@ function deleteUploadedFiles(fileUrls = []) {
 
             if (fs.existsSync(absolutePath)) {
                 fs.unlinkSync(absolutePath);
-                console.log(`✅ Deleted: ${absolutePath}`);
+                // console.log(`✅ Deleted: ${absolutePath}`);
             } else {
                 console.warn(`⚠️ File not found: ${absolutePath}`);
             }

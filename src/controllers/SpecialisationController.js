@@ -170,12 +170,35 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 exports.GetBySpecialisationId = catchAsync(async (req, res) => {
   try {
-    const { slug } = req.params;
+        const { univ, slug  ,courseslug} = req.params;
+
+    if (!univ) {
+      return errorResponse(res, "University slug is required", 400);
+    }
     if (!slug) {
-      return errorResponse(res, "Specialisation slug is required", 400);
+      return errorResponse(res, "Course slug is required", 400);
+    }
+
+    // 1️⃣ Fetch university by slug
+    const university = await prisma.University.findFirst({
+      where: { slug: univ, deleted_at: null },
+      include :{
+        rankings: true,
+         services:true,
+         examPatterns :true,
+         admissionProcess : true,
+         reviews :true,
+         partners : true,
+         approvals : true
+      }
+    });
+
+    if (!university) {
+      return errorResponse(res, "University not found", 404);
     }
     const SpecialisationData = await prisma.Specialisation.findFirst({
       where: {
+        university_id: Number(university.id),
         slug: slug,
         deleted_at: null,
       },
@@ -200,9 +223,25 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
         university : true
       },
     });
+
     if (!SpecialisationData) {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
+
+    const specialisation    =  await prisma.Specialisation.findMany({
+      where: { course_id: SpecialisationData?.course_id || 0, deleted_at: null },
+    })
+
+    const course  =  await prisma.Course.findFirst({ 
+      where: { slug: courseslug , deleted_at: null },
+      select: {
+        certificates: true,
+      }
+    })
+    if (!specialisation || specialisation.length === 0) {
+      return errorResponse(res, "Course not found for this university", 404);
+    }
+
 
 
     const toArray = (val) => {
@@ -213,7 +252,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
     // ----------- Extract partner IDs (defensively) -----------
     let placementPartnerIds = [];
 
-    const partnersRaw = SpecialisationData.partners;
+    const partnersRaw = university.partners;
     if (partnersRaw) {
       const partnersArr = toArray(partnersRaw);
       placementPartnerIds = partnersArr.flatMap((p) => {
@@ -240,7 +279,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
     // ----------- Extract approval IDs (defensively) -----------
     let approvalIds = [];
 
-    const approvalsRaw = SpecialisationData.approvals;
+    const approvalsRaw = university.approvals;
     if (approvalsRaw) {
       const approvalsArr = toArray(approvalsRaw);
       approvalIds = approvalsArr.flatMap((a) => {
@@ -268,7 +307,7 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
       res,
       "Specialisation fetched successfully",
       200,
-      { SpecialisationData, approvalsData, placementPartners }
+      { SpecialisationData, approvalsData, placementPartners , university  ,course ,specialisation}
     );
   } catch (error) {
     console.error("getUniversityById error:", error);
@@ -1080,7 +1119,6 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 exports.GetSpecialisationCourseList = catchAsync(async (req, res) => {
   try {
     const { course_id } = req.params;
-    console.log("course_id" ,course_id)
     if (!course_id) {
       return errorResponse(res, "course_id id is required", 400);
     }

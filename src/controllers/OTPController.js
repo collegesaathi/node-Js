@@ -53,7 +53,6 @@ exports.sendOtp = catchAsync(async (req, res) => {
     }, 5 * 60 * 1000);
 
     // 🚧 TEMP: log OTP (remove in production)
-    console.log(`OTP for ${mobile}: ${otp}`);
 
     return successResponse(res, "OTP sent successfully", 200);
   } catch (err) {

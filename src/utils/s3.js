@@ -84,7 +84,7 @@ const deleteFile = async (fileUrl) => {
         throw new Error("Invalid file URL");
     }
 
-    console.log("Deleting S3 Object Key:", key); // DEBUG
+    // console.log("Deleting S3 Object Key:", key); // DEBUG
 
     await s3Client.send(new DeleteObjectCommand({
         Bucket: bucketName,

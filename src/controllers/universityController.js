@@ -97,7 +97,6 @@ exports.allUniversities = catchAsync(async (req, res) => {
     }
   });
 
-  // console.log(categories);
 
   // If categories failed (rare but possible)
   if (!categories) {
@@ -418,7 +417,6 @@ exports.getUniversityById = catchAsync(async (req, res) => {
       });
     }
 
-console.log("course" ,course)
     return successResponse(
       res,
       "University fetched successfully",
@@ -910,8 +908,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       rankings_description: req.body.rankings_description || "",
     };
 
-    console.log("uploadedFiles =", uploadedFiles);
-    console.log("pdf_download =", uploadedFiles?.pdf_download);
 
     const updatedUniversity = await prisma.University.update({
       where: { id: universityId },
@@ -937,7 +933,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    console.log("updatedUniversity", updatedUniversity)
     // UPDATE RELATIONS (UPSERTS)
     await prisma.About.upsert({
       where: { university_id: universityId },

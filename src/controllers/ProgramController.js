@@ -596,7 +596,6 @@ exports.GetFrontedProgramById = catchAsync(async (req, res) => {
         where: { id: { in: placementPartnerIds } },
       });
     }
-    console.log("placementPartners", placementPartners)
 
     return successResponse(
       res,

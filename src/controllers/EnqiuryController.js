@@ -68,7 +68,6 @@ async function sendLeadToLSQ({
       timeout: 5000,
     });
 
-    console.log("LSQ lead sent");
   } catch (error) {
     console.error("LSQ Error:", error.response?.data || error.message);
   }
@@ -132,8 +131,6 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
     const ip_address = getClientIP(req);
     const device_type = getDeviceType(req);
 
-    console.log("IP:", ip_address);
-    console.log("Device:", device_type);
 
     if (!city || !state) {
       const geo = await getGeoFromIP(ip_address);
