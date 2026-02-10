@@ -2,8 +2,6 @@ const express = require("express");
 const router = express.Router();
 const { allUniversities, adminapprovalsplacements, adminUniversitylisting, addUniversity, allAdminUniversities, universitiesDelete, getUniversityById, updateUniversity, GetServicesUniversityById, AdminGetUniversityById } = require("../controllers/universityController");
 const dynamicUpload = require("../utils/dynamicUpload");
-
-
 //user Route
 router.get("/universities", allUniversities);
 router.get("/university/:slug", getUniversityById)

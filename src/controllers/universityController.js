@@ -62,14 +62,16 @@ exports.allUniversities = catchAsync(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 9;
     const skip = (page - 1) * limit;
+
     const {
       search,
-      level,          
-      program,        
-      specialization,  
-      minReviews       
+      level,
+      program,
+      specialization,
+      minReviews
     } = req.query;
 
+    /* ================= CATEGORY DATA ================= */
     const categories = await prisma.category.findMany({
       orderBy: { id: "asc" },
       include: {
@@ -96,54 +98,80 @@ exports.allUniversities = catchAsync(async (req, res) => {
       return errorResponse(res, "Failed to fetch categories", 500);
     }
 
+    /* ================= FILTER BUILD ================= */
     const baseWhere = {
       deleted_at: null,
     };
 
+    const andFilters = [];   // ✅ FIX: define here
+
+    /* ===== SMART SEARCH ===== */
     if (search) {
-      baseWhere.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { slug: { contains: search, mode: "insensitive" } },
-      ];
+      const words = search
+        .toLowerCase()
+        .trim()
+        .split(/\s+/); // "jain online univerisy" => ["jain","online","univerisy"]
+
+      andFilters.push({
+        AND: words.map(word => ({
+          OR: [
+            { name: { contains: word, mode: "insensitive" } },
+            { slug: { contains: word, mode: "insensitive" } },
+          ]
+        }))
+      });
     }
 
+    /* ===== OTHER FILTERS ===== */
     if (level) {
-      baseWhere.level = level.toLowerCase();
+      andFilters.push({
+        level: level.toLowerCase()
+      });
     }
 
     if (program) {
-      baseWhere.programs = {
-        some: {
-          title: { contains: program, mode: "insensitive" }
+      andFilters.push({
+        programs: {
+          some: {
+            title: { contains: program, mode: "insensitive" }
+          }
         }
-      };
+      });
     }
 
     if (specialization) {
-      baseWhere.specialisations = {
-        some: {
-          title: { contains: specialization, mode: "insensitive" }
+      andFilters.push({
+        specialisations: {
+          some: {
+            title: { contains: specialization, mode: "insensitive" }
+          }
         }
-      };
+      });
     }
 
+    /* ===== FINAL WHERE ===== */
+    const finalWhere =
+      andFilters.length > 0
+        ? { ...baseWhere, AND: andFilters }
+        : baseWhere;
+
+    /* ================= TOP UNIVERSITIES ================= */
     const topUniversities = await prisma.university.findMany({
       where: {
-        ...baseWhere,
+        ...finalWhere,
         position: { gte: 1, lte: 10 },
       },
       orderBy: { position: 'asc' },
       include: {
-        approvals: { select: { id: true, title: true, approval_ids : true } },
-        _count: {
-          select: { reviews: true }
-        }
+        approvals: { select: { id: true, title: true, approval_ids: true } },
+        _count: { select: { reviews: true } }
       }
     });
 
+    /* ================= OTHER UNIVERSITIES ================= */
     const otherUniversities = await prisma.university.findMany({
       where: {
-        ...baseWhere,
+        ...finalWhere,
         OR: [
           { position: 0 },
           { position: { gt: 10 } }
@@ -154,32 +182,29 @@ exports.allUniversities = catchAsync(async (req, res) => {
         { created_at: 'desc' }
       ],
       include: {
-        approvals: { select: { id: true, title: true, approval_ids : true } },
-        _count: {
-          select: { reviews: true }
-        }
+        approvals: { select: { id: true, title: true, approval_ids: true } },
+        _count: { select: { reviews: true } }
       }
     });
 
+    /* ================= MERGE ================= */
     let finalList = [...topUniversities, ...otherUniversities];
 
+    /* ===== MIN REVIEWS FILTER ===== */
     if (minReviews) {
       finalList = finalList.filter(u => (u._count?.reviews || 0) >= parseInt(minReviews));
     }
 
-
+    /* ================= APPROVAL MAPPING ================= */
     const allApprovalIds = [
       ...new Set(
-        finalList.flatMap(u => u.approvals.approval_ids || [])
+        finalList.flatMap(u => u.approvals?.approval_ids || [])
       )
     ];
 
     const approvalsData = await prisma.approvals.findMany({
       where: { id: { in: allApprovalIds } },
-      select: {
-        id: true,
-        title: true
-      }
+      select: { id: true, title: true }
     });
 
     const approvalMap = {};
@@ -189,15 +214,19 @@ exports.allUniversities = catchAsync(async (req, res) => {
 
     finalList = finalList.map(u => ({
       ...u,
-      approvals: (u.approvals.approval_ids || []).map(id => approvalMap[id]).filter(Boolean),
+      approvals: (u.approvals?.approval_ids || [])
+        .map(id => approvalMap[id])
+        .filter(Boolean),
       reviewCount: u._count?.reviews || 0,
-      _count: undefined  
+      _count: undefined
     }));
 
+    /* ================= PAGINATION ================= */
     const totalUniversities = finalList.length;
     const totalPages = Math.ceil(totalUniversities / limit);
     const paginated = finalList.slice(skip, skip + limit);
 
+    /* ================= APPROVAL MASTER ================= */
     const approvalsMaster = await prisma.approvals.findMany({
       where: { deleted_at: null },
       orderBy: { created_at: "asc" },
@@ -207,6 +236,7 @@ exports.allUniversities = catchAsync(async (req, res) => {
       },
     });
 
+    /* ================= RESPONSE ================= */
     return successResponse(res, "Universities fetched successfully", 200, {
       categories,
       universities: paginated,
@@ -224,6 +254,7 @@ exports.allUniversities = catchAsync(async (req, res) => {
     return errorResponse(res, "Internal Server Error", 500);
   }
 });
+
 
 
 
@@ -300,7 +331,7 @@ exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
   const { search } = req.query;
   const page = parseInt(req.query.page) || 1;
-  const limit = 9;
+  const limit = 70;
   const skip = (page - 1) * limit;
   const universities = await prisma.university.findMany({
     skip,
