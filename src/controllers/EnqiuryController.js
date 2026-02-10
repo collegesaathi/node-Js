@@ -171,7 +171,7 @@ exports.LeadsAdd = catchAsync(async (req, res) => {
       phone_number,
       city,
       unv_nm: page_name, // or university name
-      unv_co: content , // or course name
+      unv_co: content, // or course name
     });
 
     return successResponse(res, "Leads added successfully", 201, record);
@@ -205,6 +205,16 @@ exports.LeadsGet = catchAsync(async (req, res) => {
 exports.AllLeadsUniversities = catchAsync(async (req, res) => {
   try {
     const universities = await prisma.university.findMany({
+      where: {
+        deleted_at: null,
+
+
+
+      },
+      orderBy: {
+        name: "asc",
+
+      },
       select: {
         id: true,
         name: true,
@@ -218,3 +228,37 @@ exports.AllLeadsUniversities = catchAsync(async (req, res) => {
     return errorResponse(res, error.message, 500);
   }
 });
+
+
+
+exports.GetUniversityCourse = catchAsync(async (req, res) => {
+  try {
+    const uni_id = req.params.id
+    console.log(uni_id)
+    if (!uni_id) {
+      return errorResponse(res, "University not found", 404);
+    }
+    const courselist = await prisma.Course.findMany({
+      where: {
+        university_id: Number(uni_id)
+      },
+      select: {
+        id: true,
+        name: true,
+        icon: true
+
+      }
+    })
+    return successResponse(
+      res,
+      "course list fetched successfully",
+      200,
+      courselist,
+    );
+  }
+
+  catch (error) {
+    return errorResponse(res, error.message, 500);
+
+  }
+})
