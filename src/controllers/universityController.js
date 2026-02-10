@@ -58,112 +58,174 @@ const generateUniqueSlug = async (prisma, title) => {
 
 
 exports.allUniversities = catchAsync(async (req, res) => {
-  // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const { search } = req.query;
-  const limit = 9;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 9;
+    const skip = (page - 1) * limit;
+    const {
+      search,
+      level,          
+      program,        
+      specialization,  
+      minReviews       
+    } = req.query;
 
-  const skip = (page - 1) * limit;
-
-  // --- Fetch categories with courses ---
-  const categories = await prisma.category.findMany({
-    orderBy: { id: "asc" },
-    include: {
-      // courses: { orderBy: { created_at: "asc" } },
-      programs: {
-        where: {
-          deleted_at: null, // optional but recommended
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-          title: true,
-          specialisationPrograms: {
-            where: {
-              deleted_at: null,
-            },
-            orderBy: {
-              createdAt: "asc",
-            },
-            select: {
-              id: true,
-              title: true,
+    const categories = await prisma.category.findMany({
+      orderBy: { id: "asc" },
+      include: {
+        programs: {
+          where: { deleted_at: null },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            title: true,
+            specialisationPrograms: {
+              where: { deleted_at: null },
+              orderBy: { createdAt: "asc" },
+              select: {
+                id: true,
+                title: true,
+              },
             },
           },
         },
+      }
+    });
+
+    if (!categories) {
+      return errorResponse(res, "Failed to fetch categories", 500);
+    }
+
+    const baseWhere = {
+      deleted_at: null,
+    };
+
+    if (search) {
+      baseWhere.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { slug: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    if (level) {
+      baseWhere.level = level.toLowerCase();
+    }
+
+    if (program) {
+      baseWhere.programs = {
+        some: {
+          title: { contains: program, mode: "insensitive" }
+        }
+      };
+    }
+
+    if (specialization) {
+      baseWhere.specialisations = {
+        some: {
+          title: { contains: specialization, mode: "insensitive" }
+        }
+      };
+    }
+
+    const topUniversities = await prisma.university.findMany({
+      where: {
+        ...baseWhere,
+        position: { gte: 1, lte: 10 },
       },
+      orderBy: { position: 'asc' },
+      include: {
+        approvals: { select: { id: true, title: true, approval_ids : true } },
+        _count: {
+          select: { reviews: true }
+        }
+      }
+    });
+
+    const otherUniversities = await prisma.university.findMany({
+      where: {
+        ...baseWhere,
+        OR: [
+          { position: 0 },
+          { position: { gt: 10 } }
+        ]
+      },
+      orderBy: [
+        { position: 'asc' },
+        { created_at: 'desc' }
+      ],
+      include: {
+        approvals: { select: { id: true, title: true, approval_ids : true } },
+        _count: {
+          select: { reviews: true }
+        }
+      }
+    });
+
+    let finalList = [...topUniversities, ...otherUniversities];
+
+    if (minReviews) {
+      finalList = finalList.filter(u => (u._count?.reviews || 0) >= parseInt(minReviews));
     }
-  });
 
 
-  // If categories failed (rare but possible)
-  if (!categories) {
-    return errorResponse(res, "Failed to fetch categories", 500);
+    const allApprovalIds = [
+      ...new Set(
+        finalList.flatMap(u => u.approvals.approval_ids || [])
+      )
+    ];
+
+    const approvalsData = await prisma.approvals.findMany({
+      where: { id: { in: allApprovalIds } },
+      select: {
+        id: true,
+        title: true
+      }
+    });
+
+    const approvalMap = {};
+    approvalsData.forEach(a => {
+      approvalMap[a.id] = a;
+    });
+
+    finalList = finalList.map(u => ({
+      ...u,
+      approvals: (u.approvals.approval_ids || []).map(id => approvalMap[id]).filter(Boolean),
+      reviewCount: u._count?.reviews || 0,
+      _count: undefined  
+    }));
+
+    const totalUniversities = finalList.length;
+    const totalPages = Math.ceil(totalUniversities / limit);
+    const paginated = finalList.slice(skip, skip + limit);
+
+    const approvalsMaster = await prisma.approvals.findMany({
+      where: { deleted_at: null },
+      orderBy: { created_at: "asc" },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    return successResponse(res, "Universities fetched successfully", 200, {
+      categories,
+      universities: paginated,
+      approvals: approvalsMaster,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalUniversities,
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Internal Server Error", 500);
   }
-  // 1️⃣ Position 1–10 wale
-  const topUniversities = await prisma.university.findMany({
-    where: {
-      deleted_at: null,
-      position: { gte: 1, lte: 10 },
-    },
-    orderBy: {
-      position: 'asc'
-    }
-  });
-  // 2️⃣ Baaki sab ( >10 or NULL )
-  const otherUniversities = await prisma.university.findMany({
-    where: {
-      deleted_at: null,
-      OR: [
-        { position: 0 },        // jinki position set hi nahi hai
-        { position: { gt: 10 } }   // jinki position 10 se zyada hai
-      ]
-    },
-    orderBy: [
-      { position: 'asc' },
-      { created_at: 'desc' }
-    ]
-  });
-  // 3️⃣ Merge
-  const finalList = [...topUniversities, ...otherUniversities];
-
-  // 4️⃣ Pagination manual
-  const paginated = finalList.slice(skip, skip + limit);
-
-  // 5️⃣ Count
-  const totalUniversities = finalList.length;
-  const totalPages = Math.ceil(totalUniversities / limit);
-
-  // Approvals List 
-  const approvals = await prisma.approvals.findMany({
-    where: {
-      deleted_at: null,
-    },
-    orderBy: {
-      created_at: "asc",
-    },
-    select: {
-      id: true,
-      title: true,
-      // image: true,
-    },
-  });
-
-  return successResponse(res, "Universities fetched successfully", 201, {
-    categories,
-    universities: paginated,
-    approvals,
-    pagination: {
-      page,
-      limit,
-      totalPages,
-      totalUniversities,
-    }
-  });
-
 });
+
+
 
 exports.adminUniversitylisting = catchAsync(async (req, res) => {
   const BASE_URL = process.env.BASE_URL;
