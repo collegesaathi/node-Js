@@ -34,4 +34,5 @@ router.get('/pop-up', GetPopupUniversityData);
 
 router.get('/getReviews/:university_slug', GetReviews);
 
+
 module.exports = router;
