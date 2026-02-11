@@ -110,8 +110,7 @@ exports.allUniversities = catchAsync(async (req, res) => {
       const words = search
         .toLowerCase()
         .trim()
-        .split(/\s+/); // "jain online univerisy" => ["jain","online","univerisy"]
-
+        .split(/\s+/); 
       andFilters.push({
         AND: words.map(word => ({
           OR: [

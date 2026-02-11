@@ -530,6 +530,8 @@ model Program {
   pdfdownlaod         String?
   career_growth       String?
   duration            String?
+  shortname            String?
+
   specialization      String?
   audio               String?
   subtitle            String?
@@ -573,6 +575,7 @@ model SpecialisationProgram {
   program_id           Int
   program  Program  @relation(fields: [program_id], references: [id])
   title               String
+  shortname           String?
   description         String
   bannerImage         String?
   icon                String?

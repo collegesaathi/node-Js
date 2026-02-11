@@ -149,9 +149,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       });
     }
 
-    Loggers.http(req.body);
-    Loggers.http(uploadedFiles);
-
     // 3. FIRST, PARSE ALL REQUIRED DATA ARRAYS
     // Parse purpuse first since it's needed early
     const purpuseData = req.body.purpuse ? safeParseArray(req.body.purpuse) : [];
@@ -232,6 +229,7 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
     // 7. PREPARE MAIN PROGRAM DATA
     const programData = {
       title: req.body.name?.trim() || "",
+      shortname: req.body.shortname?.trim() || "",
       slug: req.body.slug?.trim() || generatedSlug,
       description: req.body.descriptions?.trim() || "",
       bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
@@ -769,6 +767,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
         where: { id: programId },
         data: {
           title: req.body.name,
+          shortname: req.body.shortname,
           slug: req.body.slug,
           title: req.body.name?.trim() || "",
           slug: req.body.slug?.trim() || generatedSlug,

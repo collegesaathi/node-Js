@@ -202,6 +202,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       // Create main program
       const program = await tx.Program.create({
         data: {
+          shortname :  req.body.shortname || "",
           title: req.body.name || "",
           slug: req.body.slug ? req.body.slug : generatedSlug,
           description: req.body.descriptions || "",
@@ -762,6 +763,7 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         duration: req.body.duration || "",
         specialization: req.body.specialization || "",
         subtitle: req.body.subtitle || "",
+        shortname: req.body.shortname || "",
         shortDescription: req.body.shortDescription || "",
         video: req.body.video || "",
         universitytitle: req.body.universitytitle || "",
