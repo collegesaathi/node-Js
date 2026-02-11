@@ -7,7 +7,7 @@ exports.GlobalSearch = catchAsync(async (req, res) => {
   try {
     const { search } = req.query;
 
-    if (!search || search.length < 3) {
+    if (!search || search.length < 1) {
       return successResponse(res, "Search term too short", 500);
     }
 
@@ -760,7 +760,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
     }
 
     // 1️⃣ Fetch University with relations
-    const university = await prisma.university.findUnique({
+    const university = await prisma.university.findFirst({
       where: {
         slug: university_slug,
       },
