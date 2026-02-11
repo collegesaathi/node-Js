@@ -20,12 +20,31 @@ function toPublicUrl(req, filePath) {
 exports.AllTopProgram = catchAsync(async (req, res) => {
   try {
     // ✅ LATEST PROGRAMS
+    const allowedPrograms = [
+      "online mba",
+      "online mca",
+      "online bba",
+      "online bca",
+      "online m.com",
+      "online b.com",
+      "online majmc",
+      "online bajmc",
+      "online ma",
+      "online ba"
+    ];
+
     const latestPrograms = await prisma.program.findMany({
       where: {
-        deleted_at: null
+        deleted_at: null,
+        OR: allowedPrograms.map(p => ({
+          title: {
+            contains: p,
+            mode: "insensitive", // case-insensitive match
+          },
+        })),
       },
       orderBy: {
-        createdAt: "desc"
+        createdAt: "desc",
       },
       take: 8,
       select: {
@@ -38,67 +57,112 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
         duration: true,
         specialization: true,
         createdAt: true,
-
-        // 👇 category table ka data
         category: {
           select: {
             id: true,
             name: true,
-            slug: true
-          }
-        }
-      }
+            slug: true,
+          },
+        },
+      },
     });
-   const laspetestPrograms = await prisma.SpecialisationProgram.findMany({
-  where: {
-    deleted_at: null
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 12,
-  select: {
-    id: true,
-    title: true,
-    slug: true,
-    bannerImage: true,
-    bannerImageAlt: true,
-    shortDescription: true,
-    duration: true,
-    specialization: true,
-    createdAt: true,
 
-    // 👇 Program table
-    program: {
+    const allowedSpecialisations = [
+      "business analytics",
+      "data science",
+      "analytics",
+      "digital marketing",
+      "financial management",
+      "fintech",
+      "healthcare",
+      "hospital administration",
+      "information technology",
+      "international business",
+      "logistics",
+      "supply chain",
+      "marketing management",
+      "project management",
+      "retail management"
+    ];
+
+    const laspetestPrograms = await prisma.SpecialisationProgram.findMany({
+      where: {
+        deleted_at: null,
+
+        // ✅ Only MBA Program
+        program_id: 1,
+
+        // ✅ Only allowed specialisations
+        OR: allowedSpecialisations.map(sp => ({
+          title: {
+            contains: sp,
+            mode: "insensitive",
+          },
+        })),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 12,
       select: {
         id: true,
         title: true,
         slug: true,
         bannerImage: true,
         bannerImageAlt: true,
+        shortDescription: true,
+        duration: true,
+        specialization: true,
+        createdAt: true,
 
-        // 👇 Program ke andar category
-        category: {
+        // 👇 Program table
+        program: {
           select: {
             id: true,
-            name: true,
-            slug: true
-          }
-        }
-      }
-    }
-  }
-});
+            title: true,
+            slug: true,
+            bannerImage: true,
+            bannerImageAlt: true,
 
+            // 👇 Program ke andar category
+            category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
+    const allowedCertificates = [
+      "certificate program in ui",
+      "certificate program in data science",
+      "certificate program in project management",
+      "certificate program in text mining",
+      "certificate program in nlp",
+      "certificate program in big data",
+      "certificate program in hr analytics",
+      "certificate program in financial analytics",
+      "certificate program in predictive analytics",
+      "predictive analytics using python"
+    ];
 
     const LastCertificationPrograms = await prisma.program.findMany({
       where: {
         deleted_at: null,
-        category_id: 4
+        category_id: 4, // Certificate category
+        // OR: allowedCertificates.map(p => ({
+        //   title: {
+        //     contains: p,
+        //     mode: "insensitive", // case-insensitive
+        //   },
+        // })),
       },
       orderBy: {
-        createdAt: "desc"
+        createdAt: "desc",
       },
       take: 8,
       select: {
@@ -116,11 +180,12 @@ exports.AllTopProgram = catchAsync(async (req, res) => {
           select: {
             id: true,
             name: true,
-            slug: true
-          }
-        }
-      }
+            slug: true,
+          },
+        },
+      },
     });
+
 
 
     return successResponse(res, "Home Page data fetched successfully", 201, {
@@ -442,7 +507,6 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
     const trendingExecutives = await prisma.specialisationProgram.findMany({
       where: {
         program_id: programId,
-        deleted_at: null, // optional but recommended if you soft-delete
       },
       orderBy: {
         createdAt: 'desc', // optional (remove if not needed)
@@ -456,6 +520,7 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
       // }
     });
 
+
     if (!trendingExecutives || trendingExecutives.length === 0) {
       return errorResponse(res, "Trending executives not found", 404);
     }
@@ -463,8 +528,8 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
     return successResponse(
       res,
       "Trending executives fetched successfully",
+      200,
       trendingExecutives,
-      200
     );
   } catch (error) {
     Logger.error("GetTrendingExecutives Error:", error);

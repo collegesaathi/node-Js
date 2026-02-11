@@ -58,113 +58,204 @@ const generateUniqueSlug = async (prisma, title) => {
 
 
 exports.allUniversities = catchAsync(async (req, res) => {
-  // Pagination
-  const page = parseInt(req.query.page) || 1;
-  const { search } = req.query;
-  const limit = 9;
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = 9;
+    const skip = (page - 1) * limit;
 
-  const skip = (page - 1) * limit;
+    const {
+      search,
+      level,
+      program,
+      specialization,
+      minReviews
+    } = req.query;
 
-  // --- Fetch categories with courses ---
-  const categories = await prisma.category.findMany({
-    orderBy: { id: "asc" },
-    include: {
-      // courses: { orderBy: { created_at: "asc" } },
-      programs: {
-        where: {
-          deleted_at: null, // optional but recommended
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          id: true,
-          title: true,
-          specialisationPrograms: {
-            where: {
-              deleted_at: null,
-            },
-            orderBy: {
-              createdAt: "asc",
-            },
-            select: {
-              id: true,
-              title: true,
+    /* ================= CATEGORY DATA ================= */
+    const categories = await prisma.category.findMany({
+      orderBy: { id: "asc" },
+      include: {
+        programs: {
+          where: { deleted_at: null },
+          orderBy: { createdAt: "asc" },
+          select: {
+            id: true,
+            title: true,
+            specialisationPrograms: {
+              where: { deleted_at: null },
+              orderBy: { createdAt: "asc" },
+              select: {
+                id: true,
+                title: true,
+              },
             },
           },
         },
+      }
+    });
+
+    if (!categories) {
+      return errorResponse(res, "Failed to fetch categories", 500);
+    }
+
+    /* ================= FILTER BUILD ================= */
+    const baseWhere = {
+      deleted_at: null,
+    };
+
+    const andFilters = [];   // ✅ FIX: define here
+
+    /* ===== SMART SEARCH ===== */
+    if (search) {
+      const words = search
+        .toLowerCase()
+        .trim()
+        .split(/\s+/); 
+      andFilters.push({
+        AND: words.map(word => ({
+          OR: [
+            { name: { contains: word, mode: "insensitive" } },
+            { slug: { contains: word, mode: "insensitive" } },
+          ]
+        }))
+      });
+    }
+
+    /* ===== OTHER FILTERS ===== */
+    if (level) {
+      andFilters.push({
+        level: level.toLowerCase()
+      });
+    }
+
+    if (program) {
+      andFilters.push({
+        programs: {
+          some: {
+            title: { contains: program, mode: "insensitive" }
+          }
+        }
+      });
+    }
+
+    if (specialization) {
+      andFilters.push({
+        specialisations: {
+          some: {
+            title: { contains: specialization, mode: "insensitive" }
+          }
+        }
+      });
+    }
+
+    /* ===== FINAL WHERE ===== */
+    const finalWhere =
+      andFilters.length > 0
+        ? { ...baseWhere, AND: andFilters }
+        : baseWhere;
+
+    /* ================= TOP UNIVERSITIES ================= */
+    const topUniversities = await prisma.university.findMany({
+      where: {
+        ...finalWhere,
+        position: { gte: 1, lte: 10 },
       },
+      orderBy: { position: 'asc' },
+      include: {
+        approvals: { select: { id: true, title: true, approval_ids: true } },
+        _count: { select: { reviews: true } }
+      }
+    });
+
+    /* ================= OTHER UNIVERSITIES ================= */
+    const otherUniversities = await prisma.university.findMany({
+      where: {
+        ...finalWhere,
+        OR: [
+          { position: 0 },
+          { position: { gt: 10 } }
+        ]
+      },
+      orderBy: [
+        { position: 'asc' },
+        { created_at: 'desc' }
+      ],
+      include: {
+        approvals: { select: { id: true, title: true, approval_ids: true } },
+        _count: { select: { reviews: true } }
+      }
+    });
+
+    /* ================= MERGE ================= */
+    let finalList = [...topUniversities, ...otherUniversities];
+
+    /* ===== MIN REVIEWS FILTER ===== */
+    if (minReviews) {
+      finalList = finalList.filter(u => (u._count?.reviews || 0) >= parseInt(minReviews));
     }
-  });
 
-  // console.log(categories);
+    /* ================= APPROVAL MAPPING ================= */
+    const allApprovalIds = [
+      ...new Set(
+        finalList.flatMap(u => u.approvals?.approval_ids || [])
+      )
+    ];
 
-  // If categories failed (rare but possible)
-  if (!categories) {
-    return errorResponse(res, "Failed to fetch categories", 500);
+    const approvalsData = await prisma.approvals.findMany({
+      where: { id: { in: allApprovalIds } },
+      select: { id: true, title: true }
+    });
+
+    const approvalMap = {};
+    approvalsData.forEach(a => {
+      approvalMap[a.id] = a;
+    });
+
+    finalList = finalList.map(u => ({
+      ...u,
+      approvals: (u.approvals?.approval_ids || [])
+        .map(id => approvalMap[id])
+        .filter(Boolean),
+      reviewCount: u._count?.reviews || 0,
+      _count: undefined
+    }));
+
+    /* ================= PAGINATION ================= */
+    const totalUniversities = finalList.length;
+    const totalPages = Math.ceil(totalUniversities / limit);
+    const paginated = finalList.slice(skip, skip + limit);
+
+    /* ================= APPROVAL MASTER ================= */
+    const approvalsMaster = await prisma.approvals.findMany({
+      where: { deleted_at: null },
+      orderBy: { created_at: "asc" },
+      select: {
+        id: true,
+        title: true,
+      },
+    });
+
+    /* ================= RESPONSE ================= */
+    return successResponse(res, "Universities fetched successfully", 200, {
+      categories,
+      universities: paginated,
+      approvals: approvalsMaster,
+      pagination: {
+        page,
+        limit,
+        totalPages,
+        totalUniversities,
+      }
+    });
+
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Internal Server Error", 500);
   }
-  // 1️⃣ Position 1–10 wale
-  const topUniversities = await prisma.university.findMany({
-    where: {
-      deleted_at: null,
-      position: { gte: 1, lte: 10 },
-    },
-    orderBy: {
-      position: 'asc'
-    }
-  });
-  // 2️⃣ Baaki sab ( >10 or NULL )
-  const otherUniversities = await prisma.university.findMany({
-    where: {
-      deleted_at: null,
-      OR: [
-        { position: 0 },        // jinki position set hi nahi hai
-        { position: { gt: 10 } }   // jinki position 10 se zyada hai
-      ]
-    },
-    orderBy: [
-      { position: 'asc' },
-      { created_at: 'desc' }
-    ]
-  });
-  // 3️⃣ Merge
-  const finalList = [...topUniversities, ...otherUniversities];
-
-  // 4️⃣ Pagination manual
-  const paginated = finalList.slice(skip, skip + limit);
-
-  // 5️⃣ Count
-  const totalUniversities = finalList.length;
-  const totalPages = Math.ceil(totalUniversities / limit);
-
-  // Approvals List 
-  const approvals = await prisma.approvals.findMany({
-    where: {
-      deleted_at: null,
-    },
-    orderBy: {
-      created_at: "asc",
-    },
-    select: {
-      id: true,
-      title: true,
-      // image: true,
-    },
-  });
-
-  return successResponse(res, "Universities fetched successfully", 201, {
-    categories,
-    universities: paginated,
-    approvals,
-    pagination: {
-      page,
-      limit,
-      totalPages,
-      totalUniversities,
-    }
-  });
-
 });
+
+
+
 
 exports.adminUniversitylisting = catchAsync(async (req, res) => {
   const BASE_URL = process.env.BASE_URL;
@@ -239,7 +330,7 @@ exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
   const { search } = req.query;
   const page = parseInt(req.query.page) || 1;
-  const limit = 9;
+  const limit = 70;
   const skip = (page - 1) * limit;
   const universities = await prisma.university.findMany({
     skip,
@@ -341,8 +432,19 @@ exports.getUniversityById = catchAsync(async (req, res) => {
         rankings: true,
         services: true,
         seo: true,
+        reviews : true
       },
     });
+
+ const course = await prisma.Course.findMany({
+  where: {
+    university_id: Number(university?.id)
+  },
+  include: {
+    fees: true  
+  }
+});
+
 
     if (!university) {
       return errorResponse(res, "University not found", 404);
@@ -407,12 +509,11 @@ exports.getUniversityById = catchAsync(async (req, res) => {
       });
     }
 
-
     return successResponse(
       res,
       "University fetched successfully",
       200,
-      { university, approvalsData, placementPartners }
+      { university, approvalsData, placementPartners ,course }
     );
   } catch (error) {
     console.error("getUniversityById error:", error);
@@ -899,8 +1000,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       rankings_description: req.body.rankings_description || "",
     };
 
-    console.log("uploadedFiles =", uploadedFiles);
-    console.log("pdf_download =", uploadedFiles?.pdf_download);
 
     const updatedUniversity = await prisma.University.update({
       where: { id: universityId },
@@ -926,7 +1025,6 @@ exports.updateUniversity = catchAsync(async (req, res) => {
       }
     });
 
-    console.log("updatedUniversity", updatedUniversity)
     // UPDATE RELATIONS (UPSERTS)
     await prisma.About.upsert({
       where: { university_id: universityId },
@@ -1172,40 +1270,111 @@ exports.GetServicesUniversityById = catchAsync(async (req, res) => {
 });
 
 
-exports.DeleteUniversityBySlug = catchAsync(async (req, res) => {
+
+exports.AdminGetUniversityById = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
-
     if (!slug) {
       return errorResponse(res, "University slug is required", 400);
     }
-
-    // Find university
     const university = await prisma.University.findFirst({
-      where: { slug },
+      where: {
+        slug: slug,
+        deleted_at: null,
+      },
+      include: {
+        about: true,
+        admissionProcess: true,
+        advantages: true,
+        approvals: true,
+        universityCampuses: true,
+        certificates: true,
+        examPatterns: true,
+        facts: true,
+        faq: true,
+        financialAid: true,
+        partners: true,
+        rankings: true,
+        services: true,
+        seo: true,
+      },
     });
 
     if (!university) {
       return errorResponse(res, "University not found", 404);
     }
 
-    // 🔥 PERMANENT DELETE
-    await prisma.University.delete({
-      where: {
-        id: university.id,
-      },
-    });
+    const toArray = (val) => {
+      if (!val && val !== 0) return [];
+      return Array.isArray(val) ? val : [val];
+    };
+
+    // ----------- Extract partner IDs (defensively) -----------
+    let placementPartnerIds = [];
+
+    const partnersRaw = university.partners;
+    if (partnersRaw) {
+      const partnersArr = toArray(partnersRaw);
+      placementPartnerIds = partnersArr.flatMap((p) => {
+        if (!p) return [];
+        if (Array.isArray(p.placement_partner_id)) return p.placement_partner_id;
+        if (p.placement_partner_id) return [p.placement_partner_id];
+        if (Array.isArray(p.partner_id)) return p.partner_id;
+        if (p.partner_id) return [p.partner_id];
+        if (p.id) return [p.id];
+        return [];
+      });
+      placementPartnerIds = Array.from(new Set(placementPartnerIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let placementPartners = [];
+    if (placementPartnerIds.length > 0) {
+      placementPartners = await prisma.placements.findMany({
+        where: { id: { in: placementPartnerIds } },
+      });
+    }
+
+    // ----------- Extract approval IDs (defensively) -----------
+    let approvalIds = [];
+
+    const approvalsRaw = university.approvals;
+    if (approvalsRaw) {
+      const approvalsArr = toArray(approvalsRaw);
+      approvalIds = approvalsArr.flatMap((a) => {
+        if (!a) return [];
+        if (Array.isArray(a.approval_ids)) return a.approval_ids;
+        if (a.approval_ids) return [a.approval_ids];
+        if (Array.isArray(a.approval_id)) return a.approval_id;
+        if (a.approval_id) return [a.approval_id];
+        if (a.id) return [a.id];
+        return [];
+      });
+      approvalIds = Array.from(new Set(approvalIds)).filter(
+        (v) => v !== null && v !== undefined
+      );
+    }
+
+    let approvalsData = [];
+    if (approvalIds.length > 0) {
+      approvalsData = await prisma.Approvals.findMany({
+        where: { id: { in: approvalIds } },
+      });
+    }
+
 
     return successResponse(
       res,
-      "University permanently deleted successfully",
-      200
+      "University fetched successfully",
+      200,
+      { university, approvalsData, placementPartners }
     );
   } catch (error) {
-    console.error("DeleteUniversityBySlug error:", error);
+    console.error("getUniversityById error:", error);
     return errorResponse(
       res,
-      error.message || "Error deleting university",
+      error.message || "Something went wrong while fetching university",
       500,
       error
     );
