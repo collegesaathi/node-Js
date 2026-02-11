@@ -1,4 +1,4 @@
-const {  DeleteCourseBySlug, DeleteUniversityBySlug } = require("../controllers/AllDeleteController");
+const {  DeleteCourseBySlug, DeleteUniversityBySlug } = require("../controllers/DataController");
 const express = require("express");
 const router = express.Router();
 

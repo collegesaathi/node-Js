@@ -438,6 +438,7 @@ exports.getUniversityById = catchAsync(async (req, res) => {
 
  const course = await prisma.Course.findMany({
   where: {
+    deleted_at : null ,
     university_id: Number(university?.id)
   },
   include: {
