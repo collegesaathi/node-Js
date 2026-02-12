@@ -80,6 +80,7 @@ app.use("/api", require("./routes/clickpickRoutes"));
 app.use("/api", require("./routes/FiltrationRoutes"));
 app.use("/api", require("./routes/categoryRoutes"));
 app.use("/api", require("./routes/DataRoute"));
+app.use("/api", require("./routes/scrapperRoute"));
 
 
 // const { PrismaClient } = require('@prisma/client');

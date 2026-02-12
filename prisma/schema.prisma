@@ -978,17 +978,17 @@ model Review {
 
   review_title                              String?
   review_description                        String?
-  average_rating                            Int?
+  average_rating                            Float?
 
-  infrastructure_rating                     Int?
+  infrastructure_rating                     Float?
   infrastructure_rating_titile              String?
   infrastructure_rating_description         String?
 
-  course_curriculum                         Int?
+  course_curriculum                         Float?
   course_curriculum_title                   String?
   course_curriculum_description             String?
 
-  value_for_money                           Int?
+  value_for_money                           Float?
   value_for_money_title                     String?
   value_for_money_description               String?
 
