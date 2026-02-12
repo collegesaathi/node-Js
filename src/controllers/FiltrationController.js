@@ -159,29 +159,42 @@ exports.GetFiltrationList = catchAsync(async (req, res) => {
 });
 
 
-
-
-
 exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
     try {
         const { category_id } = req.query;
 
-        const programs = await prisma.Program.findMany({
-            where: {
-                category_id: Number(category_id),
-                deleted_at: null
-            },
-            orderBy: {
-                id: "asc"
-            },
-        });
+const programs = await prisma.Program.findMany({
+  where: {
+    category_id: Number(category_id),
+    deleted_at: null
+  },
+  orderBy: { id: "asc" }
+});
 
-        if (!programs.length) {
-            return errorResponse(res, "No programs found for this category", 404);
-        }
+if (!programs.length) {
+  return errorResponse(res, "No programs found for this category", 404);
+}
 
-        // sab program ids nikal lo
-        const programIds = programs.map(p => p.id);
+// program IDs
+const programIds = programs.map(p => p.id);
+
+// university IDs (flatten + unique)
+const universityIds = [
+  ...new Set(programs.flatMap(p => p.university_id))
+];
+
+
+// Fetch universities
+let universities = [];
+if (universityIds.length > 0) {
+  universities = await prisma.University.findMany({
+    where: {
+      id: { in: universityIds },
+      deleted_at: null
+    }
+  });
+}
+
 
         // specialisation table se matching records lao
         const specialisations = await prisma.specialisationProgram.findMany({
@@ -197,12 +210,23 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
 
         // set bana lo fast lookup ke liye
         const specSet = new Set(specialisations.map(s => s.program_id));
+    
 
         // final response mapping
-        const finalData = programs.map(p => ({
-            ...p,
-            hasSpecialization: specSet.has(p.id)   // true / false
-        }));
+      const finalData = programs.map(p => {
+  const uniIds = Array.isArray(p.university_id) ? p.university_id : [];
+
+  const programUniversities = universities.filter(u =>
+    uniIds.includes(u.id)
+  );
+
+  return {
+    ...p,
+    hasSpecialization: specSet.has(p.id),
+    specialisationslength: specSet.size,   // ✅ fix below
+    universities: programUniversities      // ✅ per-program universities
+  };
+});
 
         return successResponse(
             res,
