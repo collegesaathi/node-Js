@@ -14,10 +14,8 @@ const makeSlug = (text) => {
     .replace(/--+/g, "-");
 };
 
-
 const generateUniqueSlug = async (prisma, title) => {
   let baseSlug = makeSlug(title);
-
   const existing = await prisma.Specialisation.findFirst({
     where: { slug: baseSlug },
     select: { slug: true },
