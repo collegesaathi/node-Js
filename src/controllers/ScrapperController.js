@@ -145,6 +145,7 @@ exports.GetInstituteData = catchAsync(async (req, res) => {
       await prisma.review.create({
         data: {
           university_id: Number(university_id),
+          name: review.firstname || null,
           review_title: review.reviewContent?.reviewTitle || null,
           review_description: review.reviewContent?.reviewDescription || null,
           average_rating: review.averageRating || null,
