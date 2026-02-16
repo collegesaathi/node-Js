@@ -899,3 +899,35 @@ exports.GetReviews = catchAsync(async (req, res) => {
 
 
 
+exports.GetCategoryWithPrograms = catchAsync(async (req, res) => {
+  try {
+
+    const categories = await prisma.category.findMany({
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        programs: {
+          orderBy: {
+            id: "asc",
+          },
+        },
+      },
+    });
+
+    if (!categories || categories.length === 0) {
+      return errorResponse(res, "No categories found", 404);
+    }
+
+    return successResponse(
+      res,
+      "Categories with programs fetched successfully",
+      200,
+      categories
+    );
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
