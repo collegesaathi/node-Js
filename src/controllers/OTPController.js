@@ -20,6 +20,7 @@ exports.sendOtp = catchAsync(async (req, res) => {
     }
     // ✅ Step 2: Generate 4-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
+    console.log("otp" ,otp)
 
     // ✅ Step 3: Send OTP via MSG91 (PHP cURL equivalent)
     await axios.post(

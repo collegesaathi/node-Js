@@ -6,30 +6,24 @@ const { successResponse, errorResponse, validationErrorResponse } = require("../
 
 exports.DeleteCourseBySlug = catchAsync(async (req, res) => {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
 
     if (!slug) {
       return errorResponse(res, "Course slug is required", 400);
     }
 
-    const course = await prisma.Course.findFirst({
-      where: { slug },
-    });
 
-    if (!course) {
-      return errorResponse(res, "Course not found", 404);
-    }
-
-    await prisma.Course.delete({
+  const record =   await prisma.Course.delete({
       where: {
-        id: course.id,
+        id: Number(id),
       },
     });
 
     return successResponse(
       res,
       "Course permanently deleted successfully",
-      200
+      200 ,
+      record
     );
   } catch (error) {
     console.error("DeleteCourseBySlug error:", error);
@@ -44,32 +38,127 @@ exports.DeleteCourseBySlug = catchAsync(async (req, res) => {
 
 exports.DeleteUniversityBySlug = catchAsync(async (req, res) => {
   try {
-    const { slug } = req.params;
+    const { id } = req.params;
 
-    if (!slug) {
+    if (!id) {
       return errorResponse(res, "University slug is required", 400);
     }
 
-    // Find university
-    const university = await prisma.University.findFirst({
-      where: { slug },
-    });
-
-    if (!university) {
-      return errorResponse(res, "University not found", 404);
-    }
 
     // 🔥 PERMANENT DELETE
-    await prisma.University.delete({
+   const record =  await prisma.University.delete({
       where: {
-        id: university.id,
+        id: Number(id),
       },
     });
 
     return successResponse(
       res,
       "University permanently deleted successfully",
-      200
+      200 ,
+      record
+    );
+  } catch (error) {
+    console.error("DeleteUniversityBySlug error:", error);
+    return errorResponse(
+      res,
+      error.message || "Error deleting university",
+      500,
+      error
+    );
+  }
+});
+
+
+exports.GenraixcalSpecialisationProgramDeelte = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+
+
+    // 🔥 PERMANENT DELETE
+   const record =  await prisma.SpecialisationProgram.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "University permanently deleted successfully",
+      200 ,
+      record
+    );
+  } catch (error) {
+    console.error("DeleteUniversityBySlug error:", error);
+    return errorResponse(
+      res,
+      error.message || "Error deleting university",
+      500,
+      error
+    );
+  }
+});
+
+
+exports.ProgramGenraic = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+
+
+    // 🔥 PERMANENT DELETE
+   const record =  await prisma.Program.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "Program Genraic permanently deleted successfully",
+      200 ,
+      record
+    );
+  } catch (error) {
+    console.error("DeleteUniversityBySlug error:", error);
+    return errorResponse(
+      res,
+      error.message || "Error deleting university",
+      500,
+      error
+    );
+  }
+});
+
+
+exports.SpecialisationDelete = catchAsync(async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return errorResponse(res, "University slug is required", 400);
+    }
+
+
+    // 🔥 PERMANENT DELETE
+   const record =  await prisma.Specialisation.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return successResponse(
+      res,
+      "Specialisation permanently deleted successfully",
+      200 ,
+      record
     );
   } catch (error) {
     console.error("DeleteUniversityBySlug error:", error);
