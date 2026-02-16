@@ -82,11 +82,12 @@ exports.GetSitemap = catchAsync(async (req, res) => {
           .filter(Boolean);
       }
 
+      if (!uniList.length) return null; // Skip if no universities attached
       return {
         title: p.title,
         universities: uniList
       };
-    });
+    }).filter(Boolean);
 
     /* ================================
        6. FETCH SPECIALISATION PROGRAMS
@@ -160,13 +161,13 @@ exports.GetSitemap = catchAsync(async (req, res) => {
           .map(id => specUniMap[Number(id)])
           .filter(Boolean);
       }
-
+      if (!uniList.length) return null; // Skip if no universities attached
       return {
         title: s.title,
         slug: s.slug,
         universities: uniList
       };
-    });
+    }).filter(Boolean);
 
     /* ================================
        10. FINAL RESPONSE
