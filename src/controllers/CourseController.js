@@ -1247,6 +1247,7 @@ exports.CoursesDelete = catchAsync(async (req, res) => {
 
     return successResponse(res, "Course deleted successfully", 200, updatedRecord);
   } catch (error) {
+    console.log("error" ,error)
     if (error.code === 'P2025') {
       return errorResponse(res, "Course not found", 404);
     }
