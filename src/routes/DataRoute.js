@@ -2,14 +2,14 @@ const {  DeleteCourseBySlug, DeleteUniversityBySlug, SpecialisationDelete, Progr
 const express = require("express");
 const router = express.Router();
 
-router.delete("/course/slug/:id", DeleteCourseBySlug);
+router.get("/course/slug/:id", DeleteCourseBySlug);
 
-router.delete( "/university/slug/:id",DeleteUniversityBySlug);
+router.get( "/university/slug/:id",DeleteUniversityBySlug);
 
-router.delete( "/spe/slug/:id",SpecialisationDelete);
+router.get( "/spe/slug/:id",SpecialisationDelete);
 
-router.delete( "/genra/progrma/:id",ProgramGenraic);
-router.delete( "/genra/speprogram/:id",GenraixcalSpecialisationProgramDeelte);
+router.get( "/genra/progrma/:id",ProgramGenraic);
+router.get( "/genra/speprogram/:id",GenraixcalSpecialisationProgramDeelte);
 
 
 module.exports = router;
