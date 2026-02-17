@@ -37,6 +37,30 @@ function similarityScore(a, b) {
   return 1 - levenshteinDistance(a, b) / Math.max(a.length, b.length);
 }
 
+// const extractFinancialAidFlags = (description = "") => {
+//   if (!description) {
+//     return {
+//       hasScholarships: false,
+//       hasEmiOrLoan: false,
+//     };
+//   }
+
+//   // Remove HTML tags safely
+//   const plainText = description
+//     .replace(/<[^>]*>/g, " ")
+//     .toLowerCase();
+
+//   return {
+//     hasScholarships:
+//       plainText.includes("scholarship") ||
+//       plainText.includes("scholarships"),
+
+//     hasEmiOrLoan:
+//       plainText.includes("emi") ||
+//       plainText.includes("loan"),
+//   };
+// };
+
 const extractFinancialAidFlags = (description = "") => {
   if (!description) {
     return {
@@ -50,16 +74,20 @@ const extractFinancialAidFlags = (description = "") => {
     .replace(/<[^>]*>/g, " ")
     .toLowerCase();
 
-  return {
-    hasScholarships:
-      plainText.includes("scholarship") ||
-      plainText.includes("scholarships"),
+  // Scholarship variations (handles typos)
+  const scholarshipRegex =
+    /\bscholarship(s)?\b|\bscholorship(s)?\b|\bschoalrship(s)?\b/;
 
-    hasEmiOrLoan:
-      plainText.includes("emi") ||
-      plainText.includes("loan"),
+  // EMI / Loan variations
+  const emiLoanRegex =
+    /\bemi\b|\bzero[-\s]?cost emi\b|\bno[-\s]?cost emi\b|\bloan\b|\beducation loan\b/;
+
+  return {
+    hasScholarships: scholarshipRegex.test(plainText),
+    hasEmiOrLoan: emiLoanRegex.test(plainText),
   };
 };
+
 
 const calculateTotalCredits = (semesters = []) => {
   let total = 0;
@@ -1180,193 +1208,562 @@ const normalizeText = (text = "") =>
 
 exports.compareSpeData = catchAsync(async (req, res) => {
   try {
-    const { universities, specialisation_name } = req.query;
 
-    if (!universities || !specialisation_name) {
+    const {
+      universities,
+      specialisation_name,
+      course_name
+    } = req.query;
+
+    if (!universities || !specialisation_name || !course_name) {
       return errorResponse(res, "Missing parameters", 400);
     }
 
     /* ================= INPUT CLEAN ================= */
+
     const universitySlugs = cleanSlug(universities).split("-vs-");
+
     const inputSpec = normalizeText(specialisation_name);
+    const inputCourse = normalizeText(course_name);
 
-    /* ================= GET UNIVERSITY DATA ================= */
-    const universitiesData = await prisma.university.findMany({
-      where: {
-        slug: { in: universitySlugs },
-        deleted_at: null,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        icon: true,
-        cover_image: true,
-        rank: true,
-        pdf_download: true,
-        approvals: true,   // contains approval_ids
-      },
-    });
+    const inputSpecClean = cleanProgramText(inputSpec);
+    const inputCourseClean = cleanProgramText(inputCourse);
 
-    if (!universitiesData.length) {
-      return successResponse(res, "No universities found", 200, []);
-    }
 
-    const universityIds = universitiesData.map(u => u.id);
-
-    /* ================= GET SPECIALISATIONS ================= */
-    const specialisations = await prisma.specialisation.findMany({
-      where: {
-        university_id: { in: universityIds },
-        deleted_at: null,
-      },
-      include: {
-        approvals: true,
-        fees: true,
-        financialAid: true,
-        partners: true,
-        eligibilitycriteria: true,
-        curriculum: true,
-      },
-    });
 
     /* ================= GET APPROVAL MASTER ================= */
+
     const approvalsData = await prisma.approvals.findMany({
-      where: { deleted_at: null },
+      where: { deleted_at: null }
     });
 
-    /* ================= CREATE APPROVAL MAP ================= */
     const approvalMap = {};
+
     approvalsData.forEach(a => {
       approvalMap[a.id] = a;
     });
 
-    /* ================= MATCHING LOGIC ================= */
+
+
+    /* ================= GET PARTNER MASTER ================= */
+
+    const partnersData = await prisma.placements.findMany({
+      where: { deleted_at: null }
+    });
+
+    const partnersMap = {};
+
+    partnersData.forEach(p => {
+      partnersMap[p.id] = p;
+    });
+
+
+
+    /* ================= GET UNIVERSITY DATA ================= */
+
+    const universitiesData = await prisma.university.findMany({
+
+      where: {
+        slug: { in: universitySlugs },
+        deleted_at: null
+      },
+
+      include: {
+        approvals: true,
+        partners: true
+      }
+
+    });
+
+
+    if (!universitiesData.length) {
+
+      return successResponse(
+        res,
+        "No universities found",
+        200,
+        []
+      );
+
+    }
+
+
+    const universityIds = universitiesData.map(u => u.id);
+
+
+
+    /* ================= GET COURSES ================= */
+
+    const courses = await prisma.course.findMany({
+
+      where: {
+        university_id: { in: universityIds },
+        deleted_at: null
+      },
+
+      include: {
+
+        approvals: true,
+
+        fees: true,
+
+        financialAid: true,
+
+        eligibilitycriteria: true,
+
+        curriculum: true,
+
+        certificates: true
+
+      }
+
+    });
+
+
+
+    /* ================= GET SPECIALISATIONS ================= */
+
+    const specialisations = await prisma.specialisation.findMany({
+
+      where: {
+        university_id: { in: universityIds },
+        deleted_at: null
+      },
+
+      include: {
+        fees: true,
+        financialAid: true,
+        eligibilitycriteria: true,
+        curriculum: true,
+        partners: true
+      }
+
+    });
+
+
+    /* ================= FINAL RESULT ================= */
+
     const result = universitiesData.map(university => {
+
+
+      /* =======================================================
+         UNIVERSITY APPROVAL FORMAT
+      ======================================================= */
+
+      const universityApprovals =
+        university.approvals?.approval_ids?.map(
+          id => approvalMap[id]
+        ) || [];
+
+
+
+      /* =======================================================
+         UNIVERSITY PARTNER FORMAT
+      ======================================================= */
+
+      const universityPartners =
+        university.partners?.placement_partner_id?.map(
+          id => partnersMap[id]
+        ) || [];
+
+
+
+      /* =======================================================
+         COURSE MATCHING
+      ======================================================= */
+
+      const uniCourses = courses.filter(
+        c => c.university_id === university.id
+      );
+
+
+      let bestCourseMatch = null;
+      let bestCourseScore = 0;
+
+
+      uniCourses.forEach(course => {
+
+        const cName = cleanProgramText(course.name || "");
+        const cSlug = cleanProgramText(course.slug || "");
+
+        const nameScore =
+          similarityScore(cName, inputCourseClean);
+
+        const slugScore =
+          similarityScore(cSlug, inputCourseClean);
+
+        const tokenScore =
+          tokenSimilarity(cName, inputCourseClean);
+
+        const score = Math.max(
+          nameScore,
+          slugScore,
+          tokenScore
+        );
+
+        const percent = Math.round(score * 100);
+
+
+        if (percent >= 40 && percent > bestCourseScore) {
+
+          bestCourseScore = percent;
+
+          bestCourseMatch = {
+
+            ...course,
+
+            match_percentage: percent,
+
+            match_type:
+              percent >= 80
+                ? "strong"
+                : percent >= 60
+                ? "medium"
+                : "low"
+
+          };
+
+        }
+
+      });
+
+
+
+      /* =======================================================
+         SPECIALISATION MATCHING
+      ======================================================= */
 
       const uniSpecs = specialisations.filter(
         sp => sp.university_id === university.id
       );
 
-      let bestMatch = null;
-      let bestScore = 0;
 
-      for (const sp of uniSpecs) {
-        const spName = normalizeText(sp.name || "");
-        const spSlug = normalizeText(sp.slug || "");
+      let bestSpecMatch = null;
+      let bestSpecScore = 0;
 
-        const nameScore = similarityScore(spName, inputSpec); // 0–1
-        const slugScore = similarityScore(spSlug, inputSpec); // 0–1
 
-        const score = Math.max(nameScore, slugScore);
+      uniSpecs.forEach(sp => {
+
+        const spName =
+          cleanProgramText(sp.name || "");
+
+        const spSlug =
+          cleanProgramText(sp.slug || "");
+
+
+        const nameScore =
+          similarityScore(spName, inputSpecClean);
+
+        const slugScore =
+          similarityScore(spSlug, inputSpecClean);
+
+        const tokenScore =
+          tokenSimilarity(spName, inputSpecClean);
+
+
+        const score = Math.max(
+          nameScore,
+          slugScore,
+          tokenScore
+        );
+
         const percent = Math.round(score * 100);
 
-        if (percent >= 30 && percent > bestScore) {
-          bestScore = percent;
-          bestMatch = {
-            ...sp,
-            match_percentage: percent,
-            match_type:
-              percent >= 80 ? "strong" :
-                percent >= 50 ? "medium" :
-                  "low"
-          };
-        }
-      }
 
-      /* ================= RESPONSE FORMAT ================= */
+        if (percent >= 30 && percent > bestSpecScore) {
+
+          bestSpecScore = percent;
+
+          bestSpecMatch = {
+
+            ...sp,
+
+            match_percentage: percent,
+
+            match_type:
+              percent >= 80
+                ? "strong"
+                : percent >= 60
+                ? "medium"
+                : "low"
+
+          };
+
+        }
+
+      });
+
+
+
+      /* =======================================================
+         FINAL RESPONSE OBJECT
+      ======================================================= */
+
       return {
+
         university_id: university.id,
 
+
+
+        /* ================= UNIVERSITY ================= */
+
         university_data: {
+
           name: university.name,
+
           slug: university.slug,
+
           icon: university.icon,
+
           cover_image: university.cover_image,
+
           rank: university.rank,
+
           pdf_download: university.pdf_download,
 
-          approvals: university.approvals
-            ? {
-              approval_ids: university.approvals.approval_ids || [],
-              approval_list: Array.isArray(university.approvals.approval_ids)
-                ? university.approvals.approval_ids
-                  .map(id => approvalMap[id] || null)
-                  .filter(Boolean)
-                : [],
-            }
-            : null,
+
+
+          approvals: {
+
+            approval_ids:
+              university.approvals?.approval_ids || [],
+
+            approval_list:
+              universityApprovals
+
+          },
+
+
+
+          partners: {
+
+            partner_ids:
+              university.partners?.placement_partner_id || [],
+
+            partner_list:
+              universityPartners
+
+          }
+
         },
 
-        specialisation: bestMatch
+
+
+        /* ================= COURSE ================= */
+
+        course: bestCourseMatch
           ? {
-            id: bestMatch.id,
-            name: bestMatch.name,
-            slug: bestMatch.slug,
-            description: bestMatch.description,
-            mode_of_education: bestMatch.mode_of_education,
-            time_frame: bestMatch.time_frame,
 
-            match_percentage: bestMatch.match_percentage,
-            match_type: bestMatch.match_type,
+              id: bestCourseMatch.id,
 
-            approvals: university.approvals
-              ? {
-                approval_ids: university.approvals.approval_ids || [],
-                approval_list: Array.isArray(university.approvals.approval_ids)
-                  ? university.approvals.approval_ids
-                    .map(id => approvalMap[id] || null)
-                    .filter(Boolean)
-                  : [],
-              }
-              : null,
+              name: bestCourseMatch.name,
 
-            fees: bestMatch.fees
-              ? {
-                semester_wise_fees: bestMatch.fees.semester_wise_fees,
-                tuition_fees: bestMatch.fees.tuition_fees,
-              }
-              : null,
+              slug: bestCourseMatch.slug,
 
-            financialAid: bestMatch.financialAid
-              ? extractFinancialAidFlags(bestMatch.financialAid.description)
-              : null,
+              description:
+                bestCourseMatch.description,
 
-            partners: {
-              placement_partners:
-                bestMatch.partners?.placement_partner_id?.length > 0,
-            },
+              credits:
+                bestCourseMatch.credits,
 
-            eligibilitycriteria: bestMatch.eligibilitycriteria
-              ? {
-                description: bestMatch.eligibilitycriteria.description,
-                IndianCriteria: bestMatch.eligibilitycriteria.IndianCriteria,
-                NRICriteria: bestMatch.eligibilitycriteria.NRICriteria,
-                notes: bestMatch.eligibilitycriteria.notes,
-              }
-              : null,
+              emi:
+                bestCourseMatch.emi,
 
-            curriculum: bestMatch.curriculum
-              ? {
-                semesters: bestMatch.curriculum.semesters,
-                total_credits: calculateTotalCredits(
-                  bestMatch.curriculum.semesters
-                ),
-              }
-              : null,
-          }
+              mode_of_exam:
+                bestCourseMatch.mode_of_exam,
+
+              mode_of_education:
+                bestCourseMatch.mode_of_education,
+
+              time_frame:
+                bestCourseMatch.time_frame,
+
+
+
+              match_percentage:
+                bestCourseMatch.match_percentage,
+
+              match_type:
+                bestCourseMatch.match_type,
+
+
+
+              /* CERTIFICATES FROM COURSE */
+
+              certificatesimages:
+                bestCourseMatch.certificates?.image || null,
+
+
+
+              fees:
+                bestCourseMatch.fees
+                  ? {
+
+                      semester_wise_fees:
+                        bestCourseMatch.fees.semester_wise_fees,
+
+                      tuition_fees:
+                        bestCourseMatch.fees.tuition_fees
+
+                    }
+                  : null,
+
+
+
+              financialAid:
+                bestCourseMatch.financialAid
+                  ? extractFinancialAidFlags(
+                      bestCourseMatch.financialAid.description
+                    )
+                  : null,
+
+
+
+              eligibilitycriteria:
+                bestCourseMatch.eligibilitycriteria
+                  ? {
+
+                      description:
+                        bestCourseMatch
+                          .eligibilitycriteria.description,
+
+                      IndianCriteria:
+                        bestCourseMatch
+                          .eligibilitycriteria.IndianCriteria,
+
+                      NRICriteria:
+                        bestCourseMatch
+                          .eligibilitycriteria.NRICriteria,
+
+                      notes:
+                        bestCourseMatch
+                          .eligibilitycriteria.notes
+
+                    }
+                  : null,
+
+
+
+              curriculum:
+                bestCourseMatch.curriculum
+                  ? {
+
+                      semesters:
+                        bestCourseMatch.curriculum.semesters,
+
+                      total_credits:
+                        calculateTotalCredits(
+                          bestCourseMatch.curriculum.semesters
+                        )
+
+                    }
+                  : null
+
+            }
           : null,
+
+
+
+        /* ================= SPECIALISATION ================= */
+
+        specialisation: bestSpecMatch
+          ? {
+
+              id: bestSpecMatch.id,
+
+              name: bestSpecMatch.name,
+
+              slug: bestSpecMatch.slug,
+
+              description:
+                bestSpecMatch.description,
+
+              mode_of_education:
+                bestSpecMatch.mode_of_education,
+
+              time_frame:
+                bestSpecMatch.time_frame,
+
+              match_percentage:
+                bestSpecMatch.match_percentage,
+
+              match_type:
+                bestSpecMatch.match_type,
+
+                  emi:
+                bestSpecMatch.emi,
+
+              mode_of_exam:
+                bestSpecMatch.mode_of_exam,
+                credits :  bestSpecMatch.credits,
+
+                  financialAid:
+                bestSpecMatch.financialAid
+                  ? extractFinancialAidFlags(
+                      bestSpecMatch.financialAid.description
+                    )
+                  : null,
+
+                      eligibilitycriteria:
+                bestSpecMatch.eligibilitycriteria
+                  ? {
+
+                      description:
+                        bestSpecMatch
+                          .eligibilitycriteria.description,
+
+                      IndianCriteria:
+                        bestSpecMatch
+                          .eligibilitycriteria.IndianCriteria,
+
+                      NRICriteria:
+                        bestSpecMatch
+                          .eligibilitycriteria.NRICriteria,
+
+                      notes:
+                        bestSpecMatch
+                          .eligibilitycriteria.notes
+
+                    }
+                  : null,
+
+            }
+          : null
+
       };
+
     });
 
+
+
+
     /* ================= SUCCESS ================= */
-    return successResponse(res, "Specialisation compare success", 200, result);
+
+    return successResponse(
+      res,
+      "Compare specialisation success",
+      200,
+      result
+    );
+
 
   } catch (error) {
-    console.log("COMPARE ERROR:", error);
-    return errorResponse(res, error.message, 500);
+
+    console.log(
+      "COMPARE SPECIALISATION ERROR:",
+      error
+    );
+
+    return errorResponse(
+      res,
+      error.message,
+      500
+    );
+
   }
+
 });
+
 
 /* =========================================================
    PROGRAM FAMILY DETECTOR
@@ -1459,25 +1856,42 @@ exports.compareCourseData = catchAsync(async (req, res) => {
     }
 
     /* ================= INPUT CLEAN ================= */
+
     const universitySlugs = cleanSlug(universities).split("-vs-");
     const inputCourse = normalizeText(course_name);
-    const inputClean = cleanProgramText(inputCourse); // ❗ defined here
+    const inputClean = cleanProgramText(inputCourse);
+
+    /* ================= GET APPROVAL MASTER ================= */
+
+    const approvalsData = await prisma.approvals.findMany({});
+
+    const approvalMap = {};
+    approvalsData.forEach(a => {
+      approvalMap[a.id] = a;
+    });
+
+    
+
+    /* ================= GET PARTNER MASTER ================= */
+
+ const partnersData = await prisma.placements.findMany({
+});
+
+const partnersMap = {};
+partnersData.forEach(p => {
+  partnersMap[p.id] = p;
+});
 
     /* ================= GET UNIVERSITY DATA ================= */
+
     const universitiesData = await prisma.university.findMany({
       where: {
         slug: { in: universitySlugs },
         deleted_at: null,
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        icon: true,
-        cover_image: true,
-        rank: true,
-        pdf_download: true,
+      include: {
         approvals: true,
+        partners: true,
       },
     });
 
@@ -1488,6 +1902,7 @@ exports.compareCourseData = catchAsync(async (req, res) => {
     const universityIds = universitiesData.map(u => u.id);
 
     /* ================= GET COURSES ================= */
+
     const courses = await prisma.course.findMany({
       where: {
         university_id: { in: universityIds },
@@ -1497,34 +1912,29 @@ exports.compareCourseData = catchAsync(async (req, res) => {
         approvals: true,
         fees: true,
         financialAid: true,
-        partners: true,
         eligibilitycriteria: true,
         curriculum: true,
+        certificates :true
       },
     });
 
-    /* ================= GET APPROVAL MASTER ================= */
-    const approvalsData = await prisma.approvals.findMany({
-      where: { deleted_at: null },
-    });
-
-    const approvalMap = {};
-    approvalsData.forEach(a => {
-      approvalMap[a.id] = a;
-    });
-
     /* ================= MATCHING LOGIC ================= */
+
     const result = universitiesData.map(university => {
-      const uniCourses = courses.filter(c => c.university_id === university.id);
+
+      const uniCourses = courses.filter(
+        c => c.university_id === university.id
+      );
 
       let bestMatch = null;
       let bestScore = 0;
 
-      uniCourses.forEach(c => {
-        const cName = cleanProgramText(c.name || "");
-        const cSlug = cleanProgramText(c.slug || "");
+      uniCourses.forEach(course => {
 
-        if (!isCompatibleProgram(inputCourse, cSlug, cName)) return; // skip incompatible
+        const cName = cleanProgramText(course.name || "");
+        const cSlug = cleanProgramText(course.slug || "");
+
+        if (!isCompatibleProgram(inputCourse, cSlug, cName)) return;
 
         const nameScore = similarityScore(cName, inputClean);
         const slugScore = similarityScore(cSlug, inputClean);
@@ -1534,20 +1944,42 @@ exports.compareCourseData = catchAsync(async (req, res) => {
         const percent = Math.round(score * 100);
 
         if (percent >= 45 && percent > bestScore) {
+
           bestScore = percent;
+
           bestMatch = {
-            ...c,
+            ...course,
             match_percentage: percent,
             match_type:
-              percent >= 80 ? "fast" :
-              percent >= 70 ? "medium" :
-              "slow"
+              percent >= 80
+                ? "fast"
+                : percent >= 70
+                ? "medium"
+                : "slow",
           };
         }
       });
 
-      /* ================= RESPONSE FORMAT ================= */
+      /* ================= UNIVERSITY APPROVAL FORMAT ================= */
+
+      const universityApprovals =
+        university.approvals?.approval_ids?.map(
+          id => approvalMap[id]
+        ) || [];
+
+      /* ================= UNIVERSITY PARTNER FORMAT ================= */
+
+        const universityPartners =
+        university.partners?.placement_partner_id?.map(
+          id => partnersMap[id]
+        ) || [];
+
+
+
+      /* ================= FINAL RESPONSE ================= */
+
       return {
+
         university_id: university.id,
 
         university_data: {
@@ -1557,73 +1989,79 @@ exports.compareCourseData = catchAsync(async (req, res) => {
           cover_image: university.cover_image,
           rank: university.rank,
           pdf_download: university.pdf_download,
-
-          approvals: university.approvals
-            ? {
-                approval_ids: university.approvals.approval_ids || [],
-                approval_list: Array.isArray(university.approvals.approval_ids)
-                  ? university.approvals.approval_ids
-                      .map(id => approvalMap[id] || null)
-                      .filter(Boolean)
-                  : [],
-              }
-            : null,
+          approvals: {
+            approval_ids:
+              university.approvals?.approval_ids || [],
+            approval_list: universityApprovals,
+          },
+         partners: {
+    partner_ids: university.partners?.placement_partner_id,
+    partner_list: universityPartners,
+  },
         },
 
         course: bestMatch
           ? {
+
               id: bestMatch.id,
               name: bestMatch.name,
+              credits: bestMatch.credits,
+              mode_of_exam: bestMatch.mode_of_exam,
+              emi: bestMatch.emi,
               slug: bestMatch.slug,
               description: bestMatch.description,
-              mode_of_education: bestMatch.mode_of_education,
+              mode_of_education:
+                bestMatch.mode_of_education,
               time_frame: bestMatch.time_frame,
+              match_percentage:
+                bestMatch.match_percentage,
 
-              match_percentage: bestMatch.match_percentage,
               match_type: bestMatch.match_type,
-
-              approvals: bestMatch.approvals
-                ? {
-                    approval_ids: bestMatch.approvals.approval_ids || [],
-                    approval_list: Array.isArray(bestMatch.approvals.approval_ids)
-                      ? bestMatch.approvals.approval_ids
-                          .map(id => approvalMap[id] || null)
-                          .filter(Boolean)
-                      : [],
-                  }
-                : null,
-
+              certificatesimages : bestMatch.certificates.image,
               fees: bestMatch.fees
                 ? {
-                    semester_wise_fees: bestMatch.fees.semester_wise_fees,
-                    tuition_fees: bestMatch.fees.tuition_fees,
+                    semester_wise_fees:
+                      bestMatch.fees.semester_wise_fees,
+                    tuition_fees:
+                      bestMatch.fees.tuition_fees,
                   }
                 : null,
 
               financialAid: bestMatch.financialAid
-                ? extractFinancialAidFlags(bestMatch.financialAid.description)
+                ? extractFinancialAidFlags(
+                    bestMatch.financialAid.description
+                  )
                 : null,
 
-              partners: {
-                placement_partners:
-                  bestMatch.partners?.placement_partner_id?.length > 0,
-              },
+              eligibilitycriteria:
+                bestMatch.eligibilitycriteria
+                  ? {
+                      description:
+                        bestMatch.eligibilitycriteria
+                          .description,
 
-              eligibilitycriteria: bestMatch.eligibilitycriteria
-                ? {
-                    description: bestMatch.eligibilitycriteria.description,
-                    IndianCriteria: bestMatch.eligibilitycriteria.IndianCriteria,
-                    NRICriteria: bestMatch.eligibilitycriteria.NRICriteria,
-                    notes: bestMatch.eligibilitycriteria.notes,
-                  }
-                : null,
+                      IndianCriteria:
+                        bestMatch.eligibilitycriteria
+                          .IndianCriteria,
+
+                      NRICriteria:
+                        bestMatch.eligibilitycriteria
+                          .NRICriteria,
+
+                      notes:
+                        bestMatch.eligibilitycriteria.notes,
+                    }
+                  : null,
 
               curriculum: bestMatch.curriculum
                 ? {
-                    semesters: bestMatch.curriculum.semesters,
-                    total_credits: calculateTotalCredits(
-                      bestMatch.curriculum.semesters
-                    ),
+                    semesters:
+                      bestMatch.curriculum.semesters,
+
+                    total_credits:
+                      calculateTotalCredits(
+                        bestMatch.curriculum.semesters
+                      ),
                   }
                 : null,
             }
@@ -1632,10 +2070,24 @@ exports.compareCourseData = catchAsync(async (req, res) => {
     });
 
     /* ================= SUCCESS ================= */
-    return successResponse(res, "Course compare success", 200, result);
+
+    return successResponse(
+      res,
+      "Course compare success",
+      200,
+      result
+    );
+
   } catch (error) {
+
     console.log("COMPARE ERROR:", error);
-    return errorResponse(res, error.message, 500);
+
+    return errorResponse(
+      res,
+      error.message,
+      500
+    );
   }
 });
+
 

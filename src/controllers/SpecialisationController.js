@@ -352,9 +352,12 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
     indian = attachImagesToItems(indian, indianimages, "images");
     nri = attachImagesToItems(nri, nriimages, "images");
 
-
+console.log("req" ,req.body.credits)
     const finalData = {
-      name: req.body.name || "",
+      credits : req.body.credits || "Not Avaliable",
+      emi :req.body.emi || "Not Avaliable",
+      mode_of_exam :req.body.mode_of_exam || "Online",
+       name: req.body.name || "",
       course_id: req.body.course_id || "",
       position: req.body.position || 0,
       descriptions: parseArray(req.body.descriptions) || "",
@@ -421,9 +424,6 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
       desccreteria: req.body.desccreteria || "",
-            credits   :  req.body.credits || "",       
-        emi       : req.body.emi || "", 
-        mode_of_exam : req.body.mode_of_exam,
     };
 
     const rawSlug = req.body.name;
@@ -444,9 +444,9 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
         university_id: Number(finalData.university_id || 0),
-            credits   :  req.body.credits || "",       
-        emi       : req.body.emi || "", 
-        mode_of_exam : req.body.mode_of_exam,
+          credits :  finalData.credits,
+          emi :  finalData.emi,
+          mode_of_exam : finalData.mode_of_exam
 
       }
     });
@@ -710,6 +710,7 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
       return res.status(404).json({ status: false, message: "Specialisation not found" });
     }
 
+    console.log(req.body.credits)
     // Parse arrays
     let services = parseArray(req.body.services);
     let patterns = parseArray(req.body.patterns);
@@ -840,6 +841,9 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
 
       desccreteria: req.body.desccreteria || "",
       partners: parseArray(req.body.partners) || "",
+        credits : req.body.credits || "Not Avaliable",
+      emi :req.body.emi || "Not Avaliable",
+      mode_of_exam :req.body.mode_of_exam || "Online",
 
 
     };
@@ -860,9 +864,9 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         course_id: Number(finalData.course_id) || "",
         mode_of_education: finalData.mode_of_education || "",
         time_frame: finalData.time_frame || "",
-       credits   :  req.body.credits || "",       
-        emi       : req.body.emi || "", 
-        mode_of_exam : req.body.mode_of_exam,
+            credits :  finalData.credits,
+          emi :  finalData.emi,
+          mode_of_exam : finalData.mode_of_exam
       }
     });
 
