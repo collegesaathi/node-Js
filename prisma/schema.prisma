@@ -81,6 +81,9 @@ model Course {
   specialisation      Specialisation[]
   leads           leads[]
   about              About?
+  credits           String?
+  emi               String?
+  mode_of_exam String?
   fees              Fees?
   approvals      Approvals_Management? 
   rankings           Rankings? 
@@ -114,8 +117,11 @@ model Specialisation {
   cover_image   String?
   icon_alt      String?
   cover_image_alt String?
+  credits           String?
+  emi               String?
+  mode_of_education String?
      time_frame         String? 
-   mode_of_education         String?
+   mode_of_exam         String?
     description        Json?
   position      Int?      @default(0)
   created_at    DateTime  @default(now())

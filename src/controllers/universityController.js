@@ -330,7 +330,7 @@ exports.allAdminUniversities = catchAsync(async (req, res) => {
   // Pagination
   const { search } = req.query;
   const page = parseInt(req.query.page) || 1;
-  const limit = 70;
+  const limit = 200;
   const skip = (page - 1) * limit;
   const universities = await prisma.university.findMany({
     skip,

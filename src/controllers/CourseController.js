@@ -156,6 +156,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       university_id: req.body.university_id || "",
       icon_alt: req.body.icon_alt || "",
       image_alt: req.body.image_alt || "",
+       credits   :  req.body.credits || "",       
+       emi            : req.body.emi || "",   
       about_title: req.body.about_title || "",
       about_desc: req.body.about_desc || "",
       semester_fees: req.body.semester_fees || "",
@@ -229,6 +231,7 @@ exports.AddCourse = catchAsync(async (req, res) => {
         position: Number(finalData.position || 0),
         description: finalData.descriptions, // Prisma field should be Json? or String[] depending on schema
         icon: finalData.icon,
+         mode_of_education : req.body.mode_of_education,
         slug: req.body.slug ? req.body.slug : generatedSlug || req.body.slug ,
         cover_image_alt: finalData?.cover_image_alt,
         icon_alt: finalData?.icon_alt,
@@ -236,6 +239,10 @@ exports.AddCourse = catchAsync(async (req, res) => {
         university_id: Number(finalData.university_id),
         category_id: Number(finalData.category_id),
         video: finalData.video,
+          credits   :  req.body.credits || "",       
+        emi       : req.body.emi || "", 
+        mode_of_exam : req.body.mode_of_exam,
+
       }
     });
     // Upsert related tables
@@ -836,6 +843,7 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       rankings_description: req.body.rankings_description || "",
       creteria: req.body.creteria || "",
       NRICriteria: nri?.length && nri || "",
+            
       IndianCriteria: indian?.length && indian || "",
       semesters_title: req.body.semesters_title || "",
       semesters: parseArray(req.body.semesters) || "",
@@ -913,7 +921,10 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         category_id: Number(finalData.category_id) || "",
         video: req.body.video || "",
         mode_of_education: finalData.mode_of_education || "",
-        time_frame: finalData.time_frame || "",
+        time_frame : finalData.time_frame || "",
+        credits   :  req.body.credits || "",       
+        emi       : req.body.emi || "", 
+        mode_of_exam : req.body.mode_of_exam,
       }
     });
 
