@@ -54,6 +54,9 @@ CREATE TABLE "Course" (
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_at" TIMESTAMP(3),
     "description" JSONB,
+    "credits" TEXT,
+    "emi" TEXT,
+    "mode_of_exam" TEXT,
     "university_id" INTEGER,
 
     CONSTRAINT "Course_pkey" PRIMARY KEY ("id")
@@ -71,8 +74,11 @@ CREATE TABLE "Specialisation" (
     "cover_image" TEXT,
     "icon_alt" TEXT,
     "cover_image_alt" TEXT,
-    "time_frame" TEXT,
+    "credits" TEXT,
+    "emi" TEXT,
     "mode_of_education" TEXT,
+    "time_frame" TEXT,
+    "mode_of_exam" TEXT,
     "description" JSONB,
     "position" INTEGER DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -251,9 +251,6 @@ exports.adminaddSpecialisationProgram = catchAsync(async (req, res) => {
       notes_desc: req.body.notes_descriptions?.trim() || "",
       demand_desc: req.body.demand_desc?.trim() || "",
       demand_title: req.body.demand_title?.trim() || "",
-           credits   :  req.body.credits || "",       
-        emi       : req.body.emi || "", 
-        mode_of_exam : req.body.mode_of_exam,
       bannerImage: uploadedFiles["cover_image"]?.[0] ? toPublicUrl(req, uploadedFiles["cover_image"][0]) : "",
       icon: uploadedFiles["icon"]?.[0] ? toPublicUrl(req, uploadedFiles["icon"][0]) : "",
       pdfdownlaod: uploadedFiles["pdf_download"]?.[0] ? toPublicUrl(req, uploadedFiles["pdf_download"][0]) : null,
@@ -683,6 +680,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
     /* 1. VALIDATION */
     /* -------------------------------------------------- */
     const programId = Number(req.body.id);
+    console.log("programId" ,programId)
     if (!programId) {
       return errorResponse(res, "Specialisation Program ID is required", 400);
     }
@@ -775,9 +773,7 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
           title: req.body.name?.trim() || "",
           slug: req.body.slug?.trim() || generatedSlug,
           description: req.body.descriptions?.trim() || "",
-            credits   :  req.body.credits || "",       
-        emi       : req.body.emi || "", 
-        mode_of_exam : req.body.mode_of_exam,
+      
           bannerImageAlt: req.body.bannerImageAlt?.trim() || req.body.name?.trim() || "",
           career_growth: req.body.career_growth?.trim() || "",
           duration: req.body.duration?.trim() || "",

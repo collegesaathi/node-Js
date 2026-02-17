@@ -420,7 +420,10 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
       careername: req.body.careername || "",
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
-      desccreteria: req.body.desccreteria || ""
+      desccreteria: req.body.desccreteria || "",
+            credits   :  req.body.credits || "",       
+        emi       : req.body.emi || "", 
+        mode_of_exam : req.body.mode_of_exam,
     };
 
     const rawSlug = req.body.name;
@@ -441,6 +444,10 @@ exports.adminaddSpecialisation = catchAsync(async (req, res) => {
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
         university_id: Number(finalData.university_id || 0),
+            credits   :  req.body.credits || "",       
+        emi       : req.body.emi || "", 
+        mode_of_exam : req.body.mode_of_exam,
+
       }
     });
     if (SpecialisationData.id) {
@@ -853,6 +860,9 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         course_id: Number(finalData.course_id) || "",
         mode_of_education: finalData.mode_of_education || "",
         time_frame: finalData.time_frame || "",
+       credits   :  req.body.credits || "",       
+        emi       : req.body.emi || "", 
+        mode_of_exam : req.body.mode_of_exam,
       }
     });
 
