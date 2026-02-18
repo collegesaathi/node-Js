@@ -763,6 +763,7 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
     const university = await prisma.university.findFirst({
       where: {
         slug: university_slug,
+        deleted_at: null,
       },
       select: {
         id: true,
@@ -773,6 +774,9 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
 
         // Courses
         courses: {
+           where: {
+        deleted_at: null,
+      },
           select: {
             id: true,
             name: true,

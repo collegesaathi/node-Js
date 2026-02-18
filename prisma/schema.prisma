@@ -977,7 +977,8 @@ model Job {
 
 model Review {
   id                                        Int         @id @default(autoincrement())
-  university_id                             Int?
+  university_id Int
+  university    University @relation(fields: [university_id], references: [id])
   random_string                             String?
   name                                      String?
   email                                     String?
@@ -1007,5 +1008,4 @@ model Review {
   updated_at                                DateTime      @updatedAt
   deleted_at                                DateTime?
 
-  university        University? @relation(fields: [university_id], references: [id])
 }
