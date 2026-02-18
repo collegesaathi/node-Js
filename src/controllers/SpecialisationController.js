@@ -226,12 +226,12 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
       return errorResponse(res, "SpecialisationData not found", 404);
     }
 
-    const specialisation    =  await prisma.Specialisation.findMany({
+    const specialisation =  await prisma.Specialisation.findMany({
       where: { course_id: SpecialisationData?.course_id || 0, deleted_at: null },
     })
 
-    const course  =  await prisma.Course.findFirst({ 
-      where: { slug: courseslug , deleted_at: null },
+    const course =  await prisma.Course.findFirst({ 
+      where: { slug: courseslug , university_id :  university.id , deleted_at: null },
       select: {
         certificates: true,
       }
