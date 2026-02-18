@@ -133,11 +133,11 @@ exports.GetInstituteData = catchAsync(async (req, res) => {
       },
       timeout: 20000
     });
+
     /* ================================
     6. EXTRACT REVIEW DATA
     =================================*/
-    const reviewData = response?.data?.data?.reviewData?.reviewTuplesDTO?.reviewData || [];
-    
+    const reviewData = response.data.data.reviewData.reviewTuplesDTO.reviewData;
     /* ================================
        SAVE TO DATABASE
     =================================*/
@@ -171,7 +171,7 @@ exports.GetInstituteData = catchAsync(async (req, res) => {
       encoded_payload: base64Data,
       api_url: apiUrl,
       response: response.data,
-      reviewData: reviewData.reviewTuplesDTO.reviewData
+      reviewData
 
     });
 
