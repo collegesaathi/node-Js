@@ -751,6 +751,7 @@ exports.GetAllSpecialisations = catchAsync(async (req, res) => {
 });
 
 
+
 exports.GetPopupUniversityData = catchAsync(async (req, res) => {
   try {
     const { university_slug } = req.query;
@@ -774,9 +775,9 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
 
         // Courses
         courses: {
-           where: {
-        deleted_at: null,
-      },
+          where: {
+            deleted_at: null,
+          },
           select: {
             id: true,
             name: true,
@@ -811,10 +812,10 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
 
     // 2️⃣ Fetch approvals data using approval_ids
     let approvalsData = [];
-
     if (
       university.approvals &&
-      Array.isArray(university.approvals.approval_ids)
+      Array.isArray(university.approvals.approval_ids) &&
+      university.approvals.approval_ids.length > 0
     ) {
       approvalsData = await prisma.approvals.findMany({
         where: {
@@ -830,7 +831,39 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
       });
     }
 
-    // 3️⃣ Final response
+
+
+const allowedCourseTypes = [
+  "MCA",
+  "MBA",
+  "BBA",
+  "BCA",
+  "MAMJSL",
+  "B.Com",
+  "M.Com",
+  "PGDM",
+  "PGCM",
+  "BA",
+  "MA",
+];
+
+// Filter courses: match exact course type at end of course name
+const filteredCourses = (university.courses || []).filter((c) => {
+  const parts = c.name.split(" ");           // split by space
+  const lastWord = parts[parts.length - 1]; // get last word
+  return allowedCourseTypes.includes(lastWord);
+});
+
+// Sort courses according to allowedCourseTypes order
+const sortedCourses = filteredCourses.sort(
+  (a, b) =>
+    allowedCourseTypes.indexOf(a.name.split(" ").pop()) -
+    allowedCourseTypes.indexOf(b.name.split(" ").pop())
+);
+
+
+
+    // 5️⃣ Final response
     return successResponse(res, "Popup university data fetched", 200, {
       name: university.name,
       description: university.description,
@@ -843,15 +876,17 @@ exports.GetPopupUniversityData = catchAsync(async (req, res) => {
         items: approvalsData,
       },
 
-      courses: university.courses,
-
+      courses: sortedCourses, // ✅ now only allowed courses appear
       campuses: university.universityCampuses,
     });
-
   } catch (error) {
     return errorResponse(res, error.message, 500);
   }
 });
+
+
+
+
 
 exports.GetReviews = catchAsync(async (req, res) => {
   try {
