@@ -1,13 +1,11 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
-
 const Logger = require("../utils/Logger");
 const deleteUploadedFiles = require("../utils/fileDeleter");
 const Loggers = require("../utils/Logger");
 const axios = require("axios");
 const otpCache = require("../utils/otpCache");
-
 exports.sendOtp = catchAsync(async (req, res) => {
   try {
     const { mobile } = req.body;

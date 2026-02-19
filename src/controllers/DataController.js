@@ -41,21 +41,43 @@ exports.DeleteUniversityBySlug = catchAsync(async (req, res) => {
     const { id } = req.params;
 
     if (!id) {
-      return errorResponse(res, "University slug is required", 400);
+      return errorResponse(res, "University ID is required", 400);
     }
 
+    const universityId = Number(id);
 
-    // 🔥 PERMANENT DELETE
-   const record =  await prisma.University.delete({
-      where: {
-        id: Number(id),
-      },
+    // 1️⃣ Delete all one-to-many related tables
+    await prisma.Course.deleteMany({ where: { universityId } });
+    await prisma.Specialisation.deleteMany({ where: { universityId } });
+    await prisma.Blog.deleteMany({ where: { universityId } });
+    await prisma.leads.deleteMany({ where: { universityId } });
+    await prisma.Review.deleteMany({ where: { universityId } });
+    await prisma.Rankings.deleteMany({ where: { universityId } });
+    await prisma.Partners.deleteMany({ where: { universityId } });
+    await prisma.Services.deleteMany({ where: { universityId } });
+    await prisma.Certificates.deleteMany({ where: { universityId } });
+    await prisma.ExamPatterns.deleteMany({ where: { universityId } });
+    await prisma.Facts.deleteMany({ where: { universityId } });
+    await prisma.Faq.deleteMany({ where: { universityId } });
+    await prisma.FinancialAid.deleteMany({ where: { universityId } });
+    
+    // 2️⃣ Delete one-to-one related tables
+    await prisma.About.deleteMany({ where: { universityId } });
+    await prisma.AdmissionProcess.deleteMany({ where: { universityId } });
+    await prisma.Advantages.deleteMany({ where: { universityId } });
+    await prisma.Approvals_Management.deleteMany({ where: { universityId } });
+    await prisma.UniversityCampus.deleteMany({ where: { universityId } });
+    await prisma.Seo.deleteMany({ where: { universityId } });
+
+    // 3️⃣ Finally, delete the university itself
+    const record = await prisma.University.delete({
+      where: { id: universityId },
     });
 
     return successResponse(
       res,
-      "University permanently deleted successfully",
-      200 ,
+      "University and all related data deleted successfully",
+      200,
       record
     );
   } catch (error) {
@@ -68,6 +90,7 @@ exports.DeleteUniversityBySlug = catchAsync(async (req, res) => {
     );
   }
 });
+
 
 
 exports.GenraixcalSpecialisationProgramDeelte = catchAsync(async (req, res) => {
