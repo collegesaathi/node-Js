@@ -76,6 +76,13 @@ model Course {
   created_at   DateTime            @default(now())
   updated_at   DateTime            @updatedAt
   deleted_at   DateTime?
+
+  hard_copy Boolean?           @default(false)
+  soft_copy Boolean?           @default(false)
+  campus_library_access Boolean?           @default(false)
+  live_sessions Boolean?           @default(false)
+  recorded_sessions Boolean?           @default(false)
+
   category     Category            @relation(fields: [category_id], references: [id])
   description        Json?
   specialisation      Specialisation[]
@@ -120,13 +127,21 @@ model Specialisation {
   credits           String?
   emi               String?
   mode_of_education String?
-     time_frame         String? 
+     time_frame  String? 
    mode_of_exam         String?
     description        Json?
   position      Int?      @default(0)
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   deleted_at    DateTime?
+
+  hard_copy Boolean?           @default(false)
+  soft_copy Boolean?           @default(false)
+  campus_library_access Boolean?           @default(false)
+  live_sessions Boolean?           @default(false)
+  recorded_sessions Boolean?           @default(false)
+
+  
   // Relations
   university     University? @relation(fields: [university_id], references: [id])
   course        Course    @relation(fields: [course_id], references: [id])
@@ -551,7 +566,10 @@ model Program {
   specialisationtitle String?
   specialisationdesc  String?
   // ✅ CATEGORY RELATION
-  category_id         Int          
+  category_id         Int     
+
+  short_icon           String?
+
   category                Category    @relation(fields: [category_id], references: [id])
   summary                 ProgramSummary?
   programvs               ProgramVs?
@@ -606,6 +624,8 @@ model SpecialisationProgram {
   notes_desc String?
    demand_desc String?
   demand_title String?
+
+  short_icon           String?
   summary             ProgramSummary?
   durationfees        ProgramDurationFees?
   salary              SpecialisationSalary?
