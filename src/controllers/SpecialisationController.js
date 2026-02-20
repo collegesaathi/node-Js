@@ -444,9 +444,15 @@ console.log("req" ,req.body.credits)
         icon_alt: finalData?.icon_alt,
         course_id: Number(finalData.course_id || 0),
         university_id: Number(finalData.university_id || 0),
-          credits :  finalData.credits,
-          emi :  finalData.emi,
-          mode_of_exam : finalData.mode_of_exam
+        credits :  finalData.credits,
+        emi :  finalData.emi,
+        mode_of_exam : finalData.mode_of_exam,
+
+        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
+        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
+        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
+        live_sessions : Boolean(req.body.liveLecture)  || "",
+        recorded_sessions : Boolean(req.body.recordedLecture)  || "",     
 
       }
     });
@@ -864,9 +870,16 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         course_id: Number(finalData.course_id) || "",
         mode_of_education: finalData.mode_of_education || "",
         time_frame: finalData.time_frame || "",
-            credits :  finalData.credits,
-          emi :  finalData.emi,
-          mode_of_exam : finalData.mode_of_exam
+        credits :  finalData.credits,
+        emi :  finalData.emi,
+        mode_of_exam : finalData.mode_of_exam,
+        
+        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
+        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
+        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
+        live_sessions : Boolean(req.body.liveLecture)  || "",
+        recorded_sessions : Boolean(req.body.recordedLecture)  || "",  
+    
       }
     });
 

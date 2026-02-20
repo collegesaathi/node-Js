@@ -216,8 +216,9 @@ exports.AddCourse = catchAsync(async (req, res) => {
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
       desccreteria: req.body.desccreteria || "",
-      hard_copy : req.body.hard_copy || "",
-      soft_copy : req.body.soft_copy || ""    };
+
+
+    };
 
     if (!finalData.university_id) return errorResponse(res, "University Id is required", 400);
     if (!finalData.category_id) return errorResponse(res, "Category Id is required", 400);
@@ -243,6 +244,13 @@ exports.AddCourse = catchAsync(async (req, res) => {
           credits   :  req.body.credits || "",       
         emi       : req.body.emi || "", 
         mode_of_exam : req.body.mode_of_exam,
+        
+        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
+        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
+        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
+        live_sessions : Boolean(req.body.liveLecture)  || "",
+        recorded_sessions : Boolean(req.body.recordedLecture)  || "",    
+    
 
       }
     });
@@ -906,6 +914,8 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
       partners: parseArray(req.body.partners) || [],
 
 
+
+
     };
     const UpdateCourse = await prisma.Course.update({
       where: { id: CourseId },
@@ -926,6 +936,13 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         credits   :  req.body.credits || "",       
         emi       : req.body.emi || "", 
         mode_of_exam : req.body.mode_of_exam,
+        
+        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
+        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
+        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
+        live_sessions : Boolean(req.body.liveLecture)  || "",
+        recorded_sessions : Boolean(req.body.recordedLecture)  || "",   
+        
       }
     });
 
