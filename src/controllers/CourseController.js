@@ -112,7 +112,7 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
     };
   });
 }
-
+const toBoolean = (value) => value === true || value === "true";
 
 
 exports.AddCourse = catchAsync(async (req, res) => {
@@ -245,11 +245,11 @@ exports.AddCourse = catchAsync(async (req, res) => {
         emi       : req.body.emi || "", 
         mode_of_exam : req.body.mode_of_exam,
         
-        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
-        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
-        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
-        live_sessions : Boolean(req.body.liveLecture)  || "",
-        recorded_sessions : Boolean(req.body.recordedLecture)  || "",    
+          hard_copy: toBoolean(req.body.studyMaterialHardCopy),
+          soft_copy: toBoolean(req.body.studyMaterialSoftCopy),
+          campus_library_access: toBoolean(req.body.campusLibraryAccess),
+          live_sessions: toBoolean(req.body.liveLecture),
+          recorded_sessions: toBoolean(req.body.recordedLecture),       
     
 
       }
@@ -937,11 +937,11 @@ exports.UpdateCourse = catchAsync(async (req, res) => {
         emi       : req.body.emi || "", 
         mode_of_exam : req.body.mode_of_exam,
         
-        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
-        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
-        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
-        live_sessions : Boolean(req.body.liveLecture)  || "",
-        recorded_sessions : Boolean(req.body.recordedLecture)  || "",   
+          hard_copy: toBoolean(req.body.studyMaterialHardCopy),
+          soft_copy: toBoolean(req.body.studyMaterialSoftCopy),
+          campus_library_access: toBoolean(req.body.campusLibraryAccess),
+          live_sessions: toBoolean(req.body.liveLecture),
+          recorded_sessions: toBoolean(req.body.recordedLecture),    
         
       }
     });
