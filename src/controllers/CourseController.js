@@ -216,7 +216,8 @@ exports.AddCourse = catchAsync(async (req, res) => {
       careermanages: parseArray(req.body.careermanages) || "",
       careerdesc: req.body.careerdesc || "",
       desccreteria: req.body.desccreteria || "",
-    };
+      hard_copy : req.body.hard_copy || "",
+      soft_copy : req.body.soft_copy || ""    };
 
     if (!finalData.university_id) return errorResponse(res, "University Id is required", 400);
     if (!finalData.category_id) return errorResponse(res, "Category Id is required", 400);
