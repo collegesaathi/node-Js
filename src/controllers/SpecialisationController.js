@@ -166,6 +166,9 @@ function attachImagesToItems(newItems, uploadedImages, key, existingItems = []) 
 
 // });
 
+const toBoolean = (value) => value === true || value === "true";
+
+
 exports.GetBySpecialisationId = catchAsync(async (req, res) => {
   try {
         const { univ, slug  ,courseslug} = req.params;
@@ -431,6 +434,9 @@ console.log("req" ,req.body.credits)
     if (!finalData.university_id) {
       return errorResponse(res, "University is required", 400);
     }
+
+    console.log("finalData", req.body.studyMaterialHardCopy)
+    // return false ;
     // Save with Prisma (example)
     const SpecialisationData = await prisma.Specialisation.create({
       data: {
@@ -448,11 +454,11 @@ console.log("req" ,req.body.credits)
         emi :  finalData.emi,
         mode_of_exam : finalData.mode_of_exam,
 
-        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
-        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
-        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
-        live_sessions : Boolean(req.body.liveLecture)  || "",
-        recorded_sessions : Boolean(req.body.recordedLecture)  || "",     
+          hard_copy: toBoolean(req.body.studyMaterialHardCopy),
+          soft_copy: toBoolean(req.body.studyMaterialSoftCopy),
+          campus_library_access: toBoolean(req.body.campusLibraryAccess),
+          live_sessions: toBoolean(req.body.liveLecture),
+          recorded_sessions: toBoolean(req.body.recordedLecture),    
 
       }
     });
@@ -874,11 +880,11 @@ exports.updateSpecialisation = catchAsync(async (req, res) => {
         emi :  finalData.emi,
         mode_of_exam : finalData.mode_of_exam,
         
-        hard_copy : Boolean(req.body.studyMaterialHardCopy)  || "",
-        soft_copy : Boolean(req.body.studyMaterialSoftCopy) || "",
-        campus_library_access : Boolean(req.body.campusLibraryAccess) || "",
-        live_sessions : Boolean(req.body.liveLecture)  || "",
-        recorded_sessions : Boolean(req.body.recordedLecture)  || "",  
+          hard_copy: toBoolean(req.body.studyMaterialHardCopy),
+          soft_copy: toBoolean(req.body.studyMaterialSoftCopy),
+          campus_library_access: toBoolean(req.body.campusLibraryAccess),
+          live_sessions: toBoolean(req.body.liveLecture),
+          recorded_sessions: toBoolean(req.body.recordedLecture),    
     
       }
     });
