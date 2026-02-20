@@ -1,3 +1,4 @@
+const { loggers } = require("winston");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
 const { successResponse, errorResponse, validationErrorResponse } = require("../utils/ErrorHandling");
@@ -134,7 +135,6 @@ exports.AddProgram = catchAsync(async (req, res) => {
     }
     uploadedFiles[file.fieldname].push(file.path);
   });
-
   // Early return for debugging - remove in production
   try {
     // 1. PARALLEL DATA PARSING - ADDED purpuse TO THE LIST
@@ -161,7 +161,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
       parseArray(req.body.choose),
       parseArray(req.body.purpuse)  // ADDED THIS LINE
     ]);
-
+    
     // 2. PARALLEL FILE MAPPING - FIXED ORDER AND ADDED purpuseimages
     const [
       fincalceAddsimages,
@@ -174,9 +174,9 @@ exports.AddProgram = catchAsync(async (req, res) => {
       mapUploadedArray(req, uploadedFiles, "chooseimages"),
       mapUploadedArray(req, uploadedFiles, "purpuseimages"),  // ADDED THIS
       mapUploadedArray(req, uploadedFiles, "PlacementAddsimages"),
-      mapUploadedArray(req, uploadedFiles, "summaryaudio")
+      mapUploadedArray(req, uploadedFiles, "summaryaudio"),
     ]);
-
+    
     // 3. PARALLEL IMAGE ATTACHMENT - ADDED finalPurpuse
     const [
       finalFincalceAdds,
@@ -190,13 +190,13 @@ exports.AddProgram = catchAsync(async (req, res) => {
       attachImagesToItems(subPlacementJson, PlacementAddsimages, "image"),
       attachImagesToItems(summaryJson, summaryAudio, "audio")
     ]);
-
+    
     if (!req.body.name) {
       return errorResponse(res, "Program title is required", 400);
     }
-
+    
     const generatedSlug = await generateUniqueSlug(prisma, req.body.name);
-
+    
     // 4. OPTIMIZED TRANSACTION WITH BATCH OPERATIONS
     const result = await prisma.$transaction(async (tx) => {
       // Create main program
@@ -208,6 +208,7 @@ exports.AddProgram = catchAsync(async (req, res) => {
           description: req.body.descriptions || "",
           bannerImage: toPublicUrl(req, uploadedFiles["cover_image"]?.[0]) || "",
           icon: toPublicUrl(req, uploadedFiles["icon"]?.[0]) || "",
+          short_icon: toPublicUrl(req, uploadedFiles["short_icon"]?.[0]) || "",
           bannerImageAlt: req.body.bannerImageAlt || req.body.name || "",
           pdfdownlaod: toPublicUrl(req, uploadedFiles["pdf_download"]?.[0]),
           audio: toPublicUrl(req, uploadedFiles["audio"]?.[0]),
@@ -752,6 +753,7 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         icon: uploadedFiles.icon?.[0]
           ? toPublicUrl(req, uploadedFiles.icon[0])
           : existing.icon,
+        short_icon: uploadedFiles.short_icon?.[0] ? toPublicUrl(req, uploadedFiles.short_icon[0]) : existing.short_icon,
         bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
         pdfdownlaod: uploadedFiles.pdf_download?.[0]
           ? toPublicUrl(req, uploadedFiles.pdf_download[0])
