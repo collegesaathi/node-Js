@@ -81,6 +81,7 @@ app.use("/api", require("./routes/FiltrationRoutes"));
 app.use("/api", require("./routes/categoryRoutes"));
 app.use("/api", require("./routes/DataRoute"));
 app.use("/api", require("./routes/scrapperRoute"));
+app.use("/api", require("./routes/compressRoutes"));
 
 
 // const { PrismaClient } = require('@prisma/client');

@@ -1029,3 +1029,16 @@ university    University? @relation(fields: [university_id], references: [id])
   deleted_at                                DateTime?
 
 }
+
+
+model ClickpickCompare{
+  id             Int      @id @default(autoincrement())
+  user_id        Int?
+  log_values     Json?
+
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+  deleted_at     DateTime?
+
+  user       User?    @relation(fields: [user_id], references: [id])
+}
