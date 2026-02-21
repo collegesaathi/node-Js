@@ -1270,7 +1270,8 @@ exports.compareSpeData = catchAsync(async (req, res) => {
 
       include: {
         approvals: true,
-        partners: true
+        partners: true,
+        universityCampuses : true
       }
 
     });
@@ -1521,13 +1522,10 @@ exports.compareSpeData = catchAsync(async (req, res) => {
 
           pdf_download: university.pdf_download,
 
-
-
+          universityCampuses : university.universityCampuses ,
           approvals: {
-
             approval_ids:
               university.approvals?.approval_ids || [],
-
             approval_list:
               universityApprovals
 
@@ -1641,9 +1639,11 @@ exports.compareSpeData = catchAsync(async (req, res) => {
 
                     }
                   : null,
-
-
-
+                live_sessions  :  bestCourseMatch.live_sessions ,
+                recorded_sessions  : bestCourseMatch.recorded_sessions ,
+                soft_copy  :bestCourseMatch.soft_copy ,
+                campus_library_access  :  bestCourseMatch.campus_library_access ,
+                hard_copy :  bestCourseMatch.hard_copy ,
               curriculum:
                 bestCourseMatch.curriculum
                   ? {
@@ -1892,6 +1892,7 @@ partnersData.forEach(p => {
       include: {
         approvals: true,
         partners: true,
+        universityCampuses : true
       },
     });
 
@@ -1973,20 +1974,16 @@ partnersData.forEach(p => {
         university.partners?.placement_partner_id?.map(
           id => partnersMap[id]
         ) || [];
-
-
-
       /* ================= FINAL RESPONSE ================= */
 
       return {
-
         university_id: university.id,
-
         university_data: {
           name: university.name,
           slug: university.slug,
           icon: university.icon,
           cover_image: university.cover_image,
+          universityCampuses : university.universityCampuses,
           rank: university.rank,
           pdf_download: university.pdf_download,
           approvals: {
@@ -2017,6 +2014,11 @@ partnersData.forEach(p => {
                 bestMatch.match_percentage,
 
               match_type: bestMatch.match_type,
+              live_sessions  :  bestMatch.live_sessions ,
+              recorded_sessions  : bestMatch.recorded_sessions ,
+              soft_copy  :bestMatch.soft_copy ,
+              campus_library_access  :  bestMatch.campus_library_access ,
+              hard_copy :  bestMatch.hard_copy ,
               certificatesimages : bestMatch.certificates.image,
               fees: bestMatch.fees
                 ? {
