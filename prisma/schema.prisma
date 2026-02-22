@@ -28,6 +28,8 @@ model University {
   fees_notes         String?
   rank               String?
   icon               String?
+  budget             String?
+  highlightkey       String?
   fees_desc          String?
   video              String?
   cover_image        String?

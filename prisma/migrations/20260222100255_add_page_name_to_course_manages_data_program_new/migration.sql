@@ -22,6 +22,8 @@ CREATE TABLE "University" (
     "fees_notes" TEXT,
     "rank" TEXT,
     "icon" TEXT,
+    "budget" TEXT,
+    "highlightkey" TEXT,
     "fees_desc" TEXT,
     "video" TEXT,
     "cover_image" TEXT,

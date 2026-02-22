@@ -670,7 +670,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
         (v) => v !== null && v !== undefined
       );
     }
-
+    
     let approvalsData = [];
     if (approvalIds.length > 0) {
       approvalsData = await prisma.Approvals.findMany({
