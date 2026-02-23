@@ -483,12 +483,11 @@ exports.AddProgram = catchAsync(async (req, res) => {
   }
 });
 
-
 // Admin Program Get By ID Controller Logic
 exports.GetProgramById = catchAsync(async (req, res) => {
   try {
     const { slug } = req.params;
-
+ 
     if (!slug) {
       return errorResponse(res, "Program slug is required", 400);
     }
@@ -496,7 +495,6 @@ exports.GetProgramById = catchAsync(async (req, res) => {
     const ProgramData = await prisma.Program.findFirst({
       where: {
         slug: slug,
-        // deleted_at: null,
       },
       include: {
         summary: true,
@@ -566,6 +564,7 @@ exports.GetFrontedProgramById = catchAsync(async (req, res) => {
         experience: true,
         financial: true,
         durationfees: true,
+        category: true
       },
     });
     const toArray = (val) => {

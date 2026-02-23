@@ -550,6 +550,7 @@ exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
         specialisationAdmission: true,
         programCurriculum: true,
         electives: true,
+        category: true
       },
     });
 
