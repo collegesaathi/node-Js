@@ -28,6 +28,8 @@ model University {
   fees_notes         String?
   rank               String?
   icon               String?
+  budget             String?
+  highlightkey       String?
   fees_desc          String?
   video              String?
   cover_image        String?
@@ -90,7 +92,7 @@ model Course {
   about              About?
   credits           String?
   emi               String?
-  mode_of_exam String?
+  mode_of_exam      String?
   fees              Fees?
   approvals      Approvals_Management? 
   rankings           Rankings? 
@@ -100,12 +102,12 @@ model Course {
   skills             Skills?
   examPatterns       ExamPatterns?
   financialAid       FinancialAid?
-  career       Career?
+  career             Career?
   partners           Partners?
   services           Services?
   admissionprocess   AdmissionProcess?
   faq                Faq?
-   advantages        Advantages?
+  advantages        Advantages?
   seo                Seo?
   facts              Facts?  
   university_id       Int?        // ❗ NOT UNIQUE

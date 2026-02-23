@@ -617,7 +617,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
     });
 
     const specialisation    =  await prisma.Specialisation.findMany({
-      where: { course_id: CourseData?.id || 0, deleted_at: null },
+      where: { course_id: CourseData?.id || 0, university_id: university.id,   deleted_at: null },
     })
 
     if (!CourseData) {
@@ -670,7 +670,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
         (v) => v !== null && v !== undefined
       );
     }
-
+    
     let approvalsData = [];
     if (approvalIds.length > 0) {
       approvalsData = await prisma.Approvals.findMany({
