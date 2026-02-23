@@ -616,6 +616,23 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       },
     });
 
+    const course = await prisma.Course.findMany({
+  where: {
+    deleted_at: null,
+    university_id: university.id,
+    id: {
+      not: CourseData.id, // 👈 current course exclude
+    },
+  },
+  orderBy: {
+    position: "asc",
+  },
+  include: {
+    fees: true,
+  },
+});
+
+
     const specialisation    =  await prisma.Specialisation.findMany({
       where: { course_id: CourseData?.id || 0, university_id: university.id,   deleted_at: null },
     })
@@ -682,7 +699,7 @@ exports.GetCourseById = catchAsync(async (req, res) => {
       CourseData,
       approvalsData,
       placementPartners,
-      university ,specialisation
+      university ,specialisation ,course
     });
   } catch (error) {
     console.error("GetCourseById error:", error);
