@@ -230,7 +230,12 @@ exports.GetBySpecialisationId = catchAsync(async (req, res) => {
     }
 
     const specialisation =  await prisma.Specialisation.findMany({
-      where: { course_id: SpecialisationData?.course_id || 0, deleted_at: null },
+      where: { course_id: SpecialisationData?.course_id || 0, deleted_at: null,
+ id: {
+      not: SpecialisationData.id, // 👈 current course exclude
+    },
+
+       },
     })
 
     const course =  await prisma.Course.findFirst({ 
