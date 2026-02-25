@@ -19,14 +19,7 @@ exports.SearchReviews = catchAsync(async (req, res) => {
       return errorResponse(res, "university_id and university_name are required", 400);
     }
 
-    /* ================================
-       2. BUILD JSON PAYLOAD
-    =================================*/
-    const payload = {
-      domain: "national",
-      experiment: "",
-      keyword: university_name
-    };
+
 
     /* ================================
        3. BASE64 ENCODE
@@ -96,14 +89,7 @@ exports.GetInstituteData = catchAsync(async (req, res) => {
       return errorResponse(res, "instituteId, url and university_id are required", 400);
     }
 
-    /* ================================
-       2. BUILD JSON PAYLOAD
-    =================================*/
-    const payload = {
-      instituteId: Number(instituteId),
-      url: url,
-      reviewRequestDTO: {}
-    };
+
     /* ================================
     3. BASE64 ENCODE
     =================================*/
