@@ -970,8 +970,6 @@ exports.GetCategoryWithPrograms = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.GetSpeSpecialisations = catchAsync(async (req, res) => {
   try {
     const { program_slug, program_specialisation_slug } = req.params;
