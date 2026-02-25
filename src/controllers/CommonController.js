@@ -970,3 +970,87 @@ exports.GetCategoryWithPrograms = catchAsync(async (req, res) => {
   }
 });
 
+
+
+exports.GetSpeSpecialisations = catchAsync(async (req, res) => {
+  try {
+    const { program_slug, program_specialisation_slug } = req.params;
+
+    // ------------------ VALIDATION ------------------
+    if (!program_slug ) {
+      return errorResponse(
+        res,
+        "program_slug & program_specialisation_slug is required",
+        400
+      );
+    }
+
+    // ------------------ FETCH PROGRAM + CATEGORY ------------------
+    const program = await prisma.program.findFirst({
+      where: {
+        slug: program_slug,
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        category: {   // ✅ relation name as per schema
+          select: {
+            short_title: true,
+            slug: true,
+          },
+        },
+      },
+    });
+
+    if (!program) {
+      return errorResponse(res, "Program not found", 404);
+    }
+
+    // ------------------ FETCH OTHER SPECIALISATIONS ------------------
+    const otherSpecialisations = await prisma.specialisationProgram.findMany({
+  where: {
+    program_id: program.id,
+    slug: {
+      not: program_specialisation_slug,
+    },
+    deleted_at: null,
+  },
+  select: {
+    id: true,
+    title: true,
+    slug: true,
+    program: {
+      select: {
+        title: true,
+        slug: true,
+        category: {
+          select: {
+            short_title: true,
+            slug: true,
+          },
+        },
+      },
+    },
+  },
+  orderBy: {
+    createdAt: "asc",
+  },
+});
+
+    // ------------------ RESPONSE ------------------
+    return successResponse(
+      res,
+      "Other specialisations fetched successfully",
+      200,
+      {
+        program: program,
+        otherSpecialisations,
+      }
+    );
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
