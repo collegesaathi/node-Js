@@ -820,7 +820,13 @@ exports.OnlineCourseProgram = async (req, res) => {
         short_icon: true,
         icon: true,
         slug: true,
-        category_id: true,
+      category: {   // 👈 relation name (schema me jo hai wahi use karo)
+      select: {
+        id: true,
+        name: true,
+        slug: true
+      }
+    },
         bannerImage :true,
         duration:true,
       },
@@ -836,7 +842,7 @@ exports.OnlineCourseProgram = async (req, res) => {
         return {
           ...spec,
           tag: programExtra[slug]?.tag || "",
-          line1: programExtra[slug]?.line2 || "",
+          line2: programExtra[slug]?.line2 || "",
         };
       })
       .filter(Boolean);
@@ -845,21 +851,35 @@ exports.OnlineCourseProgram = async (req, res) => {
      */
     const specializationSlugs = specializationSlugMap[1] || [];
 
-    const specializations = await prisma.SpecialisationProgram.findMany({
-      where: {
-        slug: { in: specializationSlugs },
-        deleted_at: null,
-      },
+  const specializations = await prisma.specialisationProgram.findMany({
+  where: {
+    slug: { in: specializationSlugs },
+    deleted_at: null,
+  },
+  select: {
+    id: true,
+    title: true,
+    shortname: true,
+    short_icon: true,
+    icon: true,
+    bannerImage: true,
+    slug: true,
+    program: {   // 👈 relation from SpecialisationProgram → Program
       select: {
         id: true,
         title: true,
-        shortname: true,
-        short_icon: true,
-        icon: true,
-        bannerImage: true,
         slug: true,
-      },
-    });
+        category: {   // 👈 relation from Program → Category
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          }
+        }
+      }
+    }
+  },
+});
 
     const sortedSpecializations = specializationSlugs
       .map((slug) => {
