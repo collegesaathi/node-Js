@@ -589,6 +589,7 @@ exports.GetHomePageProgarm = catchAsync(async (req, res) => {
         "online-dnp-programs",
         "doctor-of-nursing-practice-program",
         "executive-dba",
+        "mba-dba"
       ],
       4: [
         "online-certificate-programme",
@@ -835,7 +836,7 @@ exports.OnlineCourseProgram = async (req, res) => {
         return {
           ...spec,
           tag: programExtra[slug]?.tag || "",
-          line1: programExtra[slug]?.line1 || "",
+          line1: programExtra[slug]?.line2 || "",
         };
       })
       .filter(Boolean);

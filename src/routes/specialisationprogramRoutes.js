@@ -12,7 +12,7 @@ router.get("/specialisation-program/:id/:slug", GetSpecialisationProgramById)
 
 router.get("/specialisation-univeristy", GetSpecialisationProgramByUniverty)
 
-router.delete("/program/specialisation/:id", specialisationDelete);
+router.delete("/admin/program/specialisation/delete/:id", specialisationDelete);
 
 
 router.get("/frontend-specialisation-program/:slug", GetFrontendSpe)

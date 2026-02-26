@@ -166,8 +166,9 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
 const programs = await prisma.Program.findMany({
   where: {
     category_id: Number(category_id),
-    deleted_at: null
+    deleted_at: null,
   },
+  
   orderBy: { id: "asc" }
 });
 
