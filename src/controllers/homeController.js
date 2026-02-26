@@ -542,3 +542,226 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
   }
 });
 
+
+exports.GetHomePageProgarm = catchAsync(async (req, res) => {
+  try {
+    const { category_id, program_id } = req.query;
+
+    /**
+     * CATEGORY → PROGRAM NAME MAPPING
+     */
+    const categoryProgramMap = {
+      1: [
+        "online-mba",
+        "1-year-online-mba",
+        "online-mtech",
+        "online-pgdm-program",
+        "online-mca",
+        "online-dual-mba",
+      ],
+      2: [
+        "online-bba",
+        "online-bcom",
+        "distance-bcom",
+        "online-bachelor-arts-journalism-mass-communication",
+        "online-bca",
+        "online-ba",
+      ],
+      3: [
+        "online-pgdm-program",
+        "online-postgraduate-diploma-business-administration",
+        "executive-post-graduate-diploma-in-management",
+        "online-diploma-courses",
+        "online-executive-pgdba",
+        "online-diploma-programs",
+      ],
+      5: [
+        "executive-mba",
+        "online-executive-msc",
+        "online-executive-pgcm",
+        "executive-dba",
+        "executive-post-graduate-diploma-in-management",
+        "online-executive-pgdba",
+      ],
+      6: [
+        "online-doctor-of-business-administration",
+        "global-doctor-of-business-administration",
+        "online-dnp-programs",
+        "doctor-of-nursing-practice-program",
+        "executive-dba",
+      ],
+      4: [
+        "online-certificate-programme",
+        "social-media-analytics-certification",
+        "digital-marketing",
+        "certification-in-financial-analytics",
+        "online-pgcm",
+        "ui-ux-design-certification",
+      ],
+    };
+
+    /**
+     * NO PARAMS → FETCH CATEGORIES
+     */
+    if (!category_id && !program_id) {
+      const categories = await prisma.category.findMany({
+        where: { deleted_at: null },
+        select: {
+          id: true,
+          short_title: true,
+          icon: true,
+        },
+        orderBy: { id: "asc" },
+      });
+
+      return successResponse(res, "Categories fetched", 200, categories);
+    }
+
+    /**
+     * CATEGORY_ID PROVIDED → FETCH PROGRAMS IN GIVEN SLUG ORDER
+     */
+    if (category_id) {
+      const programNames = categoryProgramMap[category_id] || [];
+
+      const programs = await prisma.Program.findMany({
+        where: {
+          slug: {
+            in: programNames,
+          },
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          shortname: true,
+          short_icon: true,
+          icon: true,
+          slug: true,
+          category_id: true,
+        },
+      });
+
+      // 🔥 Maintain slug order same as array
+      const sortedPrograms = programNames
+        .map((slug) => programs.find((p) => p.slug === slug))
+        .filter(Boolean);
+
+      return successResponse(
+        res,
+        "Programs fetched successfully",
+        200,
+        sortedPrograms
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+
+exports.OnlineCourseProgram = async (req, res) => {
+  try {
+    const categoryProgramMap = {
+      1: [
+        "online-mba",
+        "online-mca",
+        "online-bba",
+        "online-bca",
+        "1-year-online-mba",
+        "online-dual-mba",
+      ],
+    };
+
+    /**
+     * CATEGORY → SPECIALIZATION SLUG MAP
+     * ⚡ ONLY SLUGS HERE
+     */
+    const specializationSlugMap = {
+      1: [
+        "artificial-intelligence-machine-learning",
+        "online-mba-in-business-analytics",
+        "online-mba-in-digital-marketing",
+        "cyber-security",
+        "online-mba-in-fintech",
+        "online-mba-in-healthcare-and-hospital-administration",
+        "information-technology",
+        "international-finance",
+        "pharmaceuticals",
+        "online-mba-in-logistics-supply-chain-management",
+        "online-mba-in-marketing-management",
+        "operations-production",
+        "blockchain",
+        "ui-ux",
+      ],
+    };
+
+      const specializationSlugs =
+        specializationSlugMap[category_id] || [];
+
+      const specializations = await prisma.specialization.findMany({
+        where: {
+          slug: { in: specializationSlugs },
+          deleted_at: null,
+        },
+        select: {
+          id: true,
+          title: true,
+          shortname: true,
+          short_icon: true,
+          icon: true,
+          image: true,
+          slug: true,
+          category_id: true,
+        },
+      });
+
+      // Maintain slug order
+      const sortedSpecializations = specializationSlugs
+        .map((slug) =>
+          specializations.find((s) => s.slug === slug)
+        )
+        .filter(Boolean);
+
+
+    /**
+     * 🔹 FETCH PROGRAMS (Default)
+     */
+    const programSlugs = categoryProgramMap[category_id] || [];
+
+    const programs = await prisma.program.findMany({
+      where: {
+        slug: { in: programSlugs },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        shortname: true,
+        short_icon: true,
+        icon: true,
+        slug: true,
+        category_id: true,
+      },
+    });
+
+    const sortedPrograms = programSlugs
+      .map((slug) => programs.find((p) => p.slug === slug))
+      .filter(Boolean);
+
+    return res.status(200).json({
+      success: true,
+      message: "Programs fetched successfully",
+      sortedPrograms: sortedPrograms,
+      sortedSpecializations : sortedSpecializations
+    });
+  } catch (error) {
+    console.error("Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

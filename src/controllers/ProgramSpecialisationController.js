@@ -1217,3 +1217,53 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
 
 
 
+exports.GetFrontendSpe = catchAsync(async (req, res) => {
+  try {
+    const {id , slug } = req.params;
+    if (!slug) {
+      return errorResponse(res, "Spe. Program slug is required", 400);
+    }
+    const ProgramData = await prisma.SpecialisationProgram.findFirst({
+      where: {
+        slug: slug,
+      },
+      include: {
+        summary: true,
+        careers: true,
+        placement: true,
+        choose: true,
+        academic: true,
+        graph: true,
+        entrance: true,
+        faqs: true,
+        seo: true,
+        institutes: true,
+        durationfees: true,
+        salary: true,
+        resource: true,
+        specialisationAdmission: true,
+        programCurriculum: true,
+        electives: true,
+        program: {
+      include: {
+        category: true
+      }
+    }
+      },
+    });
+
+    return successResponse(
+      res,
+      "Program fetched successfully",
+      200,
+      ProgramData
+    );
+  } catch (error) {
+    console.error("❌ GetProgramById error", error);
+    return errorResponse(
+      res,
+      error.message || "Something went wrong while fetching program",
+      500
+    );
+  }
+});
