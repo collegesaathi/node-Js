@@ -568,9 +568,9 @@ exports.GetHomePageProgarm = catchAsync(async (req, res) => {
         "online-ba",
       ],
       3: [
-        "online-pgdm-program",
+        "executive-pgdm",
         "online-postgraduate-diploma-business-administration",
-        "executive-post-graduate-diploma-in-management",
+        "executive-pgdm",
         "online-diploma-courses",
         "online-executive-pgdba",
         "online-diploma-programs",
@@ -580,7 +580,7 @@ exports.GetHomePageProgarm = catchAsync(async (req, res) => {
         "online-executive-msc",
         "online-executive-pgcm",
         "executive-dba",
-        "executive-post-graduate-diploma-in-management",
+        "executive-pgdm",
         "online-executive-pgdba",
       ],
       6: [
