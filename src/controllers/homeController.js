@@ -663,6 +663,9 @@ exports.GetHomePageProgarm = catchAsync(async (req, res) => {
 
 exports.OnlineCourseProgram = async (req, res) => {
   try {
+    /**
+     * PROGRAM SLUG MAP
+     */
     const categoryProgramMap = {
       1: [
         "online-mba",
@@ -674,9 +677,34 @@ exports.OnlineCourseProgram = async (req, res) => {
       ],
     };
 
+      const programExtra = {
+      "online-mba": {
+        tag: "AI & ML",
+        line2: "30+ cutting-edge specializations",
+      },
+      "online-mca": {
+        tag: "Business Analytics",
+      line2: "30+ cutting-edge specializations",
+      },
+      "online-bba": {
+        tag: "Digital Marketing",
+          line2: "30+ cutting-edge specializations",
+      },
+      "online-bca": {
+        tag: "Cybersecurity",
+           line2: "30+ cutting-edge specializations",
+      },
+      "1-year-online-mba": {
+        tag: "FinTech",
+         line2: "30+ cutting-edge specializations",
+      },
+      "online-dual-mba": {
+        tag: "Healthcare & Hospital Administration",
+         line2: "30+ cutting-edge specializations",
+      },
+    };
     /**
-     * CATEGORY → SPECIALIZATION SLUG MAP
-     * ⚡ ONLY SLUGS HERE
+     * SPECIALIZATION SLUG MAP
      */
     const specializationSlugMap = {
       1: [
@@ -691,44 +719,93 @@ exports.OnlineCourseProgram = async (req, res) => {
         "pharmaceuticals",
         "online-mba-in-logistics-supply-chain-management",
         "online-mba-in-marketing-management",
-        "operations-production",
+        "executive-programme-operations-management",
         "blockchain",
-        "ui-ux",
+        "certificate-program-in-ui-ux"
       ],
     };
 
-      const specializationSlugs =
-        specializationSlugMap[category_id] || [];
-
-      const specializations = await prisma.specialization.findMany({
-        where: {
-          slug: { in: specializationSlugs },
-          deleted_at: null,
-        },
-        select: {
-          id: true,
-          title: true,
-          shortname: true,
-          short_icon: true,
-          icon: true,
-          image: true,
-          slug: true,
-          category_id: true,
-        },
-      });
-
-      // Maintain slug order
-      const sortedSpecializations = specializationSlugs
-        .map((slug) =>
-          specializations.find((s) => s.slug === slug)
-        )
-        .filter(Boolean);
-
 
     /**
-     * 🔹 FETCH PROGRAMS (Default)
+     * SPECIALIZATION EXTRA DATA
      */
-    const programSlugs = categoryProgramMap[category_id] || [];
+    const specializationExtra = {
+      "artificial-intelligence-machine-learning": {
+        tag: "AI & ML",
+        line1: "Powering the Future of Automation",
+        line2: "Ideal for Tech-Driven Innovators",
+      },
+      "online-mba-in-business-analytics": {
+        tag: "Business Analytics",
+        line1: "Transforming Data into Business Strategy",
+        line2: "Ideal for Insight-Led Decision Makers",
+      },
+      "online-mba-in-digital-marketing": {
+        tag: "Digital Marketing",
+        line1: "Dominating the Digital-First Economy",
+        line2: "Ideal for Creative Growth Strategists",
+      },
+      "cyber-security": {
+        tag: "Cybersecurity",
+        line1: "Safeguarding the Digital World",
+        line2: "Ideal for Security & Risk Professionals",
+      },
+      "online-mba-in-fintech": {
+        tag: "FinTech",
+        line1: "Revolutionizing Modern Finance",
+        line2: "Ideal for Finance-Tech Professionals",
+      },
+      "online-mba-in-healthcare-and-hospital-administration": {
+        tag: "Healthcare & Hospital Administration",
+        line1: "Managing the Business of Healthcare",
+        line2: "Ideal for Healthcare Leaders & Administrators",
+      },
+      "information-technology": {
+        tag: "Information Technology",
+        line1: "Backbone of the Digital Enterprise",
+        line2: "Ideal for IT & Systems Professionals",
+      },
+      "international-finance": {
+        tag: "International Finance",
+        line1: "Navigating Global Financial Markets",
+        line2: "Ideal for Cross-Border Finance Experts",
+      },
+      "pharmaceuticals": {
+        tag: "Pharmaceuticals",
+        line1: "Driving Innovation in Life Sciences",
+        line2: "Ideal for Pharma & Healthcare Professionals",
+      },
+      "online-mba-in-logistics-supply-chain-management": {
+        tag: "Logistics & Supply Chain Management",
+        line1: "Optimizing Global Supply Networks",
+        line2: "Ideal for Operations & Distribution Experts",
+      },
+      "online-mba-in-marketing-management": {
+        tag: "Marketing Management",
+        line1: "Building Powerful Brands & Markets",
+        line2: "Ideal for Strategic Marketing Leaders",
+      },
+      "executive-programme-operations-management": {
+        tag: "Operations & Production",
+        line1: "Streamlining Business Efficiency",
+        line2: "Ideal for Process & Production Managers",
+      },
+      "blockchain": {
+        tag: "Blockchain",
+        line1: "Transforming Secure Digital Transactions",
+        line2: "Ideal for Web3 & Innovation Enthusiasts",
+      },
+      "certificate-program-in-ui-ux": {
+        tag: "Certificate Program in UI & UX",
+        line1: "Designing Seamless Digital Experiences",
+        line2: "Ideal for Creative Tech Professionals",
+      },
+    };
+
+    /**
+     * FETCH PROGRAMS
+     */
+    const programSlugs = categoryProgramMap[1] || [];
 
     const programs = await prisma.program.findMany({
       where: {
@@ -743,21 +820,72 @@ exports.OnlineCourseProgram = async (req, res) => {
         icon: true,
         slug: true,
         category_id: true,
+        bannerImage :true,
+        duration:true,
       },
     });
 
-    const sortedPrograms = programSlugs
-      .map((slug) => programs.find((p) => p.slug === slug))
+
+
+       const sortedPrograms = programSlugs
+      .map((slug) => {
+        const spec = programs.find((s) => s.slug === slug);
+        if (!spec) return null;
+
+        return {
+          ...spec,
+          tag: programExtra[slug]?.tag || "",
+          line1: programExtra[slug]?.line1 || "",
+        };
+      })
+      .filter(Boolean);
+    /**
+     * FETCH SPECIALIZATIONS
+     */
+    const specializationSlugs = specializationSlugMap[1] || [];
+
+    const specializations = await prisma.SpecialisationProgram.findMany({
+      where: {
+        slug: { in: specializationSlugs },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        title: true,
+        shortname: true,
+        short_icon: true,
+        icon: true,
+        bannerImage: true,
+        slug: true,
+      },
+    });
+
+    const sortedSpecializations = specializationSlugs
+      .map((slug) => {
+        const spec = specializations.find((s) => s.slug === slug);
+        if (!spec) return null;
+
+        return {
+          ...spec,
+          tag: specializationExtra[slug]?.tag || "",
+          line1: specializationExtra[slug]?.line1 || "",
+          line2: specializationExtra[slug]?.line2 || "",
+        };
+      })
       .filter(Boolean);
 
+    /**
+     * RESPONSE
+     */
     return res.status(200).json({
       success: true,
       message: "Programs fetched successfully",
-      sortedPrograms: sortedPrograms,
-      sortedSpecializations : sortedSpecializations
+      programs: sortedPrograms,
+      specializations: sortedSpecializations,
     });
+
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
 
     return res.status(500).json({
       success: false,

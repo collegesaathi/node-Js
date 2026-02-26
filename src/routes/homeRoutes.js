@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const dynamicUpload = require("../utils/dynamicUpload");
-const { AllTopProgram, AddVideo, GetVideoById, UpdateVideo, VideoDelete,ExploreUniversities, GetTrendingExecutives, GetHomePageProgarm } = require("../controllers/homeController");
+const { AllTopProgram, AddVideo, GetVideoById, UpdateVideo, VideoDelete,ExploreUniversities, GetTrendingExecutives, GetHomePageProgarm, OnlineCourseProgram } = require("../controllers/homeController");
 
 router.get("/spe/home", AllTopProgram);
 router.post("/admin/home/add", dynamicUpload("home").any(), AddVideo);
@@ -12,6 +12,7 @@ router.get("/explore-university",ExploreUniversities)
 
 router.get('/trending-executives',GetTrendingExecutives)
 
-// router.get("/all/home/program", GetHomePageProgarm);
+router.get("/all/home/program", GetHomePageProgarm);
+router.get("/all/spe/home", OnlineCourseProgram);
 
 module.exports = router;
