@@ -1219,13 +1219,29 @@ exports.adminupdateSpecialisationProgram = catchAsync(async (req, res) => {
 
 exports.GetFrontendSpe = catchAsync(async (req, res) => {
   try {
-    const {id , slug } = req.params;
+    const {categr,programslug , slug } = req.params;
     if (!slug) {
       return errorResponse(res, "Spe. Program slug is required", 400);
     }
+
+     const existingcategory = await prisma.category.findFirst({
+            where: {
+                slug: categr,
+            }
+        });
+
+            const Program = await prisma.Program.findFirst({
+      where: {
+        category_id : existingcategory.id,
+        slug: programslug,
+      },
+    
+    });
+
     const ProgramData = await prisma.SpecialisationProgram.findFirst({
       where: {
         slug: slug,
+        program_id : Program.id
       },
       include: {
         summary: true,
