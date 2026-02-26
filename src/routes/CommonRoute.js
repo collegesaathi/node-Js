@@ -30,7 +30,6 @@ router.get('/other-specilisations', GetOtherSpecialisations);
 
 router.get('/spec-programe-specilisations/:program_slug', GetSpeSpecialisations);
 
-
 router.get('/all-specilisations', GetAllSpecialisations);
 
 router.get('/pop-up', GetPopupUniversityData);

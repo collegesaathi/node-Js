@@ -972,7 +972,7 @@ exports.GetCategoryWithPrograms = catchAsync(async (req, res) => {
 
 exports.GetSpeSpecialisations = catchAsync(async (req, res) => {
   try {
-    const { program_slug, program_specialisation_slug } = req.params;
+    const { program_slug } = req.params;
 
     // ------------------ VALIDATION ------------------
     if (!program_slug ) {
@@ -1010,9 +1010,6 @@ exports.GetSpeSpecialisations = catchAsync(async (req, res) => {
     const otherSpecialisations = await prisma.specialisationProgram.findMany({
   where: {
     program_id: program.id,
-    slug: {
-      not: program_specialisation_slug,
-    },
     deleted_at: null,
   },
   select: {
