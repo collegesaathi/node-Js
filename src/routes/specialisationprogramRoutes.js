@@ -8,7 +8,7 @@ router.post("/admin/program/specialisation/update", dynamicUpload("Specialisatio
 
 router.get("/program/specialisation/:id", GetSpecialisationProgramList)
 
-router.get("/specialisation-program/:slug", GetSpecialisationProgramById)
+router.get("/specialisation-program/:id/:slug", GetSpecialisationProgramById)
 
 router.get("/specialisation-univeristy", GetSpecialisationProgramByUniverty)
 

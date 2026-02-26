@@ -524,14 +524,14 @@ exports.GetSpecialisationProgramList = catchAsync(async (req, res) => {
 
 exports.GetSpecialisationProgramById = catchAsync(async (req, res) => {
   try {
-    const { slug } = req.params;
+    const {id , slug } = req.params;
     if (!slug) {
       return errorResponse(res, "Spe. Program slug is required", 400);
     }
     const ProgramData = await prisma.SpecialisationProgram.findFirst({
       where: {
         slug: slug,
-        // deleted_at: null,
+        program_id :  Number(id)
       },
       include: {
         summary: true,
