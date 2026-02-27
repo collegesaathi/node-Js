@@ -408,51 +408,45 @@ exports.updateRecord = catchAsync(async (req, res) => {
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id, specialisation_id } = req.query;
-let clickPickRecord = "";
+let clickPickRecord =""
 
-const categoryId = category_id ? Number(category_id) : undefined;
-const programId = program_id ? Number(program_id) : undefined;
-const specialisationId = specialisation_id ? Number(specialisation_id) : undefined;
+    if(category_id &&program_id && specialisation_id ){
+  clickPickRecord = await prisma.ClickPick.findFirst({
+      where: {
+category_id  :  category_id,
+specialisation_program_id: specialisation_id,
+program_id : program_id,
+      },
+      orderBy: {
+        created_at: "desc"
+      }
+    });
+    }
 
+    if(category_id || program_id ){
+  clickPickRecord = await prisma.ClickPick.findFirst({
+      where: {
+category_id  :  category_id,
+program_id : program_id,
+      },
+      orderBy: {
+        created_at: "desc"
+      }
+    });
+    }
 
-// Priority 1️⃣ category + program + specialisation
-if (categoryId && programId && specialisationId) {
-  clickPickRecord = await prisma.ClickPick.findUnique({
-    where: {
-      category_id: categoryId,
-      program_id: programId,
-      specialisation_program_id: specialisationId,
-    },
-    orderBy: {
-      created_at: "asc",
-    },
-  });
-}
+    if(category_id){
+  clickPickRecord = await prisma.ClickPick.findFirst({
+          where: {
+category_id  :  category_id,
+      },
 
-// Priority 2️⃣ category + program
-else if (categoryId && programId) {
-  clickPickRecord = await prisma.ClickPick.findUnique({
-    where: {
-      category_id: categoryId,
-      program_id: programId,
-    },
-    orderBy: {
-      created_at: "asc",
-    },
-  });
-}
+      orderBy: {
+        created_at: "desc"
+      }
+    });
 
-// Priority 3️⃣ category only
-else if (categoryId) {
-  clickPickRecord = await prisma.ClickPick.findUnique({
-    where: {
-      category_id: categoryId,
-    },
-    orderBy: {
-      created_at: "asc",
-    },
-  });
-}
+    }
     // ----------------------------
     // 1️⃣ Build WHERE condition with PRIORITY
     // specialisation > program > category
