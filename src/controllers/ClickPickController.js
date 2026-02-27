@@ -407,6 +407,7 @@ exports.updateRecord = catchAsync(async (req, res) => {
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
+    console.log(req.query)
     const { category_id, program_id, specialisation_id } = req.query;
 
     // ----------------------------

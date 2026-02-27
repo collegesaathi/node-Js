@@ -751,6 +751,9 @@ exports.UpdateProgram = catchAsync(async (req, res) => {
         icon: uploadedFiles.icon?.[0]
           ? toPublicUrl(req, uploadedFiles.icon[0])
           : existing.icon,
+            short_icon: uploadedFiles.short_icon?.[0]
+          ? toPublicUrl(req, uploadedFiles.short_icon[0])
+          : existing.short_icon,
         bannerImageAlt: req.body.bannerImageAlt || existing.bannerImageAlt,
         pdfdownlaod: uploadedFiles.pdf_download?.[0]
           ? toPublicUrl(req, uploadedFiles.pdf_download[0])
