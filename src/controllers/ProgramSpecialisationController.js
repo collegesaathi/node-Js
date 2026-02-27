@@ -501,11 +501,17 @@ exports.GetSpecialisationProgramList = catchAsync(async (req, res) => {
     }
 
     const SpecialisationProgramList = await prisma.SpecialisationProgram.findMany({
-      where: {
-        program_id: Number(id),
+  where: {
+    program_id: Number(id),
+  },
+  include: {
+    program: {
+      include: {
+        category: true,
       },
-    });
-
+    },
+  },
+});
     if (!SpecialisationProgramList || SpecialisationProgramList.length === 0) {
       return validationErrorResponse(res, "SpecialisationProgramList not found", 404);
     }

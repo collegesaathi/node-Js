@@ -1125,11 +1125,14 @@ exports.AllPrograms = catchAsync(async (req, res) => {
   const skip = (page - 1) * limit;
 
 
-  const programs = await prisma.Program.findMany({
-    orderBy: { createdAt: "desc" },
-    skip,
-    take: limit,
-  });
+const programs = await prisma.Program.findMany({
+  orderBy: { createdAt: "desc" },
+  skip,
+  take: limit,
+  include: {
+    category: true, // relation name exactly schema jaisa hona chahiye
+  },
+});
 
   const totalPrograms = await prisma.Program.count();
 
