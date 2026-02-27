@@ -1,5 +1,5 @@
 const express = require("express");
-const {  GetFilterCategroybyuniversity, GetFilterprogrambyuniversity, GetFilterSpelizationbyuniversity, ApprovalFilter, GetFilterApprovalbyuniversity } = require("../controllers/FiltrationController");
+const {  GetFilterCategroybyuniversity, GetFilterprogrambyuniversity, GetFilterSpelizationbyuniversity, ApprovalFilter, GetFilterApprovalbyuniversity, GetFindCategroybyuniversity } = require("../controllers/FiltrationController");
 const { compare } = require("bcrypt");
 const router = express.Router();
 
@@ -14,6 +14,7 @@ router.get("/filtration/Approval", ApprovalFilter);
 router.get("/filtration/university", GetFilterApprovalbyuniversity);
 
 
+router.get("/find/category", GetFindCategroybyuniversity);
 
 
 
