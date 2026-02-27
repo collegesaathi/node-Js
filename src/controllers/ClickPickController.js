@@ -635,26 +635,6 @@ exports.GetClickPickListData = catchAsync(async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 exports.compareData = catchAsync(async (req, res) => {
   try {
     const { universities, course_name } = req.query;
