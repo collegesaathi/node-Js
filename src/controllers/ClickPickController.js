@@ -423,9 +423,10 @@ if (categoryId && programId && specialisationId) {
       program_id: programId,
       specialisation_program_id: specialisationId,
     },
-    orderBy: {
-      created_at: "asc",
-    },
+     orderBy: [
+      { updated_at: "desc" },
+      { created_at: "desc" }
+    ],
   });
 }
 
@@ -436,10 +437,12 @@ else if (categoryId && programId) {
       category_id: categoryId,
       program_id: programId,
     },
-    orderBy: {
-      created_at: "asc",
-    },
+     orderBy: [
+      { updated_at: "desc" },
+      { created_at: "desc" }
+    ],
   });
+  
 }
 
 // Priority 3️⃣ category only
@@ -447,17 +450,19 @@ else if (categoryId) {
   clickPickRecord = await prisma.ClickPick.findFirst({
     where: {
       category_id: categoryId,
+      deleted_at: null, // if using soft delete
     },
-    orderBy: {
-      created_at: "asc",
-    },
+    orderBy: [
+      { updated_at: "desc" },
+      { created_at: "desc" }
+    ],
   });
 }
     // ----------------------------
     // 1️⃣ Build WHERE condition with PRIORITY
     // specialisation > program > category
     // ----------------------------
-    
+    console.log(clickPickRecord)
 
    
     if (!clickPickRecord) {
