@@ -408,68 +408,120 @@ exports.updateRecord = catchAsync(async (req, res) => {
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id, specialisation_id } = req.query;
+let clickPickRecord = "";
 
-    const categoryId = Number(category_id);
-    const programId = program_id ? Number(program_id) : null;
-    const specialisationId = specialisation_id ? Number(specialisation_id) : null;
+const categoryId = category_id ? Number(category_id) : undefined;
+const programId = program_id ? Number(program_id) : undefined;
+const specialisationId = specialisation_id ? Number(specialisation_id) : undefined;
 
-    let clickPickRecord = null;
 
-    // ✅ Priority 1: specialisation + program + category
-    if (specialisationId && programId && categoryId) {
-      clickPickRecord = await prisma.ClickPick.findFirst({
-        where: {
-          category_id: categoryId,
-          program_id: programId,
-          specialisation_program_id: specialisationId,
-          deleted_at: null
-        },
-        orderBy: [
-          { updated_at: "desc" },
-          { created_at: "desc" }
-        ]
-      });
-    }
+// Priority 1️⃣ category + program + specialisation
+if (categoryId && programId && specialisationId) {
+  clickPickRecord = await prisma.ClickPick.findUnique({
+    where: {
+      category_id: categoryId,
+      program_id: programId,
+      specialisation_program_id: specialisationId,
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
+}
 
-    // ✅ Priority 2: program + category
-    if (!clickPickRecord && programId && categoryId) {
-      clickPickRecord = await prisma.ClickPick.findFirst({
-        where: {
-          category_id: categoryId,
-          program_id: programId,
-          deleted_at: null
-        },
-        orderBy: [
-          { updated_at: "desc" },
-          { created_at: "desc" }
-        ]
-      });
-    }
+// Priority 2️⃣ category + program
+else if (categoryId && programId) {
+  clickPickRecord = await prisma.ClickPick.findUnique({
+    where: {
+      category_id: categoryId,
+      program_id: programId,
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
+}
 
-    // ✅ Priority 3: category only
-    if (!clickPickRecord && categoryId) {
-      clickPickRecord = await prisma.ClickPick.findFirst({
-        where: {
-          category_id: categoryId,
-          deleted_at: null
-        },
-        orderBy: [
-          { updated_at: "asc" },
-          { created_at: "asc" }
-        ]
-      });
-    }
+// Priority 3️⃣ category only
+else if (categoryId) {
+  clickPickRecord = await prisma.ClickPick.findUnique({
+    where: {
+      category_id: categoryId,
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
+}
+    // ----------------------------
+    // 1️⃣ Build WHERE condition with PRIORITY
+    // specialisation > program > category
+    // ----------------------------
+    
 
-    console.log("FINAL RESULT:", clickPickRecord);
-
+   
     if (!clickPickRecord) {
       return errorResponse(res, "No ClickPick data found", 404);
     }
 
-    return successResponse(res, "Data fetched successfully", 200,clickPickRecord);
+    // ----------------------------
+    // 3️⃣ Specialisation exists check
+    // ----------------------------
+    let spec = false;
+
+    if (program_id) {
+      const specCheck = await prisma.SpecialisationProgram.findFirst({
+        where: {
+          program_id: Number(program_id),
+          deleted_at: null
+        }
+      });
+
+      spec = !!specCheck;
+    }
+
+    // ----------------------------
+    // 4️⃣ University fetch logic with priority
+    // ----------------------------
+    let universityIds = [];
+
+    if (clickPickRecord?.specialisationProgram?.university_id?.length) {
+      universityIds = clickPickRecord.specialisationProgram.university_id;
+    }
+    else if (clickPickRecord?.program?.university_id?.length) {
+      universityIds = clickPickRecord.program.university_id;
+    }
+    else if (clickPickRecord?.category?.university_id?.length) {
+      universityIds = clickPickRecord.category.university_id;
+    }
+
+    let universities = [];
+
+    if (universityIds.length > 0) {
+      universities = await prisma.University.findMany({
+        where: {
+          id: { in: universityIds.map(Number) },
+          deleted_at: null
+        }
+      });
+
+      // Maintain order
+      universities.sort(
+        (a, b) => universityIds.indexOf(a.id) - universityIds.indexOf(b.id)
+      );
+    }
+
+    // ----------------------------
+    // 5️⃣ Final response
+    // ----------------------------
+    return successResponse(res, "Data fetched successfully", 200, {
+      spec,
+      clickPick: clickPickRecord,
+      universities
+    });
 
   } catch (error) {
-    console.error(error);
+    console.error("GetClickpickData error:", error);
     return errorResponse(res, error.message, 500);
   }
 });
