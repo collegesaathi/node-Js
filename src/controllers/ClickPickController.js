@@ -409,91 +409,64 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id, specialisation_id } = req.query;
 
-    const categoryId = category_id ? Number(category_id) : undefined;
-    const programId = program_id ? Number(program_id) : undefined;
-    const specialisationId = specialisation_id ? Number(specialisation_id) : undefined;
+    const categoryId = Number(category_id);
+    const programId = program_id ? Number(program_id) : null;
+    const specialisationId = specialisation_id ? Number(specialisation_id) : null;
 
-    let whereCondition = {
-      deleted_at: null
-    };
+    let clickPickRecord = null;
 
-    // Priority WHERE
-    if (categoryId) whereCondition.category_id = categoryId;
-    if (programId) whereCondition.program_id = programId;
-    if (specialisationId) whereCondition.specialisation_program_id = specialisationId;
+    // ✅ Priority 1: specialisation + program + category
+    if (specialisationId && programId && categoryId) {
+      clickPickRecord = await prisma.ClickPick.findFirst({
+        where: {
+          category_id: categoryId,
+          program_id: programId,
+          specialisation_program_id: specialisationId,
+          deleted_at: null
+        },
+        orderBy: [
+          { updated_at: "desc" },
+          { created_at: "desc" }
+        ]
+      });
+    }
 
-    // ✅ STEP 1: get ALL matching records
-    const allRecords = await prisma.ClickPick.findMany({
-      where: whereCondition,
-    });
+    // ✅ Priority 2: program + category
+    if (!clickPickRecord && programId && categoryId) {
+      clickPickRecord = await prisma.ClickPick.findFirst({
+        where: {
+          category_id: categoryId,
+          program_id: programId,
+          deleted_at: null
+        },
+        orderBy: [
+          { updated_at: "desc" },
+          { created_at: "desc" }
+        ]
+      });
+    }
 
-    if (!allRecords.length) {
+    // ✅ Priority 3: category only
+    if (!clickPickRecord && categoryId) {
+      clickPickRecord = await prisma.ClickPick.findFirst({
+        where: {
+          category_id: categoryId,
+          deleted_at: null
+        },
+        orderBy: [
+          { updated_at: "desc" },
+          { created_at: "desc" }
+        ]
+      });
+    }
+
+    console.log("FINAL RESULT:", clickPickRecord);
+
+    if (!clickPickRecord) {
       return errorResponse(res, "No ClickPick data found", 404);
     }
 
-    // ✅ STEP 2: merge ASC + DESC properly (latest first)
-    allRecords.sort((a, b) => {
-      const dateA = new Date(a.updated_at || a.created_at || 0);
-      const dateB = new Date(b.updated_at || b.created_at || 0);
-      return dateB - dateA; // latest first
-    });
-
-    // ✅ STEP 3: pick latest record
-    const clickPickRecord = allRecords[0];
-
-    console.log("FINAL RECORD:", clickPickRecord);
-
-    // ----------------------------
-    // Specialisation exists check
-    // ----------------------------
-    let spec = false;
-
-    if (programId) {
-      const specCheck = await prisma.SpecialisationProgram.findFirst({
-        where: {
-          program_id: programId,
-          deleted_at: null
-        }
-      });
-
-      spec = !!specCheck;
-    }
-
-    // ----------------------------
-    // University logic
-    // ----------------------------
-    let universityIds = [];
-
-    if (clickPickRecord?.specialisationProgram?.university_id?.length) {
-      universityIds = clickPickRecord.specialisationProgram.university_id;
-    }
-    else if (clickPickRecord?.program?.university_id?.length) {
-      universityIds = clickPickRecord.program.university_id;
-    }
-    else if (clickPickRecord?.category?.university_id?.length) {
-      universityIds = clickPickRecord.category.university_id;
-    }
-
-    let universities = [];
-
-    if (universityIds.length) {
-      universities = await prisma.University.findMany({
-        where: {
-          id: { in: universityIds.map(Number) },
-          deleted_at: null
-        }
-      });
-
-      universities.sort(
-        (a, b) => universityIds.indexOf(a.id) - universityIds.indexOf(b.id)
-      );
-    }
-
-    return successResponse(res, "Data fetched successfully", 200, {
-      spec,
-      clickPick: clickPickRecord,
-      universities
-    });
+    return successResponse(res, "Data fetched successfully", 200,clickPickRecord);
 
   } catch (error) {
     console.error(error);
