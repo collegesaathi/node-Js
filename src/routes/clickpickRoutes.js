@@ -9,7 +9,7 @@ router.get('/view/clickpick', GetClickpickData)
 //Card Click PIck
 router.get('/list/clickpick', GetClickPickListData);
 router.get('/all-compare/clickpick', compareCourseData);
-router.get('/spe-compare/clickpick', compareSpeData);
+router.get('/spe-compare/clickpick', compareSpeData);   
 
 
 module.exports = router;
