@@ -408,76 +408,50 @@ exports.updateRecord = catchAsync(async (req, res) => {
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
     const { category_id, program_id, specialisation_id } = req.query;
-let clickPickRecord = "";
 
-const categoryId = category_id ? Number(category_id) : undefined;
-const programId = program_id ? Number(program_id) : undefined;
-const specialisationId = specialisation_id ? Number(specialisation_id) : undefined;
+    const categoryId = category_id ? Number(category_id) : undefined;
+    const programId = program_id ? Number(program_id) : undefined;
+    const specialisationId = specialisation_id ? Number(specialisation_id) : undefined;
 
+    let whereCondition = {
+      deleted_at: null
+    };
 
-// Priority 1️⃣ category + program + specialisation
-if (categoryId && programId && specialisationId) {
-  clickPickRecord = await prisma.ClickPick.findFirst({
-    where: {
-      category_id: categoryId,
-      program_id: programId,
-      specialisation_program_id: specialisationId,
-    },
-     orderBy: [
-      { updated_at: "desc" },
-      { created_at: "desc" }
-    ],
-  });
-}
+    // Priority WHERE
+    if (categoryId) whereCondition.category_id = categoryId;
+    if (programId) whereCondition.program_id = programId;
+    if (specialisationId) whereCondition.specialisation_program_id = specialisationId;
 
-// Priority 2️⃣ category + program
-else if (categoryId && programId) {
-  clickPickRecord = await prisma.ClickPick.findFirst({
-    where: {
-      category_id: categoryId,
-      program_id: programId,
-    },
-     orderBy: [
-      { updated_at: "desc" },
-      { created_at: "desc" }
-    ],
-  });
-  
-}
+    // ✅ STEP 1: get ALL matching records
+    const allRecords = await prisma.ClickPick.findMany({
+      where: whereCondition,
+    });
 
-// Priority 3️⃣ category only
-else if (categoryId) {
-  clickPickRecord = await prisma.ClickPick.findFirst({
-    where: {
-      category_id: categoryId,
-      deleted_at: null, // if using soft delete
-    },
-    orderBy: [
-      { updated_at: "desc" },
-      { created_at: "desc" }
-    ],
-  });
-}
-    // ----------------------------
-    // 1️⃣ Build WHERE condition with PRIORITY
-    // specialisation > program > category
-    // ----------------------------
-    console.log(clickPickRecord)
-
-   
-    if (!clickPickRecord) {
+    if (!allRecords.length) {
       return errorResponse(res, "No ClickPick data found", 404);
     }
 
+    // ✅ STEP 2: merge ASC + DESC properly (latest first)
+    allRecords.sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || 0);
+      const dateB = new Date(b.updated_at || b.created_at || 0);
+      return dateB - dateA; // latest first
+    });
+
+    // ✅ STEP 3: pick latest record
+    const clickPickRecord = allRecords[0];
+
+    console.log("FINAL RECORD:", clickPickRecord);
+
     // ----------------------------
-    // 3️⃣ Specialisation exists check
+    // Specialisation exists check
     // ----------------------------
     let spec = false;
 
-    if (program_id) {
+    if (programId) {
       const specCheck = await prisma.SpecialisationProgram.findFirst({
         where: {
-          program_id: Number(program_id),
+          program_id: programId,
           deleted_at: null
         }
       });
@@ -486,7 +460,7 @@ else if (categoryId) {
     }
 
     // ----------------------------
-    // 4️⃣ University fetch logic with priority
+    // University logic
     // ----------------------------
     let universityIds = [];
 
@@ -502,7 +476,7 @@ else if (categoryId) {
 
     let universities = [];
 
-    if (universityIds.length > 0) {
+    if (universityIds.length) {
       universities = await prisma.University.findMany({
         where: {
           id: { in: universityIds.map(Number) },
@@ -510,15 +484,11 @@ else if (categoryId) {
         }
       });
 
-      // Maintain order
       universities.sort(
         (a, b) => universityIds.indexOf(a.id) - universityIds.indexOf(b.id)
       );
     }
 
-    // ----------------------------
-    // 5️⃣ Final response
-    // ----------------------------
     return successResponse(res, "Data fetched successfully", 200, {
       spec,
       clickPick: clickPickRecord,
@@ -526,7 +496,7 @@ else if (categoryId) {
     });
 
   } catch (error) {
-    console.error("GetClickpickData error:", error);
+    console.error(error);
     return errorResponse(res, error.message, 500);
   }
 });
