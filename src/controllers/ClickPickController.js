@@ -454,8 +454,8 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
           deleted_at: null
         },
         orderBy: [
-          { updated_at: "desc" },
-          { created_at: "desc" }
+          { updated_at: "asc" },
+          { created_at: "asc" }
         ]
       });
     }
