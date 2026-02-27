@@ -503,13 +503,6 @@ exports.GetTrendingExecutives = catchAsync(async (req, res) => {
       orderBy: {
         createdAt: 'desc', // optional (remove if not needed)
       },
-      // select: {        // use this if you want limited fields
-      //   id: true,
-      //   title: true,
-      //   slug: true,
-      //   bannerImage: true,
-      //   shortDescription: true,
-      // }
     });
 
 
@@ -562,10 +555,10 @@ exports.GetHomePageProgarm = catchAsync(async (req, res) => {
       3: [
         "executive-pgdm",
         "online-postgraduate-diploma-business-administration",
-        "executive-pgdm",
+        "online-pg-diploma-programs",
         "online-diploma-courses",
         "online-executive-pgdba",
-        "online-diploma-programs",
+        "executive-diploma",
       ],
       5: [
         "executive-mba",

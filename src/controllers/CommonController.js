@@ -80,7 +80,17 @@ exports.GlobalSearch = catchAsync(async (req, res) => {
             { slug: contains },
             { shortDescription: contains }
           ]
+        },
+              include: {
+    
+        category: {   // 👈 program ki category include karo
+          select: {
+            id: true,
+            name: true,
+            slug: true
+          }
         }
+  }
       }),
 
       prisma.specialisationProgram.findMany({
@@ -92,11 +102,22 @@ exports.GlobalSearch = catchAsync(async (req, res) => {
             { shortDescription: contains }
           ]
         },
-        include: {
-          program: {
-            select: { id: true, title: true, slug: true }
+         include: {
+    program: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        category: {   // 👈 program ki category include karo
+          select: {
+            id: true,
+            name: true,
+            slug: true
           }
         }
+      }
+    }
+  }
       })
     ]);
 

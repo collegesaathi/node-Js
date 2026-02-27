@@ -407,33 +407,27 @@ exports.updateRecord = catchAsync(async (req, res) => {
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
-    console.log(req.query)
+    console.log(req.query);
+
     const { category_id, program_id, specialisation_id } = req.query;
 
     // ----------------------------
-    // 1️⃣ Build OR condition
+    // 1️⃣ Build WHERE condition with PRIORITY
     // ----------------------------
-    const orConditions = [];
-
-    if (category_id) {
-      orConditions.push({
-        category_id: Number(category_id)
-      });
-    }
-
-    if (program_id) {
-      orConditions.push({
-        program_id: Number(program_id)
-      });
-    }
+    let whereCondition = {
+      deleted_at: null
+    };
 
     if (specialisation_id) {
-      orConditions.push({
-        specialisation_program_id: Number(specialisation_id)
-      });
-    }
-
-    if (orConditions.length === 0) {
+      whereCondition.specialisation_program_id = Number(specialisation_id);
+    } 
+    else if (program_id) {
+      whereCondition.program_id = Number(program_id);
+    } 
+    else if (category_id) {
+      whereCondition.category_id = Number(category_id);
+    } 
+    else {
       return errorResponse(
         res,
         "category_id or program_id or specialisation_id is required",
@@ -445,10 +439,7 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
     // 2️⃣ Fetch ClickPick
     // ----------------------------
     const clickPickRecord = await prisma.ClickPick.findFirst({
-      where: {
-        deleted_at: null,
-        OR: orConditions
-      },
+      where: whereCondition,
       include: {
         category: true,
         program: true,
@@ -464,7 +455,7 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
     }
 
     // ----------------------------
-    // 2.5️⃣ Specialisation Check Flag (NEW)
+    // 3️⃣ Specialisation exists check
     // ----------------------------
     let spec = false;
 
@@ -476,27 +467,25 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
         }
       });
 
-      spec = specCheck ? true : false;
+      spec = !!specCheck;
     }
 
     // ----------------------------
-    // 3️⃣ University fetch logic
+    // 4️⃣ University fetch logic
     // ----------------------------
     let universityIds = [];
     let universities = [];
 
     // Priority 1️⃣ Specialisation
     if (
-      clickPickRecord.specialisationProgram?.university_id &&
-      Array.isArray(clickPickRecord.specialisationProgram.university_id)
+      clickPickRecord.specialisationProgram?.university_id?.length
     ) {
       universityIds = clickPickRecord.specialisationProgram.university_id;
     }
 
     // Priority 2️⃣ Program
     else if (
-      clickPickRecord.program?.university_id &&
-      Array.isArray(clickPickRecord.program.university_id)
+      clickPickRecord.program?.university_id?.length
     ) {
       universityIds = clickPickRecord.program.university_id;
     }
@@ -509,17 +498,16 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
         }
       });
 
-      // Maintain order
       universities.sort(
         (a, b) => universityIds.indexOf(a.id) - universityIds.indexOf(b.id)
       );
     }
 
     // ----------------------------
-    // 4️⃣ Final response
+    // 5️⃣ Final response
     // ----------------------------
     return successResponse(res, "Data fetched successfully", 200, {
-      spec,                 // ✅ true / false
+      spec,
       clickPick: clickPickRecord,
       universities
     });
