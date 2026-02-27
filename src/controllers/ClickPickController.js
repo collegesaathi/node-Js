@@ -410,7 +410,7 @@ exports.GetClickpickData = catchAsync(async (req, res) => {
     const { category_id, program_id, specialisation_id } = req.query;
 let clickPickRecord =""
 
-    if(category_id &&program_id && specialisation_id ){
+    if(category_id && program_id && specialisation_id ){
   clickPickRecord = await prisma.ClickPick.findFirst({
       where: {
 category_id  :  Number(category_id),
@@ -423,14 +423,14 @@ program_id : Number(program_id),
     });
     }
 
-    if(category_id || program_id ){
+    if(category_id && program_id ){
   clickPickRecord = await prisma.ClickPick.findFirst({
       where: {
 category_id  :  Number(category_id),
 program_id : Number(program_id),
       },
       orderBy: {
-        created_at: "desc"
+        created_at: "asc"
       }
     });
     }
@@ -508,11 +508,7 @@ category_id  :  Number(category_id),
     // ----------------------------
     // 5️⃣ Final response
     // ----------------------------
-    return successResponse(res, "Data fetched successfully", 200, {
-      spec,
-      clickPick: clickPickRecord,
-      universities
-    });
+    return successResponse(res, "Data fetched successfully", 200 ,clickPickRecord);
 
   } catch (error) {
     console.error("GetClickpickData error:", error);
