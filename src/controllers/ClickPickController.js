@@ -442,7 +442,7 @@ category_id  :  Number(category_id),
       },
 
       orderBy: {
-        created_at: "desc"
+        created_at: "asc"
       }
     });
 
