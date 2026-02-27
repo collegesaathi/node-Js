@@ -413,9 +413,9 @@ let clickPickRecord =""
     if(category_id &&program_id && specialisation_id ){
   clickPickRecord = await prisma.ClickPick.findFirst({
       where: {
-category_id  :  category_id,
-specialisation_program_id: specialisation_id,
-program_id : program_id,
+category_id  :  Number(category_id),
+specialisation_program_id: Number(specialisation_id),
+program_id : Number(program_id),
       },
       orderBy: {
         created_at: "desc"
@@ -426,8 +426,8 @@ program_id : program_id,
     if(category_id || program_id ){
   clickPickRecord = await prisma.ClickPick.findFirst({
       where: {
-category_id  :  category_id,
-program_id : program_id,
+category_id  :  Number(category_id),
+program_id : Number(program_id),
       },
       orderBy: {
         created_at: "desc"
@@ -438,7 +438,7 @@ program_id : program_id,
     if(category_id){
   clickPickRecord = await prisma.ClickPick.findFirst({
           where: {
-category_id  :  category_id,
+category_id  :  Number(category_id),
       },
 
       orderBy: {
