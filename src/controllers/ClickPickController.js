@@ -407,46 +407,56 @@ exports.updateRecord = catchAsync(async (req, res) => {
 
 exports.GetClickpickData = catchAsync(async (req, res) => {
   try {
-    const { category_id, program_id, specialisation_id } = req.query;
-let clickPickRecord =""
+const { category_id, program_id, specialisation_id } = req.query;
 
-    if(category_id && program_id && specialisation_id ){
+let clickPickRecord = null;
+
+// Priority 1: specialisation + program + category
+if (category_id && program_id && specialisation_id) {
+
   clickPickRecord = await prisma.ClickPick.findFirst({
-      where: {
-category_id  :  Number(category_id),
-specialisation_program_id: Number(specialisation_id),
-program_id : Number(program_id),
-      },
-      orderBy: {
-        created_at: "desc"
-      }
-    });
-    }
+    where: {
+      category_id: Number(category_id),
+      program_id: Number(program_id),
+      specialisation_program_id: Number(specialisation_id),
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
 
-    if(category_id && program_id ){
+}
+
+// Priority 2: program + category
+else if (category_id && program_id) {
+
   clickPickRecord = await prisma.ClickPick.findFirst({
-      where: {
-category_id  :  Number(category_id),
-program_id : Number(program_id),
-      },
-      orderBy: {
-        created_at: "asc"
-      }
-    });
-    }
+    where: {
+      category_id: Number(category_id),
+      program_id: Number(program_id),
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
 
-    if(category_id){
+}
+
+// Priority 3: category only
+else if (category_id) {
+
   clickPickRecord = await prisma.ClickPick.findFirst({
-          where: {
-category_id  :  Number(category_id),
-      },
+    where: {
+      category_id: Number(category_id),
+    },
+    orderBy: {
+      created_at: "asc",
+    },
+  });
 
-      orderBy: {
-        created_at: "asc"
-      }
-    });
+}
 
-    }
+console.log(clickPickRecord);
     // ----------------------------
     // 1️⃣ Build WHERE condition with PRIORITY
     // specialisation > program > category
