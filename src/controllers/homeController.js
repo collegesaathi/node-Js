@@ -450,8 +450,7 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
   // 1️⃣ Top Universities (position 1–8)
   const topUniversities = await prisma.university.findMany({
     where: {
-      deleted_at: null,
-      position: { gte: 1, lte: 8 },
+      position: { gte: 1, lte: 12 },
     },
     select: {
       id: true,
