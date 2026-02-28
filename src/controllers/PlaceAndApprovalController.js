@@ -257,22 +257,31 @@ exports.PlacementSoftDelete = catchAsync(async (req, res) => {
 
 
 exports.ApprovalandPlacements = catchAsync(async (req, res) => {
+
     // --- Fetch Approvals ---
-    let approvals = await prisma.approvals.findMany({
+    const approvals = await prisma.approvals.findMany({
+        where: {
+            deleted_at: null
+        },
         orderBy: { created_at: "asc" },
     });
 
     if (!approvals) {
         return errorResponse(res, "Failed to fetch approvals", 500);
     }
+
     // --- Fetch Placements ---
-    let placements = await prisma.placements.findMany({
+    const placements = await prisma.placements.findMany({
+        where: {
+            deleted_at: null
+        },
         orderBy: { created_at: "asc" },
     });
 
     if (!placements) {
         return errorResponse(res, "Failed to fetch placements", 500);
     }
+
     return successResponse(res, "Admin university data fetched successfully", 200, {
         approvals,
         placements,
