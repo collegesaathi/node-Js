@@ -580,9 +580,16 @@ exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
     /* -------------------------------------------------
        CASE 2: SPECIALISATION PROGRAM SLUG
     --------------------------------------------------*/
-    if (program_specialisation_slug) {
+    if (program_slug && program_specialisation_slug) {
+        const program = await prisma.program.findFirst({
+        where: {
+          slug: program_slug,
+          deleted_at: null,
+        },
+      });
       const specialisation = await prisma.specialisationProgram.findFirst({
         where: {
+          program_id : program.slug,
           slug: program_specialisation_slug,
           deleted_at: null,
         },
@@ -590,6 +597,90 @@ exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
           university_id: true,
         },
       });
+
+      console.log("specialisation" ,specialisation)
+
+      if (!specialisation) {
+        return errorResponse(res, "Specialisation program not found", 404);
+      }
+
+      universityIds = specialisation.university_id || [];
+    }
+
+    /* -------------------------------------------------
+       VALIDATE UNIVERSITY IDS
+    --------------------------------------------------*/
+    if (!Array.isArray(universityIds) || universityIds.length === 0) {
+      return successResponse(res, "No universities found", 200, []);
+    }
+
+    /* -------------------------------------------------
+       FETCH UNIVERSITIES
+    --------------------------------------------------*/
+    const universities = await prisma.university.findMany({
+      where: {
+        id: {
+          in: universityIds.map(Number),
+        },
+        deleted_at: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        icon: true,
+        cover_image: true,
+        icon_alt: true,
+        cover_image_alt: true,
+      },
+      orderBy: {
+        position: "asc",
+      },
+    });
+
+    return successResponse(res, "Similar universities fetched successfully", 200, universities);
+
+  } catch (error) {
+    return errorResponse(res, error.message, 500);
+  }
+});
+
+exports.GetSimilarSpeUniversityList = catchAsync(async (req, res) => {
+  try {
+    const { program_slug, program_specialisation_slug } = req.query;
+
+    if (!program_slug && !program_specialisation_slug) {
+      return errorResponse(
+        res,
+        "Either program_slug or program_specialisation_slug is required",
+        400
+      );
+    }
+
+    let universityIds = [];
+
+    /* -------------------------------------------------
+       CASE 2: SPECIALISATION PROGRAM SLUG
+    --------------------------------------------------*/
+    if (program_slug && program_specialisation_slug) {
+        const program = await prisma.program.findFirst({
+        where: {
+          slug: program_slug,
+          deleted_at: null,
+        },
+      });
+      const specialisation = await prisma.specialisationProgram.findFirst({
+        where: {
+          program_id : program.id,
+          slug: program_specialisation_slug,
+          deleted_at: null,
+        },
+        select: {
+          university_id: true,
+        },
+      });
+
+      console.log("specialisation" ,specialisation)
 
       if (!specialisation) {
         return errorResponse(res, "Specialisation program not found", 404);
@@ -771,8 +862,6 @@ exports.GetAllSpecialisations = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.GetPopupUniversityData = catchAsync(async (req, res) => {
   try {
     const { university_slug } = req.query;
@@ -905,10 +994,6 @@ const sortedCourses = filteredCourses.sort(
   }
 });
 
-
-
-
-
 exports.GetReviews = catchAsync(async (req, res) => {
   try {
     const { university_slug } = req.params;
@@ -957,11 +1042,8 @@ exports.GetReviews = catchAsync(async (req, res) => {
   }
 });
 
-
-
 exports.GetCategoryWithPrograms = catchAsync(async (req, res) => {
   try {
-
     const categories = await prisma.category.findMany({
       orderBy: {
         id: "asc",

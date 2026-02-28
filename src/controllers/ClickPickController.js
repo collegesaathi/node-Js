@@ -444,7 +444,6 @@ else if (category_id && program_id) {
 
 // Priority 3: category only
 else if (category_id) {
-
   clickPickRecord = await prisma.ClickPick.findFirst({
     where: {
       category_id: Number(category_id),
@@ -453,7 +452,6 @@ else if (category_id) {
       created_at: "asc",
     },
   });
-
 }
 
 console.log(clickPickRecord);

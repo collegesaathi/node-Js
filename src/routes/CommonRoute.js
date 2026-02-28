@@ -1,5 +1,5 @@
 const express = require("express");
-const { List, GlobalSearch, CompareUniversity, AllProgram, PopUniversityApi, GetUniversityCategroyList, GetCategroyList, GetApprovalUniversity, UniversityList, GetSchollarshipList, GetPlacementList, GetSimilarUniversityList, GetOtherSpecialisations, GetAllSpecialisations, GetPopupUniversityData, GetReviews, GetCategoryWithPrograms, GetSpeSpecialisations } = require("../controllers/CommonController");
+const { List, GlobalSearch, CompareUniversity, AllProgram, PopUniversityApi, GetUniversityCategroyList, GetCategroyList, GetApprovalUniversity, UniversityList, GetSchollarshipList, GetPlacementList, GetSimilarUniversityList, GetOtherSpecialisations, GetAllSpecialisations, GetPopupUniversityData, GetReviews, GetCategoryWithPrograms, GetSpeSpecialisations, GetSimilarSpeUniversityList } = require("../controllers/CommonController");
 const router = express.Router();
 
 router.get("/all/catergoy/university", List);
@@ -26,8 +26,9 @@ router.get('/placement/list', GetPlacementList);
 
 router.get('/similar/university', GetSimilarUniversityList);
 
-router.get('/other-specilisations', GetOtherSpecialisations);
+router.get('/similar/spe/university', GetSimilarSpeUniversityList);
 
+router.get('/other-specilisations', GetOtherSpecialisations);
 router.get('/spec-programe-specilisations/:program_slug', GetSpeSpecialisations);
 
 router.get('/all-specilisations', GetAllSpecialisations);
