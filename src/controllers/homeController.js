@@ -447,6 +447,7 @@ exports.VideoDelete = catchAsync(async (req, res) => {
 
 exports.ExploreUniversities = catchAsync(async (req, res) => {
 
+  // 1️⃣ Top Universities (position 1–8)
   const topUniversities = await prisma.university.findMany({
     where: {
       deleted_at: null,
@@ -458,37 +459,44 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
       name: true,
       icon: true,
       position: true,
-      deleted_at :true
+      deleted_at: true
     },
     orderBy: {
       position: 'asc'
     }
   });
-  // 2️⃣ Baaki sab ( >10 or NULL )
+
+  // 2️⃣ Other Universities (active first, deleted after)
   const otherUniversities = await prisma.university.findMany({
     select: {
       id: true,
       slug: true,
       name: true,
       icon: true,
-      deleted_at :true,
+      deleted_at: true,
       position: true
     },
     orderBy: [
-      { position: 'asc' },
-      { created_at: 'desc' }
+      {
+        deleted_at: 'asc'   // ✅ active (null) first, deleted after
+      },
+      {
+        position: 'asc'
+      },
+      {
+        created_at: 'desc'
+      }
     ]
   });
+
   // 3️⃣ Merge
   const finalList = [...topUniversities, ...otherUniversities];
-
 
   const totalUniversities = finalList.length;
 
   return successResponse(res, "Universities fetched successfully", 200, {
     universities: finalList,
     totalUniversities
-
   });
 
 });
