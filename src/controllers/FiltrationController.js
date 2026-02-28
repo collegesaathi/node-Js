@@ -290,6 +290,9 @@ exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
                 cover_image: true,
                 icon_alt: true,
                 cover_image_alt: true,
+                highlightkey: true,
+                budget : true ,
+                pdf_download :true
             },
             orderBy: {
                 position: "asc",
@@ -367,13 +370,16 @@ exports.GetFilterSpelizationbyuniversity = catchAsync(async (req, res) => {
                 deleted_at: null,
             },
             select: {
-                id: true,
+               id: true,
                 name: true,
                 slug: true,
                 icon: true,
                 cover_image: true,
                 icon_alt: true,
                 cover_image_alt: true,
+                highlightkey: true,
+                budget : true ,
+                pdf_download :true
             },
             orderBy: {
                 position: "asc",
@@ -437,6 +443,9 @@ exports.GetFilterApprovalbyuniversity = catchAsync(async (req, res) => {
                 cover_image: true,
                 icon_alt: true,
                 cover_image_alt: true,
+                highlightkey: true,
+                budget : true ,
+                pdf_download :true
             },
             orderBy: {
                 name: "asc",
