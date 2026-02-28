@@ -163,72 +163,82 @@ exports.GetFiltrationList = catchAsync(async (req, res) => {
 exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
   try {
     const { category_id } = req.query;
-    const programs = await prisma.Program.findMany({
-      where: {
-        category_id: Number(category_id),
-        deleted_at: null,
-      },
-      orderBy: { id: "asc" }
-    });
 
-    if (!programs.length) {
-      return errorResponse(res, "No programs found for this category", 404);
-    }
-    const validPrograms = programs.filter(
-      p => Array.isArray(p.university_id) && p.university_id.length > 0
-    );
-    if (!validPrograms.length) {
-      return errorResponse(res, "No programs found with universities", 404);
-    }
-    const programIds = validPrograms.map(p => p.id);
-    const universityIds = [
-      ...new Set(validPrograms.flatMap(p => p.university_id))
-    ];
-    let universities = [];
-    if (universityIds.length > 0) {
-      universities = await prisma.University.findMany({
+    // executive slugs
+ 
+
+      // ✅ your existing logic unchanged
+      const programs = await prisma.Program.findMany({
         where: {
-          id: { in: universityIds },
-          deleted_at: null
-        }
+          category_id: Number(category_id),
+          deleted_at: null,
+        },
+        orderBy: { id: "asc" }
       });
-    }
-    // specialisation table se matching records lao
-    const specialisations = await prisma.specialisationProgram.findMany({
-      where: {
-        program_id: {
-          in: programIds
-        }
-      },
-      select: {
-        program_id: true
+
+      if (!programs.length) {
+        return errorResponse(res, "No programs found for this category", 404);
       }
-    });
 
-    const specSet = new Set(specialisations.map(s => s.program_id));
-
-    // final response mapping
-    const finalData = validPrograms.map(p => {
-      const uniIds = Array.isArray(p.university_id) ? p.university_id : [];
-
-      const programUniversities = universities.filter(u =>
-        uniIds.includes(u.id)
+      const validPrograms = programs.filter(
+        p => Array.isArray(p.university_id) && p.university_id.length > 0
       );
 
-      return {
-        ...p,
-        hasSpecialization: specSet.has(p.id),
-        specialisationslength: specSet.size,
-        universities: programUniversities
-      };
-    });
+      if (!validPrograms.length) {
+        return errorResponse(res, "No programs found with universities", 404);
+      }
 
-    return successResponse(
-      res,
-      "Programs fetched with specialization flag",
-      200,
-      finalData
-    );
+      const programIds = validPrograms.map(p => p.id);
+
+      const universityIds = [
+        ...new Set(validPrograms.flatMap(p => p.university_id))
+      ];
+
+      let universities = [];
+
+      if (universityIds.length > 0) {
+        universities = await prisma.University.findMany({
+          where: {
+            id: { in: universityIds },
+            deleted_at: null
+          }
+        });
+      }
+
+      const specialisations = await prisma.specialisationProgram.findMany({
+        where: {
+          program_id: {
+            in: programIds
+          }
+        },
+        select: {
+          program_id: true
+        }
+      });
+
+      const specSet = new Set(specialisations.map(s => s.program_id));
+
+      const finalData = validPrograms.map(p => {
+        const uniIds = Array.isArray(p.university_id) ? p.university_id : [];
+
+        const programUniversities = universities.filter(u =>
+          uniIds.includes(u.id)
+        );
+
+        return {
+          ...p,
+          hasSpecialization: specSet.has(p.id),
+          specialisationslength: specSet.size,
+          universities: programUniversities
+        };
+      });
+
+      return successResponse(
+        res,
+        "Programs fetched with specialization flag",
+        200,
+        finalData
+      );
 
   } catch (error) {
     console.error("Error in GetFilterCategroybyuniversity:", error);
