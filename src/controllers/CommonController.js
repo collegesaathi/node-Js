@@ -570,9 +570,6 @@ exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
         },
       });
 
-      if (!program) {
-        return errorResponse(res, "Program not found", 404);
-      }
 
       universityIds = program.university_id || [];
     }
@@ -598,21 +595,11 @@ exports.GetSimilarUniversityList = catchAsync(async (req, res) => {
         },
       });
 
-      console.log("specialisation" ,specialisation)
-
-      if (!specialisation) {
-        return errorResponse(res, "Specialisation program not found", 404);
-      }
 
       universityIds = specialisation.university_id || [];
     }
 
-    /* -------------------------------------------------
-       VALIDATE UNIVERSITY IDS
-    --------------------------------------------------*/
-    if (!Array.isArray(universityIds) || universityIds.length === 0) {
-      return successResponse(res, "No universities found", 200, []);
-    }
+ 
 
     /* -------------------------------------------------
        FETCH UNIVERSITIES
@@ -680,20 +667,8 @@ exports.GetSimilarSpeUniversityList = catchAsync(async (req, res) => {
         },
       });
 
-      console.log("specialisation" ,specialisation)
-
-      if (!specialisation) {
-        return errorResponse(res, "Specialisation program not found", 404);
-      }
 
       universityIds = specialisation.university_id || [];
-    }
-
-    /* -------------------------------------------------
-       VALIDATE UNIVERSITY IDS
-    --------------------------------------------------*/
-    if (!Array.isArray(universityIds) || universityIds.length === 0) {
-      return successResponse(res, "No universities found", 200, []);
     }
 
     /* -------------------------------------------------
