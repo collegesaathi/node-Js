@@ -554,7 +554,6 @@ model Program {
   career_growth       String?
   duration            String?
   shortname            String?
-
   specialization      String?
   audio               String?
   subtitle            String?

@@ -1,6 +1,7 @@
 const { errorResponse, successResponse, validationErrorResponse } = require("../utils/ErrorHandling");
 const prisma = require("../config/prisma");
 const catchAsync = require("../utils/catchAsync");
+const { Prisma } = require("@prisma/client");
 
 
 exports.GetFiltrationList = catchAsync(async (req, res) => {
@@ -296,27 +297,24 @@ exports.GetFilterprogrambyuniversity = catchAsync(async (req, res) => {
             },
         });
 
-        const SpecialisationPrograms = await prisma.SpecialisationProgram.findMany({
-            where: {
-                program_id: Number(program_id),
-                deleted_at: null
-            },
-            orderBy: {
-                id: "asc"
-            }
-        });
+const SpecialisationPrograms = await prisma.SpecialisationProgram.findMany({
+  where: {
+    program_id: Number(program_id),
+    deleted_at: null
+  },
+});
 
-        // ✅ flag auto add
-        const finalData = SpecialisationPrograms.map(sp => ({
-            ...sp,
-            hasSpecialization: true
-        }));
+const finalData = SpecialisationPrograms
+  .filter(sp => Array.isArray(sp.university_id) && sp.university_id.length > 0)
+  .map(sp => ({
+    ...sp,
+    hasSpecialization: true
+  }));
 
-        const responseData = {
-            data: finalData
-        };
-
-
+const responseData = {
+  data: finalData,
+  universityCount: finalData.length
+};
 
         return successResponse(
             res,
