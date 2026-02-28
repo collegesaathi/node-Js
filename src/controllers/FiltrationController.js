@@ -163,52 +163,27 @@ exports.GetFiltrationList = catchAsync(async (req, res) => {
 exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
   try {
     const { category_id } = req.query;
-
-    const executiveSlugs = [
-      "executive-mba",
-      "online-executive-msc",
-      "online-executive-pgcm",
-      "executive-dba",
-      "executive-pgdm",
-      "online-executive-pgdba"
-    ];
-
-    // ✅ dynamic where condition
-    let whereCondition = {
-      category_id: Number(category_id),
-      deleted_at: null
-    };
-
-    // ✅ only apply slug filter when category_id = 5
-    if (Number(category_id) === 5) {
-      whereCondition.slug = {
-        in: executiveSlugs
-      };
-    }
     const programs = await prisma.Program.findMany({
-      where: whereCondition,
+      where: {
+        category_id: Number(category_id),
+        deleted_at: null,
+      },
       orderBy: { id: "asc" }
     });
 
     if (!programs.length) {
       return errorResponse(res, "No programs found for this category", 404);
     }
-    // valid programs with university
     const validPrograms = programs.filter(
       p => Array.isArray(p.university_id) && p.university_id.length > 0
     );
-
-    console.log("programs" ,programs)
     if (!validPrograms.length) {
       return errorResponse(res, "No programs found with universities", 404);
     }
-
     const programIds = validPrograms.map(p => p.id);
-
     const universityIds = [
       ...new Set(validPrograms.flatMap(p => p.university_id))
     ];
-
     let universities = [];
     if (universityIds.length > 0) {
       universities = await prisma.University.findMany({
@@ -218,10 +193,12 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
         }
       });
     }
-
+    // specialisation table se matching records lao
     const specialisations = await prisma.specialisationProgram.findMany({
       where: {
-        program_id: { in: programIds }
+        program_id: {
+          in: programIds
+        }
       },
       select: {
         program_id: true
@@ -230,6 +207,7 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
 
     const specSet = new Set(specialisations.map(s => s.program_id));
 
+    // final response mapping
     const finalData = validPrograms.map(p => {
       const uniIds = Array.isArray(p.university_id) ? p.university_id : [];
 
@@ -247,7 +225,7 @@ exports.GetFilterCategroybyuniversity = catchAsync(async (req, res) => {
 
     return successResponse(
       res,
-      "Programs fetched successfully",
+      "Programs fetched with specialization flag",
       200,
       finalData
     );
