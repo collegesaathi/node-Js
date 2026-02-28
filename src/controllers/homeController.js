@@ -457,7 +457,8 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
       slug: true,
       name: true,
       icon: true,
-      position: true
+      position: true,
+      deleted_at :true
     },
     orderBy: {
       position: 'asc'
@@ -470,6 +471,7 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
       slug: true,
       name: true,
       icon: true,
+      deleted_at :true,
       position: true
     },
     orderBy: [
