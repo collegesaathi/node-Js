@@ -821,9 +821,6 @@ exports.GetAllSpecialisations = catchAsync(async (req, res) => {
       },
     });
 
-    if (!program) {
-      return errorResponse(res, "Program not found", 404);
-    }
 
     // ------------------ FETCH ALL SPECIALISATIONS ------------------
     const specialisations = await prisma.specialisationProgram.findMany({
@@ -845,10 +842,6 @@ exports.GetAllSpecialisations = catchAsync(async (req, res) => {
       },
     });
 
-    // ------------------ RESPONSE ------------------
-    if (specialisations.length === 0) {
-      return successResponse(res, "No specialisations found", 200, []);
-    }
 
     return successResponse(
       res,
