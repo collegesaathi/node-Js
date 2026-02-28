@@ -668,27 +668,27 @@ exports.OnlineCourseProgram = async (req, res) => {
       const programExtra = {
       "online-mba": {
         tag: "AI & ML",
-        line2: "30+ cutting-edge specializations",
+        line2: "35+ cutting-edge specialisations",
       },
       "online-mca": {
         tag: "Business Analytics",
-      line2: "30+ cutting-edge specializations",
+      line2: " 25+ cutting-edge specializations",
       },
       "online-bba": {
         tag: "Digital Marketing",
-          line2: "30+ cutting-edge specializations",
+          line2: "20+ cutting-edge specializations",
       },
       "online-bca": {
         tag: "Cybersecurity",
-           line2: "30+ cutting-edge specializations",
+           line2: "15+ cutting-edge specializations",
       },
       "1-year-online-mba": {
         tag: "FinTech",
-         line2: "30+ cutting-edge specializations",
+         line2: "7+ cutting-edge specializations",
       },
       "online-dual-mba": {
         tag: "Healthcare & Hospital Administration",
-         line2: "30+ cutting-edge specializations",
+         line2: "35+ cutting-edge specializations",
       },
     };
     /**
