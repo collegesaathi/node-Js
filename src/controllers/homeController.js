@@ -495,7 +495,9 @@ exports.ExploreUniversities = catchAsync(async (req, res) => {
 
   return successResponse(res, "Universities fetched successfully", 200, {
     universities: finalList,
-    totalUniversities
+    totalUniversities ,
+    topUniversities : topUniversities ,
+    otherUniversities : otherUniversities
   });
 
 });
